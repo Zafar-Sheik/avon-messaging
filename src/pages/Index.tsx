@@ -14,11 +14,6 @@ const Index = () => {
       <SidebarProvider>
         <Sidebar collapsible="icon">
           <SidebarHeader className="space-y-3">
-            <img
-              src="/images/contact-messaging.jpg"
-              alt="Contact Messaging"
-              className="w-full h-auto max-w-[200px] mx-auto rounded-md border shadow-sm"
-            />
           </SidebarHeader>
           <SidebarContent>
             <HomeMenuCards />
