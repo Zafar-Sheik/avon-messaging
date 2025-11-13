@@ -17,7 +17,7 @@ const Index = () => {
             <img
               src="/images/contact-messaging.jpg"
               alt="Contact Messaging"
-              className="w-full rounded-md border shadow-sm"
+              className="w-full h-28 md:h-32 object-cover rounded-md border shadow-sm"
             />
           </SidebarHeader>
           <SidebarContent>
