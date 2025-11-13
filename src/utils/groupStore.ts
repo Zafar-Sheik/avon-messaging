@@ -124,3 +124,7 @@ export const clearGroupHistory = (groupId: string) => {
   group.sentHistory = [];
   saveGroups(groups);
 };
+
+export const clearAllGroups = () => {
+  localStorage.removeItem(STORAGE_KEY);
+};
