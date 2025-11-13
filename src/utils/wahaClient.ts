@@ -22,6 +22,9 @@ const normalizePhone = (phone: string): string => (phone || "").replace(/\D+/g, 
 const makeEndpoint = (baseUrl: string, sessionName: string) =>
   `${baseUrl.replace(/\/+$/, "")}/sessions/${encodeURIComponent(sessionName)}/messages`;
 
+const makeSessionBase = (baseUrl: string, sessionName: string) =>
+  `${baseUrl.replace(/\/+$/, "")}/sessions/${encodeURIComponent(sessionName)}`;
+
 export const isWahaConfigured = (): boolean => !!getWahaConfig();
 
 export const sendTextMessage = async (to: string, text: string): Promise<void> => {
@@ -72,5 +75,98 @@ export const sendFileMessage = async (
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`WAHA request failed (${res.status}): ${body}`);
+  }
+};
+
+export const getSessionStatus = async (): Promise<{ status: string; phone?: string }> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+  const url = makeSessionBase(cfg.baseUrl, cfg.sessionName);
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${cfg.apiKey}`,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`WAHA status failed (${res.status}): ${body}`);
+  }
+  const data = await res.json();
+  const status = (data.status ?? data.state ?? "unknown") as string;
+  const phone =
+    (data.client?.phone_number ??
+      data.client?.phone ??
+      data.phone_number ??
+      data.phone ??
+      data.me?.id ??
+      undefined) as string | undefined;
+  return { status, phone };
+};
+
+export const getSessionQrCode = async (): Promise<string> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+  const url = `${makeSessionBase(cfg.baseUrl, cfg.sessionName)}/qrcode`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${cfg.apiKey}`,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`WAHA QR fetch failed (${res.status}): ${body}`);
+  }
+  // Many WAHA servers return base64 image as plain text
+  const base64 = await res.text();
+  return base64;
+};
+
+export const startSession = async (): Promise<void> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+  const url = `${makeSessionBase(cfg.baseUrl, cfg.sessionName)}/start`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${cfg.apiKey}`,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`WAHA start failed (${res.status}): ${body}`);
+  }
+};
+
+export const stopSession = async (): Promise<void> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+  const url = `${makeSessionBase(cfg.baseUrl, cfg.sessionName)}/stop`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${cfg.apiKey}`,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`WAHA stop failed (${res.status}): ${body}`);
+  }
+};
+
+export const logoutSession = async (): Promise<void> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+  const url = `${makeSessionBase(cfg.baseUrl, cfg.sessionName)}/logout`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${cfg.apiKey}`,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`WAHA logout failed (${res.status}): ${body}`);
   }
 };
