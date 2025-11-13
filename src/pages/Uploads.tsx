@@ -2,6 +2,7 @@
 
 import React from "react";
 import ContactImport from "@/components/ContactImport";
+import FileManager from "@/components/FileManager";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
@@ -52,6 +53,8 @@ const UploadsPage = () => {
         <Card className="p-4">
           <ContactImport onImported={onImported} />
         </Card>
+
+        <FileManager />
       </div>
     </div>
   );
