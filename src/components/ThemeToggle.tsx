@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sun, Moon, Sparkles } from "lucide-react";
+import { Sun, Moon, Sparkles, MoonStar } from "lucide-react";
 
 const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -20,23 +20,32 @@ const ThemeToggle: React.FC = () => {
         return <Moon className="h-4 w-4" />;
       case "modern":
         return <Sparkles className="h-4 w-4" />;
+      case "modern-dark":
+        return <MoonStar className="h-4 w-4" />;
       case "light":
       default:
         return <Sun className="h-4 w-4" />;
     }
   };
 
+  const displayName =
+    theme === "modern-dark"
+      ? "Modern Dark"
+      : theme === "modern"
+      ? "Modern"
+      : theme
+      ? theme[0].toUpperCase() + theme.slice(1)
+      : "Theme";
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="gap-2">
           <Icon />
-          <span className="hidden sm:inline">
-            {theme === "modern" ? "Modern" : theme ? theme[0].toUpperCase() + theme.slice(1) : "Theme"}
-          </span>
+          <span className="hidden sm:inline">{displayName}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem onClick={() => setTheme("system")}>
           <Sun className="mr-2 h-4 w-4" />
           System
@@ -52,6 +61,10 @@ const ThemeToggle: React.FC = () => {
         <DropdownMenuItem onClick={() => setTheme("modern")}>
           <Sparkles className="mr-2 h-4 w-4" />
           Modern
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("modern-dark")}>
+          <MoonStar className="mr-2 h-4 w-4" />
+          Modern Dark
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

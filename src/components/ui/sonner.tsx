@@ -5,13 +5,10 @@ type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system", resolvedTheme } = useTheme();
-  // Map unsupported themes (like 'modern') to light/dark so Sonner stays readable.
+  // Map custom themes to light/dark so Sonner stays readable.
+  const current = theme === "system" ? resolvedTheme ?? "light" : theme;
   const sonnerTheme: ToasterProps["theme"] =
-    theme === "system"
-      ? "system"
-      : resolvedTheme === "dark"
-      ? "dark"
-      : "light";
+    theme === "system" ? "system" : (current?.includes("dark") ? "dark" : "light");
 
   return (
     <Sonner

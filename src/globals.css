@@ -98,7 +98,6 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    /* Vibrant primary with modern accent */
     --primary: 258 90% 60%;
     --primary-foreground: 210 40% 98%;
 
@@ -120,7 +119,6 @@
 
     --radius: 0.75rem;
 
-    /* Sidebar tweaks for modern look */
     --sidebar-background: 0 0% 99%;
     --sidebar-foreground: 224 71% 4%;
     --sidebar-primary: 258 90% 60%;
@@ -129,6 +127,46 @@
     --sidebar-accent-foreground: 224 71% 4%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 258 90% 60%;
+  }
+
+  /* Modern theme (dark) */
+  .modern-dark {
+    --background: 230 35% 7%;
+    --foreground: 210 40% 96%;
+    --card: 230 35% 9%;
+    --card-foreground: 210 40% 96%;
+    --popover: 230 35% 9%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 258 90% 65%;
+    --primary-foreground: 230 35% 7%;
+
+    --secondary: 228 16% 18%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 228 16% 18%;
+    --muted-foreground: 220 9% 66%;
+
+    --accent: 200 90% 55%;
+    --accent-foreground: 230 35% 7%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 210 40% 96%;
+
+    --border: 228 16% 22%;
+    --input: 228 16% 22%;
+    --ring: 258 90% 65%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 230 35% 8%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 258 90% 65%;
+    --sidebar-primary-foreground: 230 35% 7%;
+    --sidebar-accent: 228 16% 18%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 228 16% 22%;
+    --sidebar-ring: 258 90% 65%;
   }
 }
 
