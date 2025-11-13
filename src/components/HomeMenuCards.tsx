@@ -26,20 +26,24 @@ const HomeMenuCards: React.FC = () => {
   return (
     <div className="space-y-3">
       <h2 className="text-lg font-semibold">Quick Menu</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="flex flex-col gap-2">
         {items.map((item) => (
-          <Card key={item.to} className="p-4 flex items-start justify-between">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-md bg-muted text-muted-foreground">{item.icon}</div>
-              <div>
-                <div className="font-medium">{item.label}</div>
-                <div className="text-sm text-muted-foreground">{item.description}</div>
-              </div>
-            </div>
+          <Button
+            key={item.to}
+            asChild
+            variant="ghost"
+            size="sm"
+            className="w-full justify-between"
+          >
             <Link to={item.to}>
-              <Button size="sm">Open</Button>
+              <span className="flex items-center gap-3">
+                <span className="p-2 rounded-md bg-muted text-muted-foreground">
+                  {item.icon}
+                </span>
+                <span className="font-medium">{item.label}</span>
+              </span>
             </Link>
-          </Card>
+          </Button>
         ))}
       </div>
     </div>
