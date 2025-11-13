@@ -71,6 +71,8 @@ const SettingsPage = () => {
       baseUrl: wahaBaseUrl.trim(),
       sessionName: wahaSessionName.trim(),
     });
+    // Notify other components (like WahaConnect) that the config changed
+    window.dispatchEvent(new CustomEvent("waha-config-changed"));
     showSuccess("WAHA settings saved.");
   };
 

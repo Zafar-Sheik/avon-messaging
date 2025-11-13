@@ -27,6 +27,8 @@ const WahaConnect: React.FC = () => {
   const [phone, setPhone] = React.useState<string | undefined>(undefined);
   const [qrBase64, setQrBase64] = React.useState<string>("");
   const [polling, setPolling] = React.useState<boolean>(false);
+  // Trigger re-render when settings change
+  const [configVersion, setConfigVersion] = React.useState<number>(0);
 
   const cfg = getWahaConfig();
 
@@ -41,11 +43,19 @@ const WahaConnect: React.FC = () => {
     }
   }, []);
 
+  // If WAHA becomes configured, refresh status
   React.useEffect(() => {
     if (isWahaConfigured()) {
       refreshStatus();
     }
-  }, [refreshStatus]);
+  }, [refreshStatus, configVersion]);
+
+  // Listen to settings changes and re-check config
+  React.useEffect(() => {
+    const onChanged = () => setConfigVersion((v) => v + 1);
+    window.addEventListener("waha-config-changed", onChanged);
+    return () => window.removeEventListener("waha-config-changed", onChanged);
+  }, []);
 
   React.useEffect(() => {
     if (!polling) return;
@@ -167,7 +177,7 @@ const WahaConnect: React.FC = () => {
         )}
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
-        If the QR expires, click Refresh QR. Once connected, you’ll see your linked phone number above.
+        If the QR expires, click Refresh QR. Once connected, you'll see your linked phone number above.
       </CardFooter>
     </Card>
   );
