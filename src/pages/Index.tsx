@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import GroupManager from "@/components/GroupManager";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import HomeMenuCards from "@/components/HomeMenuCards";
 import DashboardStats from "@/components/DashboardStats";
@@ -35,7 +34,6 @@ const Index = () => {
             <div className="max-w-6xl mx-auto p-4 space-y-8">
               <DashboardStats />
               <Reminders />
-              <GroupManager />
             </div>
           </div>
           <MadeWithDyad />
