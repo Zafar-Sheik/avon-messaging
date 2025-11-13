@@ -4,7 +4,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { getGroups, createGroup } from "@/utils/groupStore";
 import GroupDetailDialog from "@/components/GroupDetailDialog";
 import { showError, showSuccess } from "@/utils/toast";
@@ -53,31 +53,30 @@ const GroupManager: React.FC = () => {
         {groups.length === 0 ? (
           <p className="text-sm text-muted-foreground">No groups yet. Create one above.</p>
         ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contacts</TableHead>
-                  <TableHead>Sent History</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groups.map((g) => (
-                  <TableRow key={g.id}>
-                    <TableCell className="font-medium">{g.name}</TableCell>
-                    <TableCell>{g.contacts.length}</TableCell>
-                    <TableCell>{g.sentHistory.length}</TableCell>
-                    <TableCell className="text-right">
-                      <Button size="sm" onClick={() => setActiveGroupId(g.id)}>
-                        Open
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {groups.map((g) => (
+              <Card key={g.id} className="hover:shadow-md transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">{g.name}</CardTitle>
+                    <Users className="size-4 text-muted-foreground" />
+                  </div>
+                  <CardDescription className="text-xs">
+                    Contacts: {g.contacts.length} • Sent: {g.sentHistory.length}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <div className="flex-1">Manage contacts and view sent history.</div>
+                  </div>
+                </CardContent>
+                <CardFooter className="justify-end">
+                  <Button size="sm" onClick={() => setActiveGroupId(g.id)}>
+                    Open
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
           </div>
         )}
       </Card>
