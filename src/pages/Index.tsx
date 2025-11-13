@@ -6,6 +6,7 @@ import HomeMenuCards from "@/components/HomeMenuCards";
 import DashboardStats from "@/components/DashboardStats";
 import Reminders from "@/components/Reminders";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   return (
@@ -28,7 +29,10 @@ const Index = () => {
                   Create groups, import contacts from Excel, send WhatsApp messages to a group, and track what was sent.
                 </p>
               </div>
-              <SidebarTrigger className="md:hidden" />
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <SidebarTrigger className="md:hidden" />
+              </div>
             </div>
 
             <div className="max-w-6xl mx-auto p-4 space-y-8">

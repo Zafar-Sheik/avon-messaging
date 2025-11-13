@@ -11,28 +11,31 @@ import UploadsPage from "./pages/Uploads";
 import SettingsPage from "./pages/Settings";
 import RemindersPage from "./pages/Reminders";
 import Index from "./pages/Index";
+import { ThemeProvider } from "next-themes";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/groups" element={<GroupsPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/uploads" element={<UploadsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/reminders" element={<RemindersPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/groups" element={<GroupsPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/uploads" element={<UploadsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/reminders" element={<RemindersPage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
