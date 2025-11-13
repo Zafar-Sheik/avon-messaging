@@ -10,6 +10,7 @@ import MessagesPage from "./pages/Messages";
 import UploadsPage from "./pages/Uploads";
 import SettingsPage from "./pages/Settings";
 import RemindersPage from "./pages/Reminders";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -20,7 +21,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<DashboardPage />} />
+          <Route path="/" element={<Index />} />
           <Route path="/groups" element={<GroupsPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/messages" element={<MessagesPage />} />
