@@ -10,6 +10,7 @@ import { showSuccess } from "@/utils/toast";
 import { clearAllReminders } from "@/utils/reminderStore";
 import { clearAllGroups } from "@/utils/groupStore";
 import { getCompanyProfile, saveCompanyProfile, clearCompanyProfile } from "@/utils/companyStore";
+import { getWahaConfig, saveWahaConfig, clearWahaConfig } from "@/utils/wahaStore";
 
 const SettingsPage = () => {
   const [name, setName] = React.useState("");
@@ -17,6 +18,10 @@ const SettingsPage = () => {
   const [phone, setPhone] = React.useState("");
   const [website, setWebsite] = React.useState("");
   const [address, setAddress] = React.useState("");
+
+  const [wahaApiKey, setWahaApiKey] = React.useState("");
+  const [wahaBaseUrl, setWahaBaseUrl] = React.useState("");
+  const [wahaSessionName, setWahaSessionName] = React.useState("");
 
   React.useEffect(() => {
     const existing = getCompanyProfile();
@@ -26,6 +31,15 @@ const SettingsPage = () => {
       setPhone(existing.phone || "");
       setWebsite(existing.website || "");
       setAddress(existing.address || "");
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const waha = getWahaConfig();
+    if (waha) {
+      setWahaApiKey(waha.apiKey || "");
+      setWahaBaseUrl(waha.baseUrl || "");
+      setWahaSessionName(waha.sessionName || "");
     }
   }, []);
 
@@ -48,6 +62,23 @@ const SettingsPage = () => {
     setWebsite("");
     setAddress("");
     showSuccess("Company profile cleared.");
+  };
+
+  const handleSaveWaha = () => {
+    saveWahaConfig({
+      apiKey: wahaApiKey.trim(),
+      baseUrl: wahaBaseUrl.trim(),
+      sessionName: wahaSessionName.trim(),
+    });
+    showSuccess("WAHA settings saved.");
+  };
+
+  const handleClearWaha = () => {
+    clearWahaConfig();
+    setWahaApiKey("");
+    setWahaBaseUrl("");
+    setWahaSessionName("");
+    showSuccess("WAHA settings cleared.");
   };
 
   const clearGroups = () => {
@@ -124,6 +155,50 @@ const SettingsPage = () => {
           <CardFooter className="flex gap-2 justify-end">
             <Button variant="secondary" onClick={handleClearCompany}>Clear</Button>
             <Button onClick={handleSaveCompany}>Save</Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>WAHA Settings</CardTitle>
+            <CardDescription>Configure your WAHA instance connection details.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="waha-base-url">Base URL</Label>
+                <Input
+                  id="waha-base-url"
+                  type="url"
+                  placeholder="https://your-waha-host:port"
+                  value={wahaBaseUrl}
+                  onChange={(e) => setWahaBaseUrl(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="waha-api-key">API Key</Label>
+                <Input
+                  id="waha-api-key"
+                  type="password"
+                  placeholder="Enter your WAHA API key"
+                  value={wahaApiKey}
+                  onChange={(e) => setWahaApiKey(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="waha-session-name">Session Name</Label>
+                <Input
+                  id="waha-session-name"
+                  placeholder="default"
+                  value={wahaSessionName}
+                  onChange={(e) => setWahaSessionName(e.target.value)}
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={handleClearWaha}>Clear</Button>
+            <Button onClick={handleSaveWaha}>Save</Button>
           </CardFooter>
         </Card>
 
