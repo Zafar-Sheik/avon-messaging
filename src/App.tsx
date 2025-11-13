@@ -10,6 +10,7 @@ import DashboardPage from "./pages/Dashboard";
 import MessagesPage from "./pages/Messages";
 import UploadsPage from "./pages/Uploads";
 import SettingsPage from "./pages/Settings";
+import RemindersPage from "./pages/Reminders";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/uploads" element={<UploadsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/reminders" element={<RemindersPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
