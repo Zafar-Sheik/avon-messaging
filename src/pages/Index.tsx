@@ -12,39 +12,27 @@ import ThemeToggle from "@/components/ThemeToggle";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SidebarProvider>
-        <Sidebar collapsible="icon" className="[&_[data-sidebar=sidebar]]:bg-blue-50 [&_[data-sidebar=sidebar]]:text-blue-900 [&_[data-sidebar=sidebar]]:border-blue-200">
-          <SidebarHeader className="space-y-3">
-          </SidebarHeader>
-          <SidebarContent>
-            <HomeMenuCards />
-          </SidebarContent>
-        </Sidebar>
-
-        <SidebarInset>
-          <div className="py-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-center md:text-left md:pl-24">
-                <h1 className="text-3xl font-bold">Contact Online Solutions</h1>
-                <p className="text-sm text-muted-foreground">
-                  Create groups, import contacts from Excel, send WhatsApp messages to a group, and track what was sent.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <ThemeToggle />
-                <SidebarTrigger className="md:hidden" />
-              </div>
-            </div>
-
-            <div className="max-w-6xl mx-auto p-4 space-y-8">
-              <DashboardStats />
-              <Reminders />
-            </div>
+      <div className="py-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-center md:text-left md:pl-24">
+            <h1 className="text-3xl font-bold">Contact Online Solutions</h1>
+            <p className="text-sm text-muted-foreground">
+              Create groups, import contacts from Excel, send WhatsApp messages to a group, and track what was sent.
+            </p>
           </div>
-          <ExcelDashboard />
-          <MadeWithDyad />
-        </SidebarInset>
-      </SidebarProvider>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <SidebarTrigger className="md:hidden" />
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto p-4 space-y-8">
+          <DashboardStats />
+          <Reminders />
+        </div>
+      </div>
+      <ExcelDashboard />
+      <MadeWithDyad />
     </div>
   );
 };
