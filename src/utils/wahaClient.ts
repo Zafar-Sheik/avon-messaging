@@ -1,6 +1,30 @@
 "use client";
 
 import { getWahaConfig } from "@/utils/wahaStore";
+import { supabase } from "@/integrations/supabase/client";
+
+const FUNCTION_NAME = "waha-proxy";
+
+const invokeWaha = async (action: "messages" | "status" | "qrcode" | "start" | "stop" | "logout", payload?: unknown): Promise<any> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+
+  const { data, error } = await supabase.functions.invoke(FUNCTION_NAME, {
+    body: {
+      baseUrl: cfg.baseUrl,
+      apiKey: cfg.apiKey,
+      sessionName: cfg.sessionName,
+      action,
+      payload,
+    },
+  });
+
+  if (error) {
+    // Supabase returns structured error for function calls
+    throw new Error(`WAHA proxy error: ${error.message}`);
+  }
+  return data;
+};
 
 export type WahaSendTextPayload = {
   to: string;
@@ -28,22 +52,8 @@ const makeSessionBase = (baseUrl: string, sessionName: string) =>
 export const isWahaConfigured = (): boolean => !!getWahaConfig();
 
 export const sendTextMessage = async (to: string, text: string): Promise<void> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = makeEndpoint(cfg.baseUrl, cfg.sessionName);
   const payload: WahaSendTextPayload = { to: normalizePhone(to), type: "text", text };
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA request failed (${res.status}): ${body}`);
-  }
+  await invokeWaha("messages", payload);
 };
 
 export const sendFileMessage = async (
@@ -53,9 +63,6 @@ export const sendFileMessage = async (
   base64: string,
   caption?: string
 ): Promise<void> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = makeEndpoint(cfg.baseUrl, cfg.sessionName);
   const payload: WahaSendFilePayload = {
     to: normalizePhone(to),
     type: "file",
@@ -64,37 +71,12 @@ export const sendFileMessage = async (
     base64,
     caption,
   };
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA request failed (${res.status}): ${body}`);
-  }
+  await invokeWaha("messages", payload);
 };
 
 export const sendTextToChat = async (toChatId: string, text: string): Promise<void> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = makeEndpoint(cfg.baseUrl, cfg.sessionName);
   const payload: WahaSendTextPayload = { to: toChatId, type: "text", text };
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA request failed (${res.status}): ${body}`);
-  }
+  await invokeWaha("messages", payload);
 };
 
 export const sendFileToChat = async (
@@ -104,9 +86,6 @@ export const sendFileToChat = async (
   base64: string,
   caption?: string
 ): Promise<void> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = makeEndpoint(cfg.baseUrl, cfg.sessionName);
   const payload: WahaSendFilePayload = {
     to: toChatId,
     type: "file",
@@ -115,109 +94,35 @@ export const sendFileToChat = async (
     base64,
     caption,
   };
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA request failed (${res.status}): ${body}`);
-  }
+  await invokeWaha("messages", payload);
 };
 
 export const getSessionStatus = async (): Promise<{ status: string; phone?: string }> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = makeSessionBase(cfg.baseUrl, cfg.sessionName);
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA status failed (${res.status}): ${body}`);
-  }
-  const data = await res.json();
-  const status = (data.status ?? data.state ?? "unknown") as string;
+  const data = await invokeWaha("status");
+  const status = (data?.status ?? data?.state ?? "unknown") as string;
   const phone =
-    (data.client?.phone_number ??
-      data.client?.phone ??
-      data.phone_number ??
-      data.phone ??
-      data.me?.id ??
+    (data?.client?.phone_number ??
+      data?.client?.phone ??
+      data?.phone_number ??
+      data?.phone ??
+      data?.me?.id ??
       undefined) as string | undefined;
   return { status, phone };
 };
 
 export const getSessionQrCode = async (): Promise<string> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = `${makeSessionBase(cfg.baseUrl, cfg.sessionName)}/qrcode`;
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA QR fetch failed (${res.status}): ${body}`);
-  }
-  // Many WAHA servers return base64 image as plain text
-  const base64 = await res.text();
-  return base64;
+  const base64 = await invokeWaha("qrcode");
+  return typeof base64 === "string" ? base64 : String(base64 ?? "");
 };
 
 export const startSession = async (): Promise<void> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = `${makeSessionBase(cfg.baseUrl, cfg.sessionName)}/start`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA start failed (${res.status}): ${body}`);
-  }
+  await invokeWaha("start");
 };
 
 export const stopSession = async (): Promise<void> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = `${makeSessionBase(cfg.baseUrl, cfg.sessionName)}/stop`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA stop failed (${res.status}): ${body}`);
-  }
+  await invokeWaha("stop");
 };
 
 export const logoutSession = async (): Promise<void> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-  const url = `${makeSessionBase(cfg.baseUrl, cfg.sessionName)}/logout`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${cfg.apiKey}`,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`WAHA logout failed (${res.status}): ${body}`);
-  }
+  await invokeWaha("logout");
 };
