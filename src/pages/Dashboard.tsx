@@ -2,7 +2,7 @@
 
 import React from "react";
 import DashboardStats from "@/components/DashboardStats";
-import Reminders from "@/components/Reminders";
+import PendingReminders from "@/components/PendingReminders";
 
 const DashboardPage = () => {
   return (
@@ -10,7 +10,7 @@ const DashboardPage = () => {
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <DashboardStats />
-        <Reminders />
+        <PendingReminders />
       </div>
     </div>
   );
