@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { showError, showSuccess } from "@/utils/toast";
+import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 
@@ -67,12 +67,15 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
 
   const handleFile = async (file: File | null) => {
     if (!file) return;
+    const loadingId = showLoading("Loading, please wait...");
+
     const buffer = await file.arrayBuffer();
     const wb = XLSX.read(buffer, { type: "array" });
     const sheet = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: "", raw: true });
 
     if (!rows || rows.length === 0) {
+      dismissToast(loadingId);
       showError("No rows found. Ensure your sheet has a header row and data.");
       setParsed([]);
       setRawRows([]);
@@ -106,6 +109,7 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
     setHeaders(hdrs);
     setMapping({ name: guessedName, phone: guessedPhone });
 
+    dismissToast(loadingId);
     showSuccess(`Loaded ${rows.length} row(s). Choose columns to import.`);
   };
 
