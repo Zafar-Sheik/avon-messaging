@@ -7,7 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getGroups, sendGroupMessage } from "@/utils/groupStore";
-import { isWahaConfigured, sendTextMessage } from "@/utils/wahaClient";
+import { isWahaConfigured, sendTextMessage, getSessionStatus } from "@/utils/wahaClient";
+import { getCompanyProfile } from "@/utils/companyStore";
 import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast";
 import type { Group } from "@/types/group";
 
@@ -21,6 +22,22 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
   const [message, setMessage] = React.useState("");
   const [isSending, setIsSending] = React.useState(false);
   const [generatedLinks, setGeneratedLinks] = React.useState<string[]>([]);
+
+  // Helpers to build message with reply link
+  const normalizeReplyPhone = (phone: string): string => (phone || "").replace(/\D+/g, "");
+  const buildMessageWithReply = async (original: string): Promise<string> => {
+    const trimmed = (original || "").trim();
+    const company = getCompanyProfile();
+    let replyPhone = company?.phone ? normalizeReplyPhone(company.phone) : "";
+
+    if (!replyPhone && isWahaConfigured()) {
+      const { phone } = await getSessionStatus();
+      if (phone) replyPhone = normalizeReplyPhone(phone);
+    }
+
+    if (!replyPhone) return trimmed;
+    return `${trimmed}\n\nReply now: https://wa.me/${replyPhone}`;
+  };
 
   React.useEffect(() => {
     const g = getGroups();
@@ -56,15 +73,15 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
     setIsSending(true);
     const loadingId = showLoading("Sending broadcast...");
 
+    const finalMessage = await buildMessageWithReply(trimmed);
+
     const allLinks: string[] = [];
     for (const group of selectedGroups) {
       if (wahaReady) {
-        // Send messages via WAHA for each contact
-        const sends = group.contacts.map((c) => sendTextMessage(c.phone, trimmed));
+        const sends = group.contacts.map((c) => sendTextMessage(c.phone, finalMessage));
         await Promise.all(sends);
       }
-      // Update local history and clear pending contacts
-      const { links } = sendGroupMessage(group.id, trimmed);
+      const { links } = sendGroupMessage(group.id, finalMessage);
       allLinks.push(...links);
     }
 
@@ -79,7 +96,6 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
       showSuccess(`Sent ${totalRecipients} messages via WAHA.`);
     }
 
-    // Refresh groups after sending
     setGroups(getGroups());
     if (onCompleted) onCompleted();
   };

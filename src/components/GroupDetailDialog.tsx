@@ -11,7 +11,8 @@ import { getGroupById, addContactsToGroup, sendGroupMessage, formatWhatsAppLink 
 import type { Group } from "@/types/group";
 import { ExternalLink, Send, Paperclip, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat } from "@/utils/wahaClient";
+import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat, getSessionStatus } from "@/utils/wahaClient";
+import { getCompanyProfile } from "@/utils/companyStore";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
@@ -47,6 +48,22 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
       reader.readAsDataURL(file);
     });
 
+  // Add helpers to build message with reply link
+  const normalizeReplyPhone = (phone: string): string => (phone || "").replace(/\D+/g, "");
+  const buildMessageWithReply = async (original: string): Promise<string> => {
+    const trimmed = (original || "").trim();
+    const company = getCompanyProfile();
+    let replyPhone = company?.phone ? normalizeReplyPhone(company.phone) : "";
+
+    if (!replyPhone && isWahaConfigured()) {
+      const { phone } = await getSessionStatus();
+      if (phone) replyPhone = normalizeReplyPhone(phone);
+    }
+
+    if (!replyPhone) return trimmed;
+    return `${trimmed}\n\nReply now: https://wa.me/${replyPhone}`;
+  };
+
   const handleSendViaWaha = async () => {
     if (!group) return;
     if (!isWahaConfigured()) {
@@ -58,19 +75,20 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
       return;
     }
 
+    const finalMessage = await buildMessageWithReply(message);
+
     for (const c of group.contacts) {
       if (attachments.length > 0) {
         for (const file of attachments) {
           const base64 = await readFileAsBase64(file);
-          await sendFileMessage(c.phone, file.name, file.type || "application/octet-stream", base64, message.trim() || undefined);
+          await sendFileMessage(c.phone, file.name, file.type || "application/octet-stream", base64, finalMessage.trim() || undefined);
         }
       } else {
-        await sendTextMessage(c.phone, message);
+        await sendTextMessage(c.phone, finalMessage);
       }
     }
 
-    // Record history and clear contacts using existing store function
-    const { updated } = sendGroupMessage(groupId, message);
+    const { updated } = sendGroupMessage(groupId, finalMessage);
     if (updated) {
       setGroup(updated);
       setMessage("");
@@ -101,13 +119,14 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
     return opened;
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!group) return;
     if (!message.trim()) {
       showError("Please enter a message.");
       return;
     }
-    const { links, updated } = sendGroupMessage(groupId, message);
+    const finalMessage = await buildMessageWithReply(message);
+    const { links, updated } = sendGroupMessage(groupId, finalMessage);
     const opened = openWhatsAppWindows(links);
     showSuccess(`Prepared ${links.length} WhatsApp chats. Opened ${opened} tab(s).`);
     if (updated) {
@@ -132,14 +151,16 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
       return;
     }
 
+    const finalMessage = await buildMessageWithReply(message);
+
     for (const gid of ids) {
       if (attachments.length > 0) {
         for (const file of attachments) {
           const base64 = await readFileAsBase64(file);
-          await sendFileToChat(gid, file.name, file.type || "application/octet-stream", base64, message.trim() || undefined);
+          await sendFileToChat(gid, file.name, file.type || "application/octet-stream", base64, finalMessage.trim() || undefined);
         }
       } else {
-        await sendTextToChat(gid, message);
+        await sendTextToChat(gid, finalMessage);
       }
     }
 
@@ -311,8 +332,9 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
               <Button
                 variant="secondary"
                 disabled={group.contacts.length === 0 || !message.trim()}
-                onClick={() => {
-                  const preview = group.contacts.map((c) => formatWhatsAppLink(c.phone, message));
+                onClick={async () => {
+                  const final = await buildMessageWithReply(message);
+                  const preview = group.contacts.map((c) => formatWhatsAppLink(c.phone, final));
                   const sample = preview.slice(0, 5);
                   showSuccess(`Previewing ${preview.length} link(s). Opening up to 5 samples.`);
                   for (const url of sample) window.open(url, "_blank");
