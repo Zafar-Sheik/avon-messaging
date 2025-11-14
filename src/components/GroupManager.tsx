@@ -206,18 +206,18 @@ const GroupManager: React.FC = () => {
         {groups.length === 0 ? (
           <p className="text-sm text-muted-foreground">No groups yet. Create one above.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {groups.map((g) => {
               const styles = colorMap[pickColor(g.id)];
               return (
                 <Card
                   key={g.id}
                   className={cn(
-                    "group overflow-hidden rounded-xl border p-4 md:p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
+                    "group overflow-hidden rounded-lg border p-3 md:p-4 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
                     styles.card
                   )}
                 >
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Checkbox
@@ -229,19 +229,19 @@ const GroupManager: React.FC = () => {
                           }
                           aria-label={`Select ${g.name}`}
                         />
-                        <CardTitle className={cn("text-lg font-semibold", styles.title)}>{g.name}</CardTitle>
+                        <CardTitle className={cn("text-base font-semibold", styles.title)}>{g.name}</CardTitle>
                       </div>
-                      <span className={cn("p-2 rounded-lg", styles.icon)}>
-                        <Users className="size-5" />
+                      <span className={cn("p-1.5 rounded-lg", styles.icon)}>
+                        <Users className="size-4" />
                       </span>
                     </div>
-                    <CardDescription className={cn("text-sm", styles.desc)}>
+                    <CardDescription className={cn("text-xs", styles.desc)}>
                       {g.contacts.length} contacts • {g.sentHistory.length} sent
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 justify-end">
                     <div className="flex items-center gap-3">
-                      <Button size="sm" variant="outline" className="h-9 px-3 text-sm" onClick={() => navigate(`/groups/${g.id}`)}>
+                      <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => navigate(`/groups/${g.id}`)}>
                         Open
                       </Button>
                     </div>
