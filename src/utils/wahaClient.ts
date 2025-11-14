@@ -1,34 +1,14 @@
 "use client";
 
 import { getWahaConfig } from "@/utils/wahaStore";
-import { supabase } from "@/integrations/supabase/client";
 
 const FUNCTION_NAME = "waha-proxy";
 
-// Add a robust invocation helper with fallback to direct fetch
 const SUPABASE_FUNCTIONS_BASE = "https://diuezeewlgegnwgcdpmr.supabase.co/functions/v1";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpdWV6ZWV3bGdlZ253Z2NkcG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzgyNzEsImV4cCI6MjA3ODQ1NDI3MX0.0JbeX6VILTrYWorwShVkQqajZbAMeUYv0jtlnqpF5Vs";
 
+// Replace invoke with a single robust direct fetch
 async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T> {
-  try {
-    const { data, error } = await supabase.functions.invoke(name, {
-      body,
-      headers: {
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        apikey: SUPABASE_ANON_KEY,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!error) {
-      return data as T;
-    }
-    // Fall through to direct fetch if invoke returned an error
-  } catch {
-    // If invoke threw, fall back below
-  }
-
-  // Fallback: direct fetch when invoke failed or threw
   const resp = await fetch(`${SUPABASE_FUNCTIONS_BASE}/${name}`, {
     method: "POST",
     headers: {
@@ -48,7 +28,13 @@ async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T
   if (ct.includes("application/json")) {
     return (await resp.json()) as T;
   }
-  return (await resp.text()) as T;
+
+  const text = await resp.text();
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return text as unknown as T;
+  }
 }
 
 const invokeWaha = async (action: "messages" | "status" | "qrcode" | "start" | "stop" | "logout", payload?: unknown): Promise<any> => {
