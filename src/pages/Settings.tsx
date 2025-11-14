@@ -11,6 +11,7 @@ import { clearAllReminders } from "@/utils/reminderStore";
 import { clearAllGroups } from "@/utils/groupStore";
 import { getCompanyProfile, saveCompanyProfile, clearCompanyProfile } from "@/utils/companyStore";
 import { getWahaConfig, saveWahaConfig, clearWahaConfig } from "@/utils/wahaStore";
+import { getLicenseKey, saveLicenseKey, clearLicenseKey } from "@/utils/licenseStore";
 
 const SettingsPage = () => {
   const [name, setName] = React.useState("");
@@ -22,6 +23,8 @@ const SettingsPage = () => {
   const [wahaApiKey, setWahaApiKey] = React.useState("");
   const [wahaBaseUrl, setWahaBaseUrl] = React.useState("");
   const [wahaSessionName, setWahaSessionName] = React.useState("");
+
+  const [licenseKey, setLicenseKey] = React.useState("");
 
   React.useEffect(() => {
     const existing = getCompanyProfile();
@@ -40,6 +43,13 @@ const SettingsPage = () => {
       setWahaApiKey(waha.apiKey || "");
       setWahaBaseUrl(waha.baseUrl || "");
       setWahaSessionName(waha.sessionName || "");
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const existingLicense = getLicenseKey();
+    if (existingLicense) {
+      setLicenseKey(existingLicense);
     }
   }, []);
 
@@ -81,6 +91,17 @@ const SettingsPage = () => {
     setWahaBaseUrl("");
     setWahaSessionName("");
     showSuccess("WAHA settings cleared.");
+  };
+
+  const handleSaveLicense = () => {
+    saveLicenseKey(licenseKey.trim());
+    showSuccess("License key saved.");
+  };
+
+  const handleClearLicense = () => {
+    clearLicenseKey();
+    setLicenseKey("");
+    showSuccess("License key cleared.");
   };
 
   const clearGroups = () => {
@@ -201,6 +222,28 @@ const SettingsPage = () => {
           <CardFooter className="flex gap-2 justify-end">
             <Button variant="secondary" onClick={handleClearWaha}>Clear</Button>
             <Button onClick={handleSaveWaha}>Save</Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>License</CardTitle>
+            <CardDescription>Set your application license key.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="license-key">License Key</Label>
+              <Input
+                id="license-key"
+                placeholder="Enter license key"
+                value={licenseKey}
+                onChange={(e) => setLicenseKey(e.target.value)}
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="flex gap-2 justify-end">
+            <Button variant="secondary" onClick={handleClearLicense}>Clear</Button>
+            <Button onClick={handleSaveLicense}>Save</Button>
           </CardFooter>
         </Card>
 
