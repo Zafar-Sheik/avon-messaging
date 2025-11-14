@@ -5,7 +5,6 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import HomeMenuCards from "@/components/HomeMenuCards";
 import DashboardStats from "@/components/DashboardStats";
 import Reminders from "@/components/Reminders";
-import ExcelDashboard from "@/components/ExcelDashboard";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -31,7 +30,7 @@ const Index = () => {
           <Reminders />
         </div>
       </div>
-      <ExcelDashboard />
+      {/* REMOVED: ExcelDashboard from home screen */}
       <MadeWithDyad />
     </div>
   );
