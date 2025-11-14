@@ -173,15 +173,15 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
               <p className="text-sm text-muted-foreground">No contacts yet. Import some from Excel.</p>
             ) : (
               <div className="rounded-md border bg-card">
-                <ResizablePanelGroup direction="horizontal" className="min-h-[260px]">
-                  <ResizablePanel defaultSize={40} minSize={25} className="border-r">
-                    <div className="overflow-auto">
-                      <Table>
+                <ResizablePanelGroup direction="horizontal" className="min-h-[300px] overflow-hidden">
+                  <ResizablePanel defaultSize={40} minSize={25} className="border-r min-w-0">
+                    <div className="overflow-auto min-w-0">
+                      <Table className="table-fixed w-full">
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="w-12">#</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Phone</TableHead>
+                            <TableHead className="w-12 px-2 py-1 text-xs">#</TableHead>
+                            <TableHead className="px-2 py-1 text-xs">Name</TableHead>
+                            <TableHead className="px-2 py-1 text-xs">Phone</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -191,9 +191,9 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
                               onClick={() => setSelectedContactId(c.id)}
                               className={`cursor-pointer ${c.id === selectedContactId ? "bg-muted/50" : "hover:bg-muted/30"}`}
                             >
-                              <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                              <TableCell className="truncate">{c.name || "Unnamed"}</TableCell>
-                              <TableCell className="font-mono">{c.phone}</TableCell>
+                              <TableCell className="px-2 py-1.5 text-xs text-muted-foreground">{idx + 1}</TableCell>
+                              <TableCell className="px-2 py-1.5 text-xs truncate">{c.name || "Unnamed"}</TableCell>
+                              <TableCell className="px-2 py-1.5 text-xs font-mono whitespace-nowrap">{c.phone}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -203,7 +203,7 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
 
                   <ResizableHandle withHandle />
 
-                  <ResizablePanel defaultSize={60} minSize={35} className="p-3">
+                  <ResizablePanel defaultSize={60} minSize={35} className="p-3 min-w-0 overflow-auto">
                     {(() => {
                       const selected = group.contacts.find((c) => c.id === selectedContactId);
                       if (!selected) {
@@ -218,7 +218,7 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
                           <div className="flex items-center justify-between">
                             <div className="min-w-0">
                               <div className="truncate text-base font-semibold">{selected.name || "Unnamed contact"}</div>
-                              <div className="font-mono text-sm text-muted-foreground">{selected.phone}</div>
+                              <div className="font-mono text-sm text-muted-foreground whitespace-nowrap">{selected.phone}</div>
                             </div>
                           </div>
                           <div className="rounded-md border p-3 text-sm">
