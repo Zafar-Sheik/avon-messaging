@@ -32,6 +32,9 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
   const [headers, setHeaders] = React.useState<string[]>([]);
   const [mapping, setMapping] = React.useState<{ name: string; phone: string }>({ name: "", phone: "" });
 
+  // Add a sentinel for "None" option
+  const NONE_OPTION = "__none__";
+
   const getCell = (row: Record<string, any>, key: string): string => {
     const val = row?.[key];
     return val === undefined || val === null ? "" : String(val);
@@ -141,7 +144,7 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
               <Label htmlFor="map-name">Name column (optional)</Label>
               <Select
                 value={mapping.name}
-                onValueChange={(val) => setMapping((m) => ({ ...m, name: val }))}
+                onValueChange={(val) => setMapping((m) => ({ ...m, name: val === NONE_OPTION ? "" : val }))}
               >
                 <SelectTrigger id="map-name">
                   <SelectValue placeholder="Choose a column" />
@@ -152,7 +155,7 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
                       {h}
                     </SelectItem>
                   ))}
-                  <SelectItem value="">
+                  <SelectItem value={NONE_OPTION}>
                     (None)
                   </SelectItem>
                 </SelectContent>

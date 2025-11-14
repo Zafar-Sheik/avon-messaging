@@ -36,6 +36,8 @@ const extractNumber = (val: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
+const NONE_OPTION = "__none__";
+
 const ExcelDashboard: React.FC = () => {
   const [rows, setRows] = React.useState<Row[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
@@ -190,12 +192,12 @@ const ExcelDashboard: React.FC = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="group-col">Group by column (optional)</Label>
-              <Select value={groupCol} onValueChange={(v) => setGroupCol(v)}>
+              <Select value={groupCol} onValueChange={(v) => setGroupCol(v === NONE_OPTION ? "" : v)}>
                 <SelectTrigger id="group-col">
                   <SelectValue placeholder="Choose category column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{`(None)`}</SelectItem>
+                  <SelectItem value={NONE_OPTION}>{`(None)`}</SelectItem>
                   {headers.map((h) => (
                     <SelectItem key={`grp-${h}`} value={h}>
                       {h}
