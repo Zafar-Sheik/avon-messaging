@@ -13,7 +13,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SidebarProvider>
-        <Sidebar collapsible="icon" className="[&_[data-sidebar=sidebar]]:bg-gradient-to-b [&_[data-sidebar=sidebar]]:from-emerald-700 [&_[data-sidebar=sidebar]]:to-emerald-600 [&_[data-sidebar=sidebar]]:text-white">
+        <Sidebar collapsible="icon" className="[&_[data-sidebar=sidebar]]:bg-gradient-to-b [&_[data-sidebar=sidebar]]:from-indigo-700 [&_[data-sidebar=sidebar]]:to-indigo-600 [&_[data-sidebar=sidebar]]:text-white">
           <SidebarHeader className="space-y-3">
           </SidebarHeader>
           <SidebarContent>
