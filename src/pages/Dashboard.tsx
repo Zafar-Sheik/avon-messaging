@@ -3,6 +3,7 @@
 import React from "react";
 import DashboardStats from "@/components/DashboardStats";
 import PendingReminders from "@/components/PendingReminders";
+import ExcelDashboard from "@/components/ExcelDashboard";
 
 const DashboardPage = () => {
   return (
@@ -11,6 +12,10 @@ const DashboardPage = () => {
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <DashboardStats />
         <PendingReminders />
+        <div className="space-y-2">
+          <h2 className="text-xl font-semibold">Dashboard Data</h2>
+          <ExcelDashboard />
+        </div>
       </div>
     </div>
   );
