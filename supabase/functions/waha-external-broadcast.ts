@@ -28,6 +28,11 @@ const makeHeaders = (apiKey: string) => ({
 });
 
 const normalizePhone = (phone: string) => (phone || "").replace(/\D+/g, "");
+const ensureChatId = (to: string) => {
+  const s = (to || "").trim();
+  if (s.includes("@g.us") || s.includes("@c.us")) return s;
+  return `${normalizePhone(s)}@c.us`;
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -64,7 +69,7 @@ serve(async (req) => {
     });
   }
 
-  const url = makeMessagesEndpoint(baseUrl, sessionName);
+  const url = `${normalizeBase(baseUrl)}/api/sendText`;
 
   const total = recipients.length;
   let sent = 0;
@@ -78,8 +83,8 @@ serve(async (req) => {
       const rec = recipients[currentIdx];
 
       const payload = {
-        to: normalizePhone(rec.to),
-        type: "text",
+        session: sessionName,
+        chatId: ensureChatId(rec.to),
         text: rec.text,
       };
 

@@ -23,10 +23,17 @@ const makeMessagesEndpoint = (baseUrl: string, sessionName: string) =>
 const makeHeaders = (apiKey: string) => ({
   "Content-Type": "application/json",
   "Accept": "application/json",
-  // WAHA implementations vary; we include both common auth header styles
   "Authorization": `Bearer ${apiKey}`,
   "X-Api-Key": apiKey,
 });
+
+// Helper to ensure proper chatId format for contacts/groups
+const ensureChatId = (to: string) => {
+  const s = (to || "").trim();
+  if (s.includes("@g.us") || s.includes("@c.us")) return s;
+  const digits = s.replace(/\D+/g, "");
+  return `${digits}@c.us`;
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -65,6 +72,31 @@ serve(async (req) => {
 
   try {
     if (action === "messages") {
+      const urlText = `${normalizeBase(baseUrl)}/api/sendText`;
+
+      // If it's a text payload, use /api/sendText and X-Api-Key
+      if ((payload as any)?.type === "text") {
+        const chatId = ensureChatId((payload as any).to);
+        const reqBody = {
+          session: sessionName,
+          chatId,
+          text: (payload as any).text,
+        };
+
+        const res = await fetch(urlText, {
+          method: "POST",
+          headers: makeHeaders(apiKey),
+          body: JSON.stringify(reqBody),
+        });
+
+        const data = await res.json().catch(async () => ({ ok: res.ok, status: res.status, text: await res.text() }));
+        return new Response(JSON.stringify(data), {
+          status: res.ok ? 200 : res.status,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Otherwise, fall back to previous WAHA message endpoint for file payloads
       const res = await fetch(makeMessagesEndpoint(baseUrl, sessionName), {
         method: "POST",
         headers: makeHeaders(apiKey),
