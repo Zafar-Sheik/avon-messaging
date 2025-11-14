@@ -13,7 +13,7 @@ import { ExternalLink, Send, Paperclip, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat } from "@/utils/wahaClient";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 type Props = {
   groupId: string;
@@ -27,9 +27,12 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
   const [message, setMessage] = React.useState("");
   const [attachments, setAttachments] = React.useState<File[]>([]);
   const [chatIds, setChatIds] = React.useState<string>(""); // WhatsApp group chat IDs input
+  const [selectedContactId, setSelectedContactId] = React.useState<string | null>(group?.contacts[0]?.id ?? null);
 
   React.useEffect(() => {
-    setGroup(getGroupById(groupId));
+    const g = getGroupById(groupId);
+    setGroup(g);
+    setSelectedContactId(g?.contacts[0]?.id ?? null);
   }, [groupId, open]);
 
   const readFileAsBase64 = (file: File): Promise<string> =>
@@ -169,20 +172,65 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
             {group.contacts.length === 0 ? (
               <p className="text-sm text-muted-foreground">No contacts yet. Import some from Excel.</p>
             ) : (
-              <div className="rounded-md border bg-card p-2">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {group.contacts.map((c, idx) => (
-                    <Card key={c.id} className="border p-2 hover:shadow-sm transition-shadow">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{idx + 1}</span>
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium">{c.name || "Unnamed"}</div>
-                          <div className="font-mono text-xs">{c.phone}</div>
+              <div className="rounded-md border bg-card">
+                <ResizablePanelGroup direction="horizontal" className="min-h-[260px]">
+                  <ResizablePanel defaultSize={40} minSize={25} className="border-r">
+                    <div className="overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">#</TableHead>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Phone</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {group.contacts.map((c, idx) => (
+                            <TableRow
+                              key={c.id}
+                              onClick={() => setSelectedContactId(c.id)}
+                              className={`cursor-pointer ${c.id === selectedContactId ? "bg-muted/50" : "hover:bg-muted/30"}`}
+                            >
+                              <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                              <TableCell className="truncate">{c.name || "Unnamed"}</TableCell>
+                              <TableCell className="font-mono">{c.phone}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </ResizablePanel>
+
+                  <ResizableHandle withHandle />
+
+                  <ResizablePanel defaultSize={60} minSize={35} className="p-3">
+                    {(() => {
+                      const selected = group.contacts.find((c) => c.id === selectedContactId);
+                      if (!selected) {
+                        return (
+                          <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                            Select a contact from the list to view details.
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="min-w-0">
+                              <div className="truncate text-base font-semibold">{selected.name || "Unnamed contact"}</div>
+                              <div className="font-mono text-sm text-muted-foreground">{selected.phone}</div>
+                            </div>
+                          </div>
+                          <div className="rounded-md border p-3 text-sm">
+                            <p className="text-muted-foreground">
+                              This pane shows the selected contact's details. You can compose a message in the Send tab to reach all contacts.
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                      );
+                    })()}
+                  </ResizablePanel>
+                </ResizablePanelGroup>
               </div>
             )}
           </TabsContent>
