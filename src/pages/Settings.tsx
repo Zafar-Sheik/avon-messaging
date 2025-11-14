@@ -11,7 +11,6 @@ import { clearAllReminders } from "@/utils/reminderStore";
 import { clearAllGroups } from "@/utils/groupStore";
 import { getCompanyProfile, saveCompanyProfile, clearCompanyProfile } from "@/utils/companyStore";
 import { getWahaConfig, saveWahaConfig, clearWahaConfig } from "@/utils/wahaStore";
-import WahaConnect from "@/components/WahaConnect";
 
 const SettingsPage = () => {
   const [name, setName] = React.useState("");
@@ -204,8 +203,6 @@ const SettingsPage = () => {
             <Button onClick={handleSaveWaha}>Save</Button>
           </CardFooter>
         </Card>
-
-        <WahaConnect />
 
         <Card className="p-4 space-y-3">
           <h2 className="text-lg font-semibold">Data</h2>
