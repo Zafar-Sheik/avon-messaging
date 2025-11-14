@@ -143,24 +143,24 @@ const GroupManager: React.FC = () => {
         {groups.length === 0 ? (
           <p className="text-sm text-muted-foreground">No groups yet. Create one above.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {groups.map((g) => {
               const styles = colorMap[pickColor(g.id)];
               return (
-                <Card key={g.id} className={cn("hover:shadow-md transition-shadow border p-3", styles.card)}>
-                  <CardHeader className="pb-2">
+                <Card key={g.id} className={cn("hover:shadow-md transition-shadow border p-2", styles.card)}>
+                  <CardHeader className="pb-1">
                     <div className="flex items-center justify-between">
-                      <CardTitle className={cn("text-sm", styles.title)}>{g.name}</CardTitle>
-                      <span className={cn("p-1 rounded-md", styles.icon)}>
-                        <Users className="size-3" />
+                      <CardTitle className={cn("text-xs", styles.title)}>{g.name}</CardTitle>
+                      <span className={cn("p-0.5 rounded-md", styles.icon)}>
+                        <Users className="size-2" />
                       </span>
                     </div>
-                    <CardDescription className={cn("text-[11px]", styles.desc)}>
+                    <CardDescription className={cn("text-[10px]", styles.desc)}>
                       {g.contacts.length} contacts • {g.sentHistory.length} sent
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 justify-end">
-                    <Button size="sm" variant="outline" className="h-8 px-2" onClick={() => setActiveGroupId(g.id)}>
+                    <Button size="sm" variant="outline" className="h-7 px-1 text-xs" onClick={() => setActiveGroupId(g.id)}>
                       Open
                     </Button>
                   </CardFooter>
