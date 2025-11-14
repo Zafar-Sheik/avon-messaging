@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, CartesianGrid, XAxis, YAxis } from "recharts";
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, LabelList } from "recharts";
 import { showError, showSuccess } from "@/utils/toast";
 import { FileSpreadsheet, BarChart3, Calculator, Hash, ArrowUp, ArrowDown } from "lucide-react";
 
@@ -150,7 +150,7 @@ const ExcelDashboard: React.FC = () => {
   const max = count ? Math.max(...numbers) : 0;
 
   const chartConfig = {
-    value: { label: valueCol || "Value", color: "hsl(var(--primary))" },
+    value: { label: valueCol ? `Sum of ${valueCol}` : "Sum", color: "hsl(var(--primary))" },
   };
 
   return (
@@ -213,18 +213,20 @@ const ExcelDashboard: React.FC = () => {
       {valueCol ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            <StatCard icon={<Calculator className="size-5" />} label="Sum" value={sum.toLocaleString()} />
-            <StatCard icon={<BarChart3 className="size-5" />} label="Average" value={avg.toLocaleString()} />
-            <StatCard icon={<ArrowDown className="size-5" />} label="Min" value={min.toLocaleString()} />
-            <StatCard icon={<ArrowUp className="size-5" />} label="Max" value={max.toLocaleString()} />
-            <StatCard icon={<Hash className="size-5" />} label="Count" value={count.toLocaleString()} />
+            <StatCard icon={<Calculator className="size-5" />} label={valueCol ? `Sum of ${valueCol}` : "Sum"} value={sum.toLocaleString()} />
+            <StatCard icon={<BarChart3 className="size-5" />} label={valueCol ? `Average of ${valueCol}` : "Average"} value={avg.toLocaleString()} />
+            <StatCard icon={<ArrowDown className="size-5" />} label={valueCol ? `Min of ${valueCol}` : "Min"} value={min.toLocaleString()} />
+            <StatCard icon={<ArrowUp className="size-5" />} label={valueCol ? `Max of ${valueCol}` : "Max"} value={max.toLocaleString()} />
+            <StatCard icon={<Hash className="size-5" />} label="Count (numeric)" value={count.toLocaleString()} />
           </div>
 
           {groupCol && groupData.length > 0 && (
             <Card className="p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <BarChart3 className="size-5 text-muted-foreground" />
-                <h3 className="text-base font-semibold">Sum by {groupCol}</h3>
+                <h3 className="text-base font-semibold">
+                  {valueCol ? `Sum of ${valueCol}` : "Sum"} by {groupCol}
+                </h3>
               </div>
               <ChartContainer config={chartConfig}>
                 <BarChart data={groupData}>
@@ -235,10 +237,13 @@ const ExcelDashboard: React.FC = () => {
                     interval={0}
                     height={50}
                     tickFormatter={(v) => String(v).slice(0, 16)}
+                    label={{ value: groupCol, position: "insideBottom", offset: -2 }}
                   />
-                  <YAxis />
+                  <YAxis label={{ value: valueCol ? `Sum of ${valueCol}` : "Sum", angle: -90, position: "insideLeft", offset: 10 }} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="var(--color-value)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" fill="var(--color-value)" radius={[4, 4, 0, 0]}>
+                    <LabelList dataKey="value" position="top" />
+                  </Bar>
                 </BarChart>
               </ChartContainer>
             </Card>
