@@ -10,6 +10,7 @@ import GroupDetailDialog from "@/components/GroupDetailDialog";
 import { showError, showSuccess } from "@/utils/toast";
 import { Plus, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 type ColorKey = "emerald" | "amber" | "indigo" | "violet" | "rose" | "sky" | "teal" | "blue" | "cyan" | "fuchsia" | "lime" | "orange";
 
@@ -104,6 +105,7 @@ const GroupManager: React.FC = () => {
   const [groups, setGroups] = React.useState(getGroups());
   const [newName, setNewName] = React.useState("");
   const [activeGroupId, setActiveGroupId] = React.useState<string | null>(null);
+  const navigate = useNavigate();
 
   const refresh = () => setGroups(getGroups());
 
@@ -160,7 +162,7 @@ const GroupManager: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 justify-end">
-                    <Button size="sm" variant="outline" className="h-7 px-1 text-xs" onClick={() => setActiveGroupId(g.id)}>
+                    <Button size="sm" variant="outline" className="h-7 px-1 text-xs" onClick={() => navigate(`/groups/${g.id}`)}>
                       Open
                     </Button>
                   </CardFooter>

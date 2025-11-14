@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import { ThemeProvider } from "next-themes";
 import HomeMenuCards from "@/components/HomeMenuCards";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
+import GroupDetailPage from "./pages/GroupDetail";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/groups" element={<GroupsPage />} />
+                <Route path="/groups/:id" element={<GroupDetailPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/messages" element={<MessagesPage />} />
                 <Route path="/uploads" element={<UploadsPage />} />
