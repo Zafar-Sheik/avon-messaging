@@ -35,6 +35,16 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
   // Add a sentinel for "None" option
   const NONE_OPTION = "__none__";
 
+  // Normalize phone to country code 27 without plus sign
+  const normalizeTo27 = (input: string): string => {
+    const digits = String(input || "").replace(/\D+/g, "");
+    if (!digits) return "";
+    if (digits.startsWith("27")) return digits;
+    if (digits.startsWith("0027")) return digits.slice(2);
+    if (digits.startsWith("0")) return `27${digits.slice(1)}`;
+    return `27${digits}`;
+  };
+
   const getCell = (row: Record<string, any>, key: string): string => {
     const val = row?.[key];
     return val === undefined || val === null ? "" : String(val);
@@ -48,7 +58,8 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
     const contacts: ParsedContact[] = [];
     for (const row of rawRows) {
       const name = mapping.name ? getCell(row, mapping.name) : "";
-      const phone = getCell(row, mapping.phone);
+      const phoneRaw = getCell(row, mapping.phone);
+      const phone = normalizeTo27(phoneRaw);
       if (phone.trim()) contacts.push({ name, phone });
     }
     setParsed(contacts);
@@ -263,7 +274,7 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
         </div>
       )}
       <p className="text-xs text-muted-foreground">
-        Tip: Phone numbers should be in international format (country code + number) without the "+" sign for best results.
+        Tip: Phone numbers are automatically formatted to use country code 27 (South Africa) with digits only for best results.
       </p>
     </div>
   );
