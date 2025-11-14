@@ -4,7 +4,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Users, MessageCircle, Settings, FolderUp, LayoutDashboard, Bell } from "lucide-react";
+import { Users, MessageCircle, Settings, FolderUp, LayoutDashboard, Bell, Home } from "lucide-react";
 
 type MenuItem = {
   label: string;
@@ -14,6 +14,7 @@ type MenuItem = {
 };
 
 const items: MenuItem[] = [
+  { label: "Home", description: "Go to home page.", to: "/", icon: <Home className="size-5" /> },
   { label: "Avon Groups", description: "Manage groups and contacts.", to: "/groups", icon: <Users className="size-5" /> },
   { label: "WhatsApp Messages", description: "View sent and pending messages.", to: "/messages", icon: <MessageCircle className="size-5" /> },
   { label: "Settings", description: "App preferences and data tools.", to: "/settings", icon: <Settings className="size-5" /> },
