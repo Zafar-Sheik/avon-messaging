@@ -39,9 +39,15 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
   const normalizeTo27 = (input: string): string => {
     const digits = String(input || "").replace(/\D+/g, "");
     if (!digits) return "";
-    if (digits.startsWith("27")) return digits;
-    if (digits.startsWith("0027")) return digits.slice(2);
-    if (digits.startsWith("0")) return `27${digits.slice(1)}`;
+
+    // Handle country code variants and convert 26 -> 27
+    if (digits.startsWith("0027")) return digits.slice(2); // 0027xxxx -> 27xxxx
+    if (digits.startsWith("27")) return digits;            // already 27xxxx
+    if (digits.startsWith("0026")) return `27${digits.slice(4)}`; // 0026xxxx -> 27xxxx
+    if (digits.startsWith("26")) return `27${digits.slice(2)}`;   // 26xxxx -> 27xxxx
+    if (digits.startsWith("0")) return `27${digits.slice(1)}`;    // 0xxxx -> 27xxxx
+
+    // Default: prefix with 27
     return `27${digits}`;
   };
 
