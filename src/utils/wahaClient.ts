@@ -10,46 +10,60 @@ const SUPABASE_FUNCTIONS_BASE = "https://diuezeewlgegnwgcdpmr.supabase.co/functi
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpdWV6ZWV3bGdlZ253Z2NkcG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzgyNzEsImV4cCI6MjA3ODQ1NDI3MX0.0JbeX6VILTrYWorwShVkQqajZbAMeUYv0jtlnqpF5Vs";
 
 async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T> {
-  const { data, error } = await supabase.functions.invoke(name, {
-    body,
-    // DO NOT override headers; let Supabase send the correct Authorization
-  });
-
-  if (!error) return data as T;
-
-  const msg = (error.message || "").toLowerCase();
-  const isNetworkError =
-    msg.includes("failed to send a request") ||
-    msg.includes("failed to fetch") ||
-    msg.includes("network") ||
-    msg.includes("cors");
-
-  // Fallback: direct fetch for network/CORS errors
-  if (isNetworkError) {
-    const resp = await fetch(`${SUPABASE_FUNCTIONS_BASE}/${name}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Provide valid credentials for Supabase gateway
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        apikey: SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify(body),
+  try {
+    const { data, error } = await supabase.functions.invoke(name, {
+      body,
+      // DO NOT override headers; let Supabase send the correct Authorization
     });
 
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => "");
-      throw new Error(text || `Edge function ${name} failed with status ${resp.status}`);
-    }
+    if (!error) return data as T;
 
-    const ct = resp.headers.get("content-type") || "";
-    if (ct.includes("application/json")) {
-      return (await resp.json()) as T;
+    const msg = String(error.message || "").toLowerCase();
+    const isNetworkError =
+      msg.indexOf("failed to send a request") !== -1 ||
+      msg.indexOf("failed to fetch") !== -1 ||
+      msg.indexOf("network") !== -1 ||
+      msg.indexOf("cors") !== -1;
+
+    if (!isNetworkError) {
+      throw new Error(error.message);
     }
-    return (await resp.text()) as T;
+    // If it is a network/CORS error, fall through to direct fetch.
+  } catch (err: any) {
+    const msg = String(err?.message || "").toLowerCase();
+    const isNetworkError =
+      msg.indexOf("failed to send a request") !== -1 ||
+      msg.indexOf("failed to fetch") !== -1 ||
+      msg.indexOf("network") !== -1 ||
+      msg.indexOf("cors") !== -1;
+
+    if (!isNetworkError) {
+      throw err;
+    }
+    // If it is a network/CORS error, continue to direct fetch below.
   }
 
-  throw new Error(error.message);
+  // Fallback: direct fetch for network/CORS errors
+  const resp = await fetch(`${SUPABASE_FUNCTIONS_BASE}/${name}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      apikey: SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => "");
+    throw new Error(text || `Edge function ${name} failed with status ${resp.status}`);
+  }
+
+  const ct = resp.headers.get("content-type") || "";
+  if (ct.includes("application/json")) {
+    return (await resp.json()) as T;
+  }
+  return (await resp.text()) as T;
 }
 
 const invokeWaha = async (action: "messages" | "status" | "qrcode" | "start" | "stop" | "logout", payload?: unknown): Promise<any> => {
