@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getGroups, sendGroupMessage } from "@/utils/groupStore";
-import { isWahaConfigured, sendTextMessage, getSessionStatus } from "@/utils/wahaClient";
+import { isWahaConfigured, getSessionStatus, sendExternalBroadcast } from "@/utils/wahaClient";
 import { getCompanyProfile } from "@/utils/companyStore";
 import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast";
 import type { Group } from "@/types/group";
@@ -73,27 +73,41 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
     setIsSending(true);
     const loadingId = showLoading("Sending broadcast...");
 
-    const finalMessage = await buildMessageWithReply(trimmed);
+    const finalMessageBase = await buildMessageWithReply(trimmed);
 
     const allLinks: string[] = [];
-    for (const group of selectedGroups) {
-      if (wahaReady) {
-        const sends = group.contacts.map((c) => sendTextMessage(c.phone, finalMessage));
-        await Promise.all(sends);
+    if (wahaReady) {
+      // Build personalized messages: "hi {name} {message}"
+      const perContactMessages = selectedGroups.flatMap((group) =>
+        group.contacts.map((c) => ({
+          to: c.phone,
+          text: `hi ${c.name ? `${c.name.trim()} ` : ""}${finalMessageBase}`,
+        }))
+      );
+
+      const result = await sendExternalBroadcast(perContactMessages);
+      dismissToast(String(loadingId));
+      setIsSending(false);
+
+      showSuccess(`Sent ${result.sent} messages via WAHA. ${result.failed > 0 ? `Failed: ${result.failed}` : ""}`);
+      setGeneratedLinks([]);
+
+      // Update local history and clear pending contacts
+      for (const group of selectedGroups) {
+        sendGroupMessage(group.id, finalMessageBase);
       }
-      const { links } = sendGroupMessage(group.id, finalMessage);
-      allLinks.push(...links);
-    }
+    } else {
+      // Generate links for manual sending
+      for (const group of selectedGroups) {
+        const { links } = sendGroupMessage(group.id, finalMessageBase);
+        allLinks.push(...links);
+      }
 
-    dismissToast(String(loadingId));
-    setIsSending(false);
+      dismissToast(String(loadingId));
+      setIsSending(false);
 
-    if (!wahaReady) {
       setGeneratedLinks(allLinks);
       showSuccess(`Prepared ${allLinks.length} WhatsApp links. Click a link to send.`);
-    } else {
-      setGeneratedLinks([]);
-      showSuccess(`Sent ${totalRecipients} messages via WAHA.`);
     }
 
     setGroups(getGroups());

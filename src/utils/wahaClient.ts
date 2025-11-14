@@ -126,3 +126,25 @@ export const stopSession = async (): Promise<void> => {
 export const logoutSession = async (): Promise<void> => {
   await invokeWaha("logout");
 };
+
+export const sendExternalBroadcast = async (
+  messages: Array<{ to: string; text: string }>
+): Promise<{ total: number; sent: number; failed: number; results: any[] }> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+
+  const { data, error } = await supabase.functions.invoke("waha-external-broadcast", {
+    body: {
+      baseUrl: cfg.baseUrl,
+      apiKey: cfg.apiKey,
+      sessionName: cfg.sessionName,
+      recipients: messages,
+      concurrency: 5,
+    },
+  });
+
+  if (error) {
+    throw new Error(`External broadcast error: ${error.message}`);
+  }
+  return data as { total: number; sent: number; failed: number; results: any[] };
+};
