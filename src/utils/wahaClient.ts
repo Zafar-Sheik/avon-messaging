@@ -13,13 +13,17 @@ async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T
   try {
     const { data, error } = await supabase.functions.invoke(name, {
       body,
-      // Let Supabase set proper headers automatically
+      headers: {
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+      },
     });
 
     if (!error) {
       return data as T;
     }
-    // If invoke returned an error, fall back below
+    // Fall through to direct fetch if invoke returned an error
   } catch {
     // If invoke threw, fall back below
   }
