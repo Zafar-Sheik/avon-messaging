@@ -22,11 +22,13 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
   const [message, setMessage] = React.useState("");
   const [isSending, setIsSending] = React.useState(false);
   const [generatedLinks, setGeneratedLinks] = React.useState<string[]>([]);
+  const [includeReplyLink, setIncludeReplyLink] = React.useState(true);
 
   // Helpers to build message with reply link
   const normalizeReplyPhone = (phone: string): string => (phone || "").replace(/\D+/g, "");
-  const buildMessageWithReply = async (original: string): Promise<string> => {
+  const buildMessageWithReply = async (original: string, includeLink: boolean = true): Promise<string> => {
     const trimmed = (original || "").trim();
+    if (!includeLink) return trimmed;
     const company = getCompanyProfile();
     let replyPhone = company?.phone ? normalizeReplyPhone(company.phone) : "";
 
@@ -73,7 +75,7 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
     setIsSending(true);
     const loadingId = showLoading("Sending broadcast...");
 
-    const finalMessageBase = await buildMessageWithReply(trimmed);
+    const finalMessageBase = await buildMessageWithReply(trimmed, includeReplyLink);
 
     const allLinks: string[] = [];
     if (wahaReady) {
@@ -134,6 +136,21 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
             className="min-h-[100px]"
             disabled={isSending}
           />
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Checkbox
+            id="include-reply"
+            checked={includeReplyLink}
+            onCheckedChange={(checked) => setIncludeReplyLink(Boolean(checked))}
+            disabled={isSending}
+          />
+          <Label htmlFor="include-reply" className="text-gray-800">
+            Include "Reply now" link (click-to-chat)
+          </Label>
+          <span className="text-sm text-muted-foreground">
+            Uses your company phone or WAHA session number.
+          </span>
         </div>
 
         <div className="space-y-2">
