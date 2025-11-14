@@ -7,22 +7,32 @@ const FUNCTION_NAME = "waha-proxy";
 
 // Add a robust invocation helper with fallback to direct fetch
 const SUPABASE_FUNCTIONS_BASE = "https://diuezeewlgegnwgcdpmr.supabase.co/functions/v1";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpdWV6ZWV3bGdlZ253Z2NkcG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzgyNzEsImV4cCI6MjA3ODQ1NDI3MX0.0JbeX6VILTrYWorwShVkQqajZbAMeUYv0jtlnqpF5Vs";
 
 async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T> {
   const { data, error } = await supabase.functions.invoke(name, {
     body,
-    headers: { Authorization: "Bearer anonymous" },
+    // DO NOT override headers; let Supabase send the correct Authorization
   });
 
   if (!error) return data as T;
 
-  // Fallback: direct fetch if the request couldn't reach the function
-  if (error.message && error.message.includes("Failed to send a request to the Edge Function")) {
+  const msg = (error.message || "").toLowerCase();
+  const isNetworkError =
+    msg.includes("failed to send a request") ||
+    msg.includes("failed to fetch") ||
+    msg.includes("network") ||
+    msg.includes("cors");
+
+  // Fallback: direct fetch for network/CORS errors
+  if (isNetworkError) {
     const resp = await fetch(`${SUPABASE_FUNCTIONS_BASE}/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer anonymous",
+        // Provide valid credentials for Supabase gateway
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
       },
       body: JSON.stringify(body),
     });
