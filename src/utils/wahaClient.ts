@@ -13,37 +13,18 @@ async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T
   try {
     const { data, error } = await supabase.functions.invoke(name, {
       body,
-      // DO NOT override headers; let Supabase send the correct Authorization
+      // Let Supabase set proper headers automatically
     });
 
-    if (!error) return data as T;
-
-    const msg = String(error.message || "").toLowerCase();
-    const isNetworkError =
-      msg.indexOf("failed to send a request") !== -1 ||
-      msg.indexOf("failed to fetch") !== -1 ||
-      msg.indexOf("network") !== -1 ||
-      msg.indexOf("cors") !== -1;
-
-    if (!isNetworkError) {
-      throw new Error(error.message);
+    if (!error) {
+      return data as T;
     }
-    // If it is a network/CORS error, fall through to direct fetch.
-  } catch (err: any) {
-    const msg = String(err?.message || "").toLowerCase();
-    const isNetworkError =
-      msg.indexOf("failed to send a request") !== -1 ||
-      msg.indexOf("failed to fetch") !== -1 ||
-      msg.indexOf("network") !== -1 ||
-      msg.indexOf("cors") !== -1;
-
-    if (!isNetworkError) {
-      throw err;
-    }
-    // If it is a network/CORS error, continue to direct fetch below.
+    // If invoke returned an error, fall back below
+  } catch {
+    // If invoke threw, fall back below
   }
 
-  // Fallback: direct fetch for network/CORS errors
+  // Fallback: direct fetch when invoke failed or threw
   const resp = await fetch(`${SUPABASE_FUNCTIONS_BASE}/${name}`, {
     method: "POST",
     headers: {
