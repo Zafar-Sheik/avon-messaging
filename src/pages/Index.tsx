@@ -5,6 +5,7 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import HomeMenuCards from "@/components/HomeMenuCards";
 import DashboardStats from "@/components/DashboardStats";
 import Reminders from "@/components/Reminders";
+import WahaTestSender from "@/components/WahaTestSender";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -27,6 +28,7 @@ const Index = () => {
 
         <div className="max-w-6xl mx-auto p-4 space-y-8">
           <DashboardStats />
+          <WahaTestSender />
           <Reminders />
         </div>
       </div>
