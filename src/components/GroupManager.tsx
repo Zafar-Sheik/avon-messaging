@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { getGroups, createGroup } from "@/utils/groupStore";
 import GroupDetailDialog from "@/components/GroupDetailDialog";
+import EditGroupDialog from "@/components/EditGroupDialog";
+import DeleteGroupAlert from "@/components/DeleteGroupAlert";
 import { showError, showSuccess } from "@/utils/toast";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -105,6 +107,8 @@ const GroupManager: React.FC = () => {
   const [groups, setGroups] = React.useState(getGroups());
   const [newName, setNewName] = React.useState("");
   const [activeGroupId, setActiveGroupId] = React.useState<string | null>(null);
+  const [editTarget, setEditTarget] = React.useState<{ id: string; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
 
   const refresh = () => setGroups(getGroups());
@@ -162,9 +166,31 @@ const GroupManager: React.FC = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 justify-end">
-                    <Button size="sm" variant="outline" className="h-7 px-1 text-xs" onClick={() => navigate(`/groups/${g.id}`)}>
-                      Open
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => navigate(`/groups/${g.id}`)}>
+                        Open
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => setEditTarget({ id: g.id, name: g.name })}
+                        title="Edit group name"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => setDeleteTarget({ id: g.id, name: g.name })}
+                        title="Delete group"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
+                      </Button>
+                    </div>
                   </CardFooter>
                 </Card>
               );
@@ -172,6 +198,32 @@ const GroupManager: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {editTarget && (
+        <EditGroupDialog
+          groupId={editTarget.id}
+          initialName={editTarget.name}
+          open={true}
+          onOpenChange={(open) => !open && setEditTarget(null)}
+          onUpdated={() => {
+            refresh();
+            setEditTarget(null);
+          }}
+        />
+      )}
+
+      {deleteTarget && (
+        <DeleteGroupAlert
+          groupId={deleteTarget.id}
+          groupName={deleteTarget.name}
+          open={true}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+          onDeleted={() => {
+            refresh();
+            setDeleteTarget(null);
+          }}
+        />
+      )}
 
       {activeGroupId && (
         <GroupDetailDialog

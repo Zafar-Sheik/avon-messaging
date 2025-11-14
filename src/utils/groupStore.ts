@@ -167,6 +167,19 @@ export const deleteGroup = (groupId: string) => {
   saveGroups(next);
 };
 
+export const updateGroupName = (groupId: string, name: string): Group | undefined => {
+  const nextName = (name || "").trim();
+  if (!nextName) return undefined;
+
+  const groups = loadGroups();
+  const group = groups.find((g) => g.id === groupId);
+  if (!group) return undefined;
+
+  group.name = nextName;
+  saveGroups(groups);
+  return group;
+};
+
 export const clearGroupHistory = (groupId: string) => {
   const groups = loadGroups();
   const group = groups.find((g) => g.id === groupId);
