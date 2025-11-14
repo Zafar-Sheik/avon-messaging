@@ -139,46 +139,73 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
           <div className="text-sm text-muted-foreground">
             Map your columns to the fields below, then review the preview.
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="map-name">Name column (optional)</Label>
-              <Select
-                value={mapping.name}
-                onValueChange={(val) => setMapping((m) => ({ ...m, name: val === NONE_OPTION ? "" : val }))}
-              >
-                <SelectTrigger id="map-name">
-                  <SelectValue placeholder="Choose a column" />
-                </SelectTrigger>
-                <SelectContent>
-                  {headers.map((h) => (
-                    <SelectItem key={`name-${h}`} value={h}>
-                      {h}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value={NONE_OPTION}>
-                    (None)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="map-phone">Phone column</Label>
-              <Select
-                value={mapping.phone}
-                onValueChange={(val) => setMapping((m) => ({ ...m, phone: val }))}
-              >
-                <SelectTrigger id="map-phone">
-                  <SelectValue placeholder="Choose a column" />
-                </SelectTrigger>
-                <SelectContent>
-                  {headers.map((h) => (
-                    <SelectItem key={`phone-${h}`} value={h}>
-                      {h}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
+          <div className="space-y-2">
+            <Label>Column Mapping</Label>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-1/3">App Field</TableHead>
+                  <TableHead>Excel Column</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Name</span>
+                      <span className="text-xs text-muted-foreground">(optional)</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={mapping.name}
+                      onValueChange={(val) =>
+                        setMapping((m) => ({ ...m, name: val === NONE_OPTION ? "" : val }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a column" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {headers.map((h) => (
+                          <SelectItem key={`name-${h}`} value={h}>
+                            {h}
+                          </SelectItem>
+                        ))}
+                        <SelectItem value={NONE_OPTION}>(None)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+
+                <TableRow>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Phone</span>
+                      <span className="text-xs text-muted-foreground">(required)</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={mapping.phone}
+                      onValueChange={(val) => setMapping((m) => ({ ...m, phone: val }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a column" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {headers.map((h) => (
+                          <SelectItem key={`phone-${h}`} value={h}>
+                            {h}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
 
           <div className="rounded-md border p-3">
