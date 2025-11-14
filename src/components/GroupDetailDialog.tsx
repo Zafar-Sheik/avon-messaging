@@ -12,7 +12,7 @@ import { getGroupById, addContactsToGroup, sendGroupMessage, formatWhatsAppLink 
 import type { Group } from "@/types/group";
 import { ExternalLink, Send, Paperclip, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { isWahaConfigured, sendTextMessage, sendFileMessage } from "@/utils/wahaClient";
+import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat } from "@/utils/wahaClient";
 
 type Props = {
   groupId: string;
@@ -25,6 +25,7 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
   const [group, setGroup] = React.useState<Group | undefined>(getGroupById(groupId));
   const [message, setMessage] = React.useState("");
   const [attachments, setAttachments] = React.useState<File[]>([]);
+  const [chatIds, setChatIds] = React.useState<string>(""); // WhatsApp group chat IDs input
 
   React.useEffect(() => {
     setGroup(getGroupById(groupId));
@@ -110,6 +111,37 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
       setMessage("");
       onRefresh();
     }
+  };
+
+  const handleSendToWahaChats = async () => {
+    if (!isWahaConfigured()) {
+      showError("Please configure WAHA in Settings to send messages and media.");
+      return;
+    }
+    const ids = chatIds.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+    if (ids.length === 0) {
+      showError("Enter at least one WhatsApp group chat ID (e.g., 12345-67890@g.us).");
+      return;
+    }
+    if (!message.trim() && attachments.length === 0) {
+      showError("Add a message or attach files to send.");
+      return;
+    }
+
+    for (const gid of ids) {
+      if (attachments.length > 0) {
+        for (const file of attachments) {
+          const base64 = await readFileAsBase64(file);
+          await sendFileToChat(gid, file.name, file.type || "application/octet-stream", base64, message.trim() || undefined);
+        }
+      } else {
+        await sendTextToChat(gid, message);
+      }
+    }
+
+    showSuccess(`Sent WAHA message${attachments.length ? " with attachments" : ""} to ${ids.length} WhatsApp group chat(s).`);
+    setMessage("");
+    setAttachments([]);
   };
 
   if (!group) return null;
@@ -213,6 +245,18 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
               )}
             </div>
 
+            <div className="rounded-md border p-3 space-y-2">
+              <div className="text-sm font-medium">WhatsApp Group Chat IDs (via WAHA)</div>
+              <Input
+                value={chatIds}
+                onChange={(e) => setChatIds(e.target.value)}
+                placeholder="e.g., 12345-67890@g.us, 22222-33333@g.us"
+              />
+              <p className="text-xs text-muted-foreground">
+                Paste WhatsApp group chat IDs ending with <span className="font-mono">@g.us</span>, separated by commas or spaces.
+              </p>
+            </div>
+
             <div className="flex flex-wrap items-center gap-2">
               <Button onClick={handleSend}>
                 <Send className="size-4" />
@@ -240,10 +284,20 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
                 <Send className="size-4" />
                 <span>Send via WAHA</span>
               </Button>
+              <Button
+                variant="default"
+                disabled={!isWahaConfigured() || (!message.trim() && attachments.length === 0) || chatIds.trim() === ""}
+                onClick={handleSendToWahaChats}
+                title={isWahaConfigured() ? "Send to WhatsApp group chats via WAHA" : "Configure WAHA in Settings first"}
+              >
+                <Send className="size-4" />
+                <span>Send to Chats via WAHA</span>
+              </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Note: "Send to Group" opens WhatsApp chats using browser links (text only). Use "Send via WAHA" to send text and attachments directly if WAHA is configured.
+              Note: "Send to Group" opens WhatsApp chats using browser links (text only). Use "Send via WAHA" to send text and attachments directly to contacts. 
+              Use "Send to Chats via WAHA" to send to WhatsApp group chat IDs you provide above.
             </p>
           </TabsContent>
 

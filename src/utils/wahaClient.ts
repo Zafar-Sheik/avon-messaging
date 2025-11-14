@@ -78,6 +78,57 @@ export const sendFileMessage = async (
   }
 };
 
+export const sendTextToChat = async (toChatId: string, text: string): Promise<void> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+  const url = makeEndpoint(cfg.baseUrl, cfg.sessionName);
+  const payload: WahaSendTextPayload = { to: toChatId, type: "text", text };
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${cfg.apiKey}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`WAHA request failed (${res.status}): ${body}`);
+  }
+};
+
+export const sendFileToChat = async (
+  toChatId: string,
+  filename: string,
+  mimeType: string,
+  base64: string,
+  caption?: string
+): Promise<void> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+  const url = makeEndpoint(cfg.baseUrl, cfg.sessionName);
+  const payload: WahaSendFilePayload = {
+    to: toChatId,
+    type: "file",
+    filename,
+    mimeType,
+    base64,
+    caption,
+  };
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${cfg.apiKey}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`WAHA request failed (${res.status}): ${body}`);
+  }
+};
+
 export const getSessionStatus = async (): Promise<{ status: string; phone?: string }> => {
   const cfg = getWahaConfig();
   if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
