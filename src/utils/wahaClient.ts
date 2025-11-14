@@ -5,29 +5,54 @@ import { supabase } from "@/integrations/supabase/client";
 
 const FUNCTION_NAME = "waha-proxy";
 
+// Add a robust invocation helper with fallback to direct fetch
+const SUPABASE_FUNCTIONS_BASE = "https://diuezeewlgegnwgcdpmr.supabase.co/functions/v1";
+
+async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T> {
+  const { data, error } = await supabase.functions.invoke(name, {
+    body,
+    headers: { Authorization: "Bearer anonymous" },
+  });
+
+  if (!error) return data as T;
+
+  // Fallback: direct fetch if the request couldn't reach the function
+  if (error.message && error.message.includes("Failed to send a request to the Edge Function")) {
+    const resp = await fetch(`${SUPABASE_FUNCTIONS_BASE}/${name}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer anonymous",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(text || `Edge function ${name} failed with status ${resp.status}`);
+    }
+
+    const ct = resp.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      return (await resp.json()) as T;
+    }
+    return (await resp.text()) as T;
+  }
+
+  throw new Error(error.message);
+}
+
 const invokeWaha = async (action: "messages" | "status" | "qrcode" | "start" | "stop" | "logout", payload?: unknown): Promise<any> => {
   const cfg = getWahaConfig();
   if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
 
-  const { data, error } = await supabase.functions.invoke(FUNCTION_NAME, {
-    body: {
-      baseUrl: cfg.baseUrl,
-      apiKey: cfg.apiKey,
-      sessionName: cfg.sessionName,
-      action,
-      payload,
-    },
-    // Ensure Authorization header is always present (function only checks for presence)
-    headers: {
-      Authorization: "Bearer anonymous",
-    },
+  return await callSupabaseFunction(FUNCTION_NAME, {
+    baseUrl: cfg.baseUrl,
+    apiKey: cfg.apiKey,
+    sessionName: cfg.sessionName,
+    action,
+    payload,
   });
-
-  if (error) {
-    // Supabase returns structured error for function calls
-    throw new Error(`WAHA proxy error: ${error.message}`);
-  }
-  return data;
 };
 
 export type WahaSendTextPayload = {
@@ -137,22 +162,16 @@ export const sendExternalBroadcast = async (
   const cfg = getWahaConfig();
   if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
 
-  const { data, error } = await supabase.functions.invoke("waha-external-broadcast", {
-    body: {
+  const data = await callSupabaseFunction<{ total: number; sent: number; failed: number; results: any[] }>(
+    "waha-external-broadcast",
+    {
       baseUrl: cfg.baseUrl,
       apiKey: cfg.apiKey,
       sessionName: cfg.sessionName,
       recipients: messages,
       concurrency: 5,
-    },
-    // Ensure Authorization header is always present (function only checks for presence)
-    headers: {
-      Authorization: "Bearer anonymous",
-    },
-  });
+    }
+  );
 
-  if (error) {
-    throw new Error(`External broadcast error: ${error.message}`);
-  }
-  return data as { total: number; sent: number; failed: number; results: any[] };
+  return data;
 };
