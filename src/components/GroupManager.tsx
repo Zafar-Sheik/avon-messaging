@@ -149,45 +149,51 @@ const GroupManager: React.FC = () => {
         {groups.length === 0 ? (
           <p className="text-sm text-muted-foreground">No groups yet. Create one above.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {groups.map((g) => {
               const styles = colorMap[pickColor(g.id)];
               return (
-                <Card key={g.id} className={cn("hover:shadow-md transition-shadow border p-2", styles.card)}>
-                  <CardHeader className="pb-1">
+                <Card
+                  key={g.id}
+                  className={cn(
+                    "group overflow-hidden rounded-xl border p-4 md:p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all",
+                    styles.card
+                  )}
+                >
+                  <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className={cn("text-xs", styles.title)}>{g.name}</CardTitle>
-                      <span className={cn("p-0.5 rounded-md", styles.icon)}>
-                        <Users className="size-2" />
+                      <CardTitle className={cn("text-lg font-semibold", styles.title)}>{g.name}</CardTitle>
+                      <span className={cn("p-2 rounded-lg", styles.icon)}>
+                        <Users className="size-5" />
                       </span>
                     </div>
-                    <CardDescription className={cn("text-[10px]", styles.desc)}>
+                    <CardDescription className={cn("text-sm", styles.desc)}>
                       {g.contacts.length} contacts • {g.sentHistory.length} sent
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-0 justify-end">
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => navigate(`/groups/${g.id}`)}>
+                    <div className="flex items-center gap-3">
+                      <Button size="sm" variant="outline" className="h-9 px-3 text-sm" onClick={() => navigate(`/groups/${g.id}`)}>
                         Open
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 px-2 text-xs"
+                        className="h-9 px-3 text-sm"
                         onClick={() => setEditTarget({ id: g.id, name: g.name })}
                         title="Edit group name"
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <Pencil className="h-4 w-4" />
                         Edit
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
-                        className="h-7 px-2 text-xs"
+                        className="h-9 px-3 text-sm"
                         onClick={() => setDeleteTarget({ id: g.id, name: g.name })}
                         title="Delete group"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                         Delete
                       </Button>
                     </div>
