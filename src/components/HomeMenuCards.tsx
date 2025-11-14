@@ -27,7 +27,7 @@ const items: MenuItem[] = [
 const HomeMenuCards: React.FC = () => {
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold">Quick Menu</h2>
+      <h2 className="text-lg font-semibold">Menu</h2>
       <div className="flex flex-col gap-2">
         {items.map((item) => (
           <Button
