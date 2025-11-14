@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getGroups, sendGroupMessage } from "@/utils/groupStore";
-import { isWahaConfigured, getSessionStatus, sendExternalBroadcast } from "@/utils/wahaClient";
+import { isWahaConfigured, sendExternalBroadcast } from "@/utils/wahaClient";
 import { getReplyNowLink } from "@/utils/replyLink";
 import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast";
 import type { Group } from "@/types/group";
@@ -21,7 +21,7 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
   const [selected, setSelected] = React.useState<Record<string, boolean>>({});
   const [message, setMessage] = React.useState("");
   const [isSending, setIsSending] = React.useState(false);
-  const [generatedLinks, setGeneratedLinks] = React.useState<string[]>([]);
+  // REMOVED: generatedLinks state (no more link generation)
   const [includeReplyLink, setIncludeReplyLink] = React.useState(true);
 
   // Helper to build message with a hardcoded reply link
@@ -69,7 +69,6 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
 
     const finalMessageBase = await buildMessageWithReply(trimmed, includeReplyLink);
 
-    const allLinks: string[] = [];
     if (wahaReady) {
       // Build personalized messages: "hi {name} {message}"
       const perContactMessages = selectedGroups.flatMap((group) =>
@@ -84,24 +83,16 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
       setIsSending(false);
 
       showSuccess(`Sent ${result.sent} messages via WAHA. ${result.failed > 0 ? `Failed: ${result.failed}` : ""}`);
-      setGeneratedLinks([]);
+      // REMOVED: clearing generatedLinks
 
       // Update local history and clear pending contacts
       for (const group of selectedGroups) {
         sendGroupMessage(group.id, finalMessageBase);
       }
     } else {
-      // Generate links for manual sending
-      for (const group of selectedGroups) {
-        const { links } = sendGroupMessage(group.id, finalMessageBase);
-        allLinks.push(...links);
-      }
-
       dismissToast(String(loadingId));
       setIsSending(false);
-
-      setGeneratedLinks(allLinks);
-      showSuccess(`Prepared ${allLinks.length} WhatsApp links. Click a link to send.`);
+      showError("WAHA is not configured. Please configure WAHA in Settings to send WhatsApp messages.");
     }
 
     setGroups(getGroups());
@@ -114,7 +105,7 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
         <CardTitle>Bulk Broadcast</CardTitle>
         <CardDescription>
           Send a message to contacts in selected groups.
-          {wahaReady ? " WAHA is configured: messages will send automatically." : " WAHA not configured: links will be generated for manual sending."}
+          {wahaReady ? " WAHA is configured: messages will send automatically." : " WAHA not configured: please configure WAHA in Settings to send messages."}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0 space-y-4">
@@ -188,7 +179,7 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
             const noneSelected: Record<string, boolean> = {};
             groups.forEach((grp) => (noneSelected[grp.id] = false));
             setSelected(noneSelected);
-            setGeneratedLinks([]);
+            // REMOVED: clearing generatedLinks
           }}
           disabled={isSending}
         >
@@ -199,28 +190,7 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
         </Button>
       </CardFooter>
 
-      {!wahaReady && generatedLinks.length > 0 && (
-        <div className="mt-6">
-          <CardTitle className="text-lg">Generated WhatsApp Links</CardTitle>
-          <CardDescription className="mt-1">
-            Click a link to open WhatsApp for that contact.
-          </CardDescription>
-          <div className="mt-3 max-h-48 overflow-auto rounded-md border">
-            {generatedLinks.map((link, idx) => (
-              <a
-                key={`${link}-${idx}`}
-                href={link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground truncate"
-                title={link}
-              >
-                {link}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* REMOVED: Generated WhatsApp Links UI (no more link generation) */}
     </Card>
   );
 };

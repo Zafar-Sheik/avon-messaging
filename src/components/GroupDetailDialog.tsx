@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showError, showSuccess } from "@/utils/toast";
 import ContactImport from "@/components/ContactImport";
-import { getGroupById, addContactsToGroup, sendGroupMessage, formatWhatsAppLink, updateContactInGroup, deleteContactFromGroup } from "@/utils/groupStore";
+import { getGroupById, addContactsToGroup, sendGroupMessage, updateContactInGroup, deleteContactFromGroup } from "@/utils/groupStore";
 import type { Group } from "@/types/group";
-import { ExternalLink, Send, Paperclip, Trash2 } from "lucide-react";
+import { Send, Paperclip, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat, getSessionStatus } from "@/utils/wahaClient";
 import { getCompanyProfile } from "@/utils/companyStore";
@@ -180,33 +180,6 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
       showSuccess(`Imported ${contacts.length} contact(s) into "${updated.name}".`);
     } else {
       showError("Failed to import contacts.");
-    }
-  };
-
-  const openWhatsAppWindows = (links: string[]) => {
-    // Attempt to open links; popup blockers may prevent opening many tabs.
-    let opened = 0;
-    for (const url of links) {
-      const win = window.open(url, "_blank");
-      if (win) opened++;
-    }
-    return opened;
-  };
-
-  const handleSend = async () => {
-    if (!group) return;
-    if (!message.trim()) {
-      showError("Please enter a message.");
-      return;
-    }
-    const finalMessage = await buildMessageWithReply(message);
-    const { links, updated } = sendGroupMessage(groupId, finalMessage);
-    const opened = openWhatsAppWindows(links);
-    showSuccess(`Prepared ${links.length} WhatsApp chats. Opened ${opened} tab(s).`);
-    if (updated) {
-      setGroup(updated);
-      setMessage("");
-      onRefresh();
     }
   };
 
@@ -444,24 +417,7 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={handleSend}>
-                <Send className="size-4" />
-                <span>Send to Group</span>
-              </Button>
-              <Button
-                variant="secondary"
-                disabled={isSending || group.contacts.length === 0 || !message.trim()}
-                onClick={async () => {
-                  const final = await buildMessageWithReply(message);
-                  const preview = group.contacts.map((c) => formatWhatsAppLink(c.phone, final));
-                  const sample = preview.slice(0, 5);
-                  showSuccess(`Previewing ${preview.length} link(s). Opening up to 5 samples.`);
-                  for (const url of sample) window.open(url, "_blank");
-                }}
-              >
-                <ExternalLink className="size-4" />
-                <span>Preview Links</span>
-              </Button>
+              {/* REMOVED: Send to Group and Preview Links (link-based flows) */}
               <Button
                 variant="default"
                 disabled={isSending || !isWahaConfigured() || group.contacts.length === 0 || (!message.trim() && attachments.length === 0)}
@@ -483,8 +439,7 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Note: "Send to Group" opens WhatsApp chats using browser links (text only). Use "Send via WAHA" to send text and attachments directly to contacts. 
-              Use "Send to Chats via WAHA" to send to WhatsApp group chat IDs you provide above.
+              Use "Send via WAHA" to send text and attachments directly to contacts, or "Send to Chats via WAHA" for WhatsApp group chat IDs.
             </p>
           </TabsContent>
 
