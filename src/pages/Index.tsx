@@ -13,7 +13,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
-          <div className="text-left md:pl-24">
+          <div className="text-left">
             <h1 className="text-3xl font-bold text-gray-500">Contact Online Solutions</h1>
             <p className="text-sm text-muted-foreground">
               Create groups, import contacts from Excel, send WhatsApp messages to a group, and track what was sent.
