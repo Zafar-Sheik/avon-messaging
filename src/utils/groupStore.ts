@@ -77,6 +77,56 @@ export const addContactsToGroup = (
   return group;
 };
 
+export const addContactToGroup = (
+  groupId: string,
+  contact: { name: string; phone: string }
+): Group | undefined => {
+  return addContactsToGroup(groupId, [contact]);
+};
+
+export const updateContactInGroup = (
+  groupId: string,
+  contactId: string,
+  updates: { name?: string; phone?: string }
+): Group | undefined => {
+  const groups = loadGroups();
+  const group = groups.find((g) => g.id === groupId);
+  if (!group) return undefined;
+
+  const idx = group.contacts.findIndex((c) => c.id === contactId);
+  if (idx === -1) return undefined;
+
+  const current = group.contacts[idx];
+  const nextName = (updates.name ?? current.name ?? "").trim();
+  const nextPhone = normalizePhone(updates.phone ?? current.phone ?? "");
+  if (!nextPhone) return undefined;
+
+  const duplicate = group.contacts.some(
+    (c) => c.id !== contactId && normalizePhone(c.phone) === nextPhone
+  );
+  if (duplicate) return undefined;
+
+  group.contacts[idx] = { ...current, name: nextName, phone: nextPhone };
+  saveGroups(groups);
+  return group;
+};
+
+export const deleteContactFromGroup = (
+  groupId: string,
+  contactId: string
+): Group | undefined => {
+  const groups = loadGroups();
+  const group = groups.find((g) => g.id === groupId);
+  if (!group) return undefined;
+
+  const nextContacts = group.contacts.filter((c) => c.id !== contactId);
+  if (nextContacts.length === group.contacts.length) return group;
+
+  group.contacts = nextContacts;
+  saveGroups(groups);
+  return group;
+};
+
 export const formatWhatsAppLink = (phone: string, message: string): string => {
   const normalized = normalizePhone(phone);
   const text = encodeURIComponent(message || "");

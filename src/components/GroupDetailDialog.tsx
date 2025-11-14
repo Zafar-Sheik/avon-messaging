@@ -5,9 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { showError, showSuccess } from "@/utils/toast";
 import ContactImport from "@/components/ContactImport";
-import { getGroupById, addContactsToGroup, sendGroupMessage, formatWhatsAppLink } from "@/utils/groupStore";
+import { getGroupById, addContactsToGroup, sendGroupMessage, formatWhatsAppLink, updateContactInGroup, deleteContactFromGroup } from "@/utils/groupStore";
 import type { Group } from "@/types/group";
 import { ExternalLink, Send, Paperclip, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,12 +30,71 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
   const [attachments, setAttachments] = React.useState<File[]>([]);
   const [chatIds, setChatIds] = React.useState<string>(""); // WhatsApp group chat IDs input
   const [selectedContactId, setSelectedContactId] = React.useState<string | null>(group?.contacts[0]?.id ?? null);
+  const [newName, setNewName] = React.useState("");
+  const [newPhone, setNewPhone] = React.useState("");
+  const [editName, setEditName] = React.useState("");
+  const [editPhone, setEditPhone] = React.useState("");
 
   React.useEffect(() => {
     const g = getGroupById(groupId);
     setGroup(g);
     setSelectedContactId(g?.contacts[0]?.id ?? null);
   }, [groupId, open]);
+
+  React.useEffect(() => {
+    if (!group) return;
+    const selected = group.contacts.find((c) => c.id === selectedContactId);
+    setEditName(selected?.name ?? "");
+    setEditPhone(selected?.phone ?? "");
+  }, [selectedContactId, group]);
+
+  const handleAddContact = () => {
+    const name = newName.trim();
+    const phone = newPhone.trim();
+    if (!phone) {
+      showError("Please enter a phone number.");
+      return;
+    }
+    const updated = addContactsToGroup(groupId, [{ name, phone }]);
+    if (updated) {
+      setGroup(updated);
+      setNewName("");
+      setNewPhone("");
+      onRefresh();
+      showSuccess("Contact added.");
+    } else {
+      showError("Failed to add contact (possibly duplicate phone).");
+    }
+  };
+
+  const handleUpdateContact = () => {
+    if (!group || !selectedContactId) return;
+    const updated = updateContactInGroup(groupId, selectedContactId, {
+      name: editName,
+      phone: editPhone,
+    });
+    if (updated) {
+      setGroup(updated);
+      onRefresh();
+      showSuccess("Contact updated.");
+    } else {
+      showError("Failed to update contact (check phone and duplicates).");
+    }
+  };
+
+  const handleDeleteContact = () => {
+    if (!group || !selectedContactId) return;
+    const updated = deleteContactFromGroup(groupId, selectedContactId);
+    if (updated) {
+      setGroup(updated);
+      const nextFirst = updated.contacts[0]?.id ?? null;
+      setSelectedContactId(nextFirst);
+      onRefresh();
+      showSuccess("Contact deleted.");
+    } else {
+      showError("Failed to delete contact.");
+    }
+  };
 
   const readFileAsBase64 = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -190,6 +250,22 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
           </TabsList>
 
           <TabsContent value="contacts" className="space-y-3 pt-3">
+            <div className="rounded-md border p-3 space-y-2">
+              <div className="text-sm font-medium">Add Contact</div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="new-contact-name">Name</Label>
+                  <Input id="new-contact-name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Optional" />
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <Label htmlFor="new-contact-phone">Phone</Label>
+                  <Input id="new-contact-phone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="e.g., +123456789" />
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={handleAddContact}>Add Contact</Button>
+              </div>
+            </div>
             {group.contacts.length === 0 ? (
               <p className="text-sm text-muted-foreground">No contacts yet. Import some from Excel.</p>
             ) : (
@@ -244,8 +320,24 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
                           </div>
                           <div className="rounded-md border p-3 text-sm">
                             <p className="text-muted-foreground">
-                              This pane shows the selected contact's details. You can compose a message in the Send tab to reach all contacts.
+                              Edit this contact's details below.
                             </p>
+                          </div>
+                          <div className="rounded-md border p-3 space-y-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              <div className="space-y-1">
+                                <Label htmlFor="edit-contact-name">Name</Label>
+                                <Input id="edit-contact-name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                              </div>
+                              <div className="space-y-1 sm:col-span-2">
+                                <Label htmlFor="edit-contact-phone">Phone</Label>
+                                <Input id="edit-contact-phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} />
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <Button onClick={handleUpdateContact}>Save Changes</Button>
+                              <Button variant="destructive" onClick={handleDeleteContact}>Delete Contact</Button>
+                            </div>
                           </div>
                         </div>
                       );
