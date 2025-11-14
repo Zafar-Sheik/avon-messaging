@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { showError, showSuccess } from "@/utils/toast";
 import ContactImport from "@/components/ContactImport";
 import { getGroupById, addContactsToGroup, sendGroupMessage, formatWhatsAppLink } from "@/utils/groupStore";
@@ -168,23 +167,19 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
             {group.contacts.length === 0 ? (
               <p className="text-sm text-muted-foreground">No contacts yet. Import some from Excel.</p>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {group.contacts.map((c) => (
-                      <TableRow key={c.id}>
-                        <TableCell>{c.name}</TableCell>
-                        <TableCell>{c.phone}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {group.contacts.map((c) => (
+                  <div
+                    key={c.id}
+                    className="rounded-md border bg-card p-2 flex items-center justify-between min-w-0"
+                    title={`${c.name} • ${c.phone}`}
+                  >
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">{c.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">{c.phone}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </TabsContent>

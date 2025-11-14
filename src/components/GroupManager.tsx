@@ -111,29 +111,24 @@ const GroupManager: React.FC = () => {
         {groups.length === 0 ? (
           <p className="text-sm text-muted-foreground">No groups yet. Create one above.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {groups.map((g) => {
               const styles = colorMap[pickColor(g.id)];
               return (
-                <Card key={g.id} className={cn("hover:shadow-md transition-shadow border", styles.card)}>
-                  <CardHeader className="pb-3">
+                <Card key={g.id} className={cn("hover:shadow-md transition-shadow border p-3", styles.card)}>
+                  <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className={cn("text-base", styles.title)}>{g.name}</CardTitle>
-                      <span className={cn("p-2 rounded-md", styles.icon)}>
-                        <Users className="size-4" />
+                      <CardTitle className={cn("text-sm", styles.title)}>{g.name}</CardTitle>
+                      <span className={cn("p-1 rounded-md", styles.icon)}>
+                        <Users className="size-3" />
                       </span>
                     </div>
-                    <CardDescription className={cn("text-xs", styles.desc)}>
-                      Contacts: {g.contacts.length} • Sent: {g.sentHistory.length}
+                    <CardDescription className={cn("text-[11px]", styles.desc)}>
+                      {g.contacts.length} contacts • {g.sentHistory.length} sent
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className={cn("flex items-center gap-3 text-sm", styles.desc)}>
-                      <div className="flex-1">Manage contacts and view sent history.</div>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="justify-end">
-                    <Button size="sm" onClick={() => setActiveGroupId(g.id)}>
+                  <CardFooter className="pt-0 justify-end">
+                    <Button size="sm" variant="outline" className="h-8 px-2" onClick={() => setActiveGroupId(g.id)}>
                       Open
                     </Button>
                   </CardFooter>
