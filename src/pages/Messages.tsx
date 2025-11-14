@@ -5,9 +5,16 @@ import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { getGroups } from "@/utils/groupStore";
 import { getWhatsAppStats } from "@/utils/stats";
+import BulkBroadcast from "@/components/BulkBroadcast";
+import type { Group } from "@/types/group";
 
 const MessagesPage = () => {
-  const groups = getGroups();
+  // Replace static groups with state so page reacts to changes
+  const [groups, setGroups] = React.useState<Group[]>([]);
+  React.useEffect(() => {
+    setGroups(getGroups());
+  }, []);
+
   const stats = getWhatsAppStats();
 
   const history = groups.flatMap((g) =>
@@ -18,6 +25,7 @@ const MessagesPage = () => {
     <div className="min-h-screen bg-background">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <h1 className="text-2xl font-bold">WhatsApp Messages</h1>
+        <BulkBroadcast onCompleted={() => setGroups(getGroups())} />
         <Card className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <div className="text-sm text-muted-foreground">Sent</div>
