@@ -12,6 +12,7 @@ import type { Group } from "@/types/group";
 import { ExternalLink, Send, Paperclip, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat } from "@/utils/wahaClient";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 
 type Props = {
   groupId: string;
@@ -167,19 +168,25 @@ const GroupDetailDialog: React.FC<Props> = ({ groupId, open, onOpenChange, onRef
             {group.contacts.length === 0 ? (
               <p className="text-sm text-muted-foreground">No contacts yet. Import some from Excel.</p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                {group.contacts.map((c) => (
-                  <div
-                    key={c.id}
-                    className="rounded-md border bg-card p-2 flex items-center justify-between min-w-0"
-                    title={`${c.name} • ${c.phone}`}
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">{c.name}</div>
-                      <div className="truncate text-xs text-muted-foreground">{c.phone}</div>
-                    </div>
-                  </div>
-                ))}
+              <div className="rounded-md border bg-card">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Phone</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {group.contacts.map((c, idx) => (
+                      <TableRow key={c.id}>
+                        <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
+                        <TableCell className="truncate">{c.name}</TableCell>
+                        <TableCell className="font-mono">{c.phone}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
           </TabsContent>
