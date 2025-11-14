@@ -21,7 +21,7 @@ const Index = () => {
           </SidebarContent>
         </Sidebar>
 
-        <SidebarInset>
+        <SidebarInset className="bg-blue-900 text-white">
           <div className="py-6">
             <div className="flex items-center justify-between mb-6">
               <div className="text-center md:text-left md:pl-24">
