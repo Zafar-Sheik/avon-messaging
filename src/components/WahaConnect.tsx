@@ -107,9 +107,14 @@ const WahaConnect: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>WAHA Connect</CardTitle>
-        <CardDescription>Start a session, scan the QR code, and link your phone number.</CardDescription>
+      <CardHeader className="items-center">
+        <CardTitle className="text-center">
+          <span className="text-blue-600">WAHA</span>{" "}
+          <span className="text-red-600">Connect</span>
+        </CardTitle>
+        <CardDescription className="text-center">
+          Start a session, scan the QR code, and link your phone number.
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {!configured && (
