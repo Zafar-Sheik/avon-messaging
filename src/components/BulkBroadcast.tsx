@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getGroups, sendGroupMessage } from "@/utils/groupStore";
 import { isWahaConfigured, getSessionStatus, sendExternalBroadcast } from "@/utils/wahaClient";
-import { getCompanyProfile } from "@/utils/companyStore";
+import { getReplyNowLink } from "@/utils/replyLink";
 import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast";
 import type { Group } from "@/types/group";
 
@@ -24,21 +24,13 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
   const [generatedLinks, setGeneratedLinks] = React.useState<string[]>([]);
   const [includeReplyLink, setIncludeReplyLink] = React.useState(true);
 
-  // Helpers to build message with reply link
-  const normalizeReplyPhone = (phone: string): string => (phone || "").replace(/\D+/g, "");
+  // Helper to build message with a hardcoded reply link
   const buildMessageWithReply = async (original: string, includeLink: boolean = true): Promise<string> => {
     const trimmed = (original || "").trim();
     if (!includeLink) return trimmed;
-    const company = getCompanyProfile();
-    let replyPhone = company?.phone ? normalizeReplyPhone(company.phone) : "";
-
-    if (!replyPhone && isWahaConfigured()) {
-      const { phone } = await getSessionStatus();
-      if (phone) replyPhone = normalizeReplyPhone(phone);
-    }
-
-    if (!replyPhone) return trimmed;
-    return `${trimmed}\n\nReply now: https://wa.me/${replyPhone}`;
+    const link = getReplyNowLink();
+    if (!link) return trimmed;
+    return `${trimmed}\n\nReply now: ${link}`;
   };
 
   React.useEffect(() => {
@@ -149,7 +141,7 @@ const BulkBroadcast: React.FC<Props> = ({ onCompleted }) => {
             Include "Reply now" link (click-to-chat)
           </Label>
           <span className="text-sm text-muted-foreground">
-            Uses your company phone or WAHA session number.
+            Uses the configured reply number.
           </span>
         </div>
 

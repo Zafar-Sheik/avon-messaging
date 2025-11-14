@@ -14,23 +14,15 @@ import { showError, showSuccess } from "@/utils/toast";
 import { getGroupById, addContactsToGroup, sendGroupMessage, formatWhatsAppLink, updateContactInGroup, deleteContactFromGroup } from "@/utils/groupStore";
 import type { Group } from "@/types/group";
 import { ExternalLink, Send, Paperclip, Trash2, ArrowLeft } from "lucide-react";
-import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat, getSessionStatus } from "@/utils/wahaClient";
-import { getCompanyProfile } from "@/utils/companyStore";
+import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat } from "@/utils/wahaClient";
+import { getReplyNowLink } from "@/utils/replyLink";
 
-// Helpers to build message with reply link
-const normalizeReplyPhone = (phone: string): string => (phone || "").replace(/\D+/g, "");
+// Helper to build message with a hardcoded reply link
 const buildMessageWithReply = async (original: string): Promise<string> => {
   const trimmed = (original || "").trim();
-  const company = getCompanyProfile();
-  let replyPhone = company?.phone ? normalizeReplyPhone(company.phone) : "";
-
-  if (!replyPhone && isWahaConfigured()) {
-    const { phone } = await getSessionStatus();
-    if (phone) replyPhone = normalizeReplyPhone(phone);
-  }
-
-  if (!replyPhone) return trimmed;
-  return `${trimmed}\n\nReply now: https://wa.me/${replyPhone}`;
+  const link = getReplyNowLink();
+  if (!link) return trimmed;
+  return `${trimmed}\n\nReply now: ${link}`;
 };
 
 const GroupDetailPage: React.FC = () => {
