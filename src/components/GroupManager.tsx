@@ -8,7 +8,8 @@ import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from 
 import { getGroups, createGroup } from "@/utils/groupStore";
 import GroupDetailDialog from "@/components/GroupDetailDialog";
 import EditGroupDialog from "@/components/EditGroupDialog";
-import DeleteGroupAlert from "@/components/DeleteGroupAlert";
+import DeleteGroupsAlert from "@/components/DeleteGroupsAlert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { showError, showSuccess } from "@/utils/toast";
 import { Plus, Users, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -108,10 +109,13 @@ const GroupManager: React.FC = () => {
   const [newName, setNewName] = React.useState("");
   const [activeGroupId, setActiveGroupId] = React.useState<string | null>(null);
   const [editTarget, setEditTarget] = React.useState<{ id: string; name: string } | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<{ id: string; name: string } | null>(null);
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+  const [deleteSelectedOpen, setDeleteSelectedOpen] = React.useState(false);
   const navigate = useNavigate();
 
   const refresh = () => setGroups(getGroups());
+  const clearSelection = () => setSelectedIds([]);
+  const allSelected = groups.length > 0 && selectedIds.length === groups.length;
 
   const addGroup = () => {
     const name = newName.trim();
@@ -122,6 +126,7 @@ const GroupManager: React.FC = () => {
     const g = createGroup(name);
     setNewName("");
     refresh();
+    clearSelection();
     showSuccess(`Created group "${g.name}".`);
   };
 
@@ -143,6 +148,58 @@ const GroupManager: React.FC = () => {
             <span>Create Group</span>
           </Button>
         </div>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={(checked) => {
+                  if (checked) setSelectedIds(groups.map((g) => g.id));
+                  else clearSelection();
+                }}
+              />
+              <span className="text-sm text-muted-foreground">Select All</span>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              Selected: {selectedIds.length}
+            </span>
+            {selectedIds.length > 0 && (
+              <Button variant="ghost" size="sm" className="h-8" onClick={clearSelection}>
+                Clear
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9"
+              disabled={selectedIds.length !== 1}
+              onClick={() => {
+                if (selectedIds.length === 1) {
+                  const id = selectedIds[0];
+                  const name = groups.find((g) => g.id === id)?.name || "";
+                  setEditTarget({ id, name });
+                }
+              }}
+              title="Edit selected group"
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit Selected
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="h-9"
+              disabled={selectedIds.length === 0}
+              onClick={() => setDeleteSelectedOpen(true)}
+              title="Delete selected groups"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected
+            </Button>
+          </div>
+        </div>
       </Card>
 
       <Card className="p-4">
@@ -162,7 +219,18 @@ const GroupManager: React.FC = () => {
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className={cn("text-lg font-semibold", styles.title)}>{g.name}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={selectedIds.includes(g.id)}
+                          onCheckedChange={(checked) =>
+                            setSelectedIds((prev) =>
+                              checked ? [...prev, g.id] : prev.filter((x) => x !== g.id)
+                            )
+                          }
+                          aria-label={`Select ${g.name}`}
+                        />
+                        <CardTitle className={cn("text-lg font-semibold", styles.title)}>{g.name}</CardTitle>
+                      </div>
                       <span className={cn("p-2 rounded-lg", styles.icon)}>
                         <Users className="size-5" />
                       </span>
@@ -175,26 +243,6 @@ const GroupManager: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <Button size="sm" variant="outline" className="h-9 px-3 text-sm" onClick={() => navigate(`/groups/${g.id}`)}>
                         Open
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-9 px-3 text-sm"
-                        onClick={() => setEditTarget({ id: g.id, name: g.name })}
-                        title="Edit group name"
-                      >
-                        <Pencil className="h-4 w-4" />
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="h-9 px-3 text-sm"
-                        onClick={() => setDeleteTarget({ id: g.id, name: g.name })}
-                        title="Delete group"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
                       </Button>
                     </div>
                   </CardFooter>
@@ -218,15 +266,16 @@ const GroupManager: React.FC = () => {
         />
       )}
 
-      {deleteTarget && (
-        <DeleteGroupAlert
-          groupId={deleteTarget.id}
-          groupName={deleteTarget.name}
-          open={true}
-          onOpenChange={(open) => !open && setDeleteTarget(null)}
+      {deleteSelectedOpen && (
+        <DeleteGroupsAlert
+          groups={groups
+            .filter((g) => selectedIds.includes(g.id))
+            .map((g) => ({ id: g.id, name: g.name }))}
+          open={deleteSelectedOpen}
+          onOpenChange={setDeleteSelectedOpen}
           onDeleted={() => {
             refresh();
-            setDeleteTarget(null);
+            clearSelection();
           }}
         />
       )}
