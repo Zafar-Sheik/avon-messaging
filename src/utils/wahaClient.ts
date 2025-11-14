@@ -3,13 +3,13 @@
 import { getWahaConfig } from "@/utils/wahaStore";
 import { supabase } from "@/integrations/supabase/client";
 
-const FUNCTION_URL = "https://diuezeewlgegnwgcdpmr.supabase.co/functions/v1/waha-proxy";
+const FUNCTION_NAME = "waha-proxy";
 
 const invokeWaha = async (action: "messages" | "status" | "qrcode" | "start" | "stop" | "logout", payload?: unknown): Promise<any> => {
   const cfg = getWahaConfig();
   if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
 
-  const { data, error } = await supabase.functions.invoke(FUNCTION_URL, {
+  const { data, error } = await supabase.functions.invoke(FUNCTION_NAME, {
     body: {
       baseUrl: cfg.baseUrl,
       apiKey: cfg.apiKey,
@@ -133,7 +133,7 @@ export const sendExternalBroadcast = async (
   const cfg = getWahaConfig();
   if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
 
-  const { data, error } = await supabase.functions.invoke("https://diuezeewlgegnwgcdpmr.supabase.co/functions/v1/waha-external-broadcast", {
+  const { data, error } = await supabase.functions.invoke("waha-external-broadcast", {
     body: {
       baseUrl: cfg.baseUrl,
       apiKey: cfg.apiKey,
