@@ -11,50 +11,80 @@ import { showError, showSuccess } from "@/utils/toast";
 import { Plus, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ColorKey = "emerald" | "amber" | "indigo" | "violet" | "rose" | "sky" | "teal";
+type ColorKey = "emerald" | "amber" | "indigo" | "violet" | "rose" | "sky" | "teal" | "blue" | "cyan" | "fuchsia" | "lime" | "orange";
 
 const colorMap: Record<ColorKey, { card: string; icon: string; title: string; desc: string }> = {
   emerald: {
-    card: "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900 border-emerald-200 dark:border-emerald-800",
-    icon: "bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-200",
-    title: "text-emerald-800 dark:text-emerald-100",
-    desc: "text-emerald-700 dark:text-emerald-200",
+    card: "bg-gradient-to-br from-emerald-500 to-emerald-700 dark:from-emerald-900 dark:to-emerald-950 border-emerald-600 dark:border-emerald-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
   },
   amber: {
-    card: "bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 border-amber-200 dark:border-amber-800",
-    icon: "bg-amber-100 text-amber-700 dark:bg-amber-800 dark:text-amber-200",
-    title: "text-amber-800 dark:text-amber-100",
-    desc: "text-amber-700 dark:text-amber-200",
+    card: "bg-gradient-to-br from-amber-500 to-amber-700 dark:from-amber-900 dark:to-amber-950 border-amber-600 dark:border-amber-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
   },
   indigo: {
-    card: "bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-950 dark:to-indigo-900 border-indigo-200 dark:border-indigo-800",
-    icon: "bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-200",
-    title: "text-indigo-800 dark:text-indigo-100",
-    desc: "text-indigo-700 dark:text-indigo-200",
+    card: "bg-gradient-to-br from-indigo-500 to-indigo-700 dark:from-indigo-900 dark:to-indigo-950 border-indigo-600 dark:border-indigo-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
   },
   violet: {
-    card: "bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-950 dark:to-violet-900 border-violet-200 dark:border-violet-800",
-    icon: "bg-violet-100 text-violet-700 dark:bg-violet-800 dark:text-violet-200",
-    title: "text-violet-800 dark:text-violet-100",
-    desc: "text-violet-700 dark:text-violet-200",
+    card: "bg-gradient-to-br from-violet-500 to-violet-700 dark:from-violet-900 dark:to-violet-950 border-violet-600 dark:border-violet-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
   },
   rose: {
-    card: "bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950 dark:to-rose-900 border-rose-200 dark:border-rose-800",
-    icon: "bg-rose-100 text-rose-700 dark:bg-rose-800 dark:text-rose-200",
-    title: "text-rose-800 dark:text-rose-100",
-    desc: "text-rose-700 dark:text-rose-200",
+    card: "bg-gradient-to-br from-rose-500 to-rose-700 dark:from-rose-900 dark:to-rose-950 border-rose-600 dark:border-rose-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
   },
   sky: {
-    card: "bg-gradient-to-br from-sky-50 to-sky-100 dark:from-sky-950 dark:to-sky-900 border-sky-200 dark:border-sky-800",
-    icon: "bg-sky-100 text-sky-700 dark:bg-sky-800 dark:text-sky-200",
-    title: "text-sky-800 dark:text-sky-100",
-    desc: "text-sky-700 dark:text-sky-200",
+    card: "bg-gradient-to-br from-sky-500 to-sky-700 dark:from-sky-900 dark:to-sky-950 border-sky-600 dark:border-sky-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
   },
   teal: {
-    card: "bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950 dark:to-teal-900 border-teal-200 dark:border-teal-800",
-    icon: "bg-teal-100 text-teal-700 dark:bg-teal-800 dark:text-teal-200",
-    title: "text-teal-800 dark:text-teal-100",
-    desc: "text-teal-700 dark:text-teal-200",
+    card: "bg-gradient-to-br from-teal-500 to-teal-700 dark:from-teal-900 dark:to-teal-950 border-teal-600 dark:border-teal-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
+  },
+  blue: {
+    card: "bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-900 dark:to-blue-950 border-blue-600 dark:border-blue-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
+  },
+  cyan: {
+    card: "bg-gradient-to-br from-cyan-500 to-cyan-700 dark:from-cyan-900 dark:to-cyan-950 border-cyan-600 dark:border-cyan-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
+  },
+  fuchsia: {
+    card: "bg-gradient-to-br from-fuchsia-500 to-fuchsia-700 dark:from-fuchsia-900 dark:to-fuchsia-950 border-fuchsia-600 dark:border-fuchsia-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
+  },
+  lime: {
+    card: "bg-gradient-to-br from-lime-500 to-lime-700 dark:from-lime-900 dark:to-lime-950 border-lime-600 dark:border-lime-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
+  },
+  orange: {
+    card: "bg-gradient-to-br from-orange-500 to-orange-700 dark:from-orange-900 dark:to-orange-950 border-orange-600 dark:border-orange-800 text-white",
+    icon: "bg-white/20 text-white",
+    title: "text-white",
+    desc: "text-white/80",
   },
 };
 
@@ -64,8 +94,10 @@ const hashToIndex = (id: string, n: number) => {
   return h % n;
 };
 const pickColor = (id: string): ColorKey => {
-  const keys: ColorKey[] = ["emerald", "amber", "indigo", "violet", "rose", "sky", "teal"];
-  return keys[hashToIndex(id, keys.length)];
+  const keys: ColorKey[] = ["emerald", "amber", "indigo", "violet", "rose", "sky", "teal", "blue", "cyan", "fuchsia", "lime", "orange"];
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return keys[h % keys.length];
 };
 
 const GroupManager: React.FC = () => {
