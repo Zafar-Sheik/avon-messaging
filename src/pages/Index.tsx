@@ -24,7 +24,7 @@ const Index = () => {
         <SidebarInset>
           <div className="py-6">
             <div className="flex items-center justify-between mb-6">
-              <div className="text-center md:text-left">
+              <div className="text-center md:text-left md:pl-24">
                 <h1 className="text-3xl font-bold">Contact Online Solutions</h1>
                 <p className="text-sm text-muted-foreground">
                   Create groups, import contacts from Excel, send WhatsApp messages to a group, and track what was sent.
