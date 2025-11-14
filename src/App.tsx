@@ -16,6 +16,7 @@ import HomeMenuCards from "@/components/HomeMenuCards";
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarInset } from "@/components/ui/sidebar";
 import GroupDetailPage from "./pages/GroupDetail";
 import Login from "./pages/Login";
+import SchedulerPage from "./pages/Scheduler";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
                 <Route path="/messages" element={<MessagesPage />} />
                 <Route path="/uploads" element={<UploadsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/scheduler" element={<SchedulerPage />} />
                 <Route path="/reminders" element={<RemindersPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

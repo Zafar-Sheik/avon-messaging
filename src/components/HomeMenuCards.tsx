@@ -4,7 +4,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Users, MessageCircle, Settings, FolderUp, LayoutDashboard, Bell, Home } from "lucide-react";
+import { Users, MessageCircle, Settings, FolderUp, LayoutDashboard, Bell, Home, CalendarDays } from "lucide-react";
 
 type MenuItem = {
   label: string;
@@ -21,6 +21,7 @@ const items: MenuItem[] = [
   { label: "Files Uploads", description: "Import contacts from Excel.", to: "/uploads", icon: <FolderUp className="size-5" /> },
   { label: "Dashboard Data", description: "Analytics overview and reminders.", to: "/dashboard", icon: <LayoutDashboard className="size-5" /> },
   { label: "Reminders", description: "Add and track follow-ups.", to: "/reminders", icon: <Bell className="size-5" /> },
+  { label: "Scheduler", description: "Plan meetings and visits.", to: "/scheduler", icon: <CalendarDays className="size-5" /> },
 ];
 
 const HomeMenuCards: React.FC = () => {
