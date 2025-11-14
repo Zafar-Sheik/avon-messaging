@@ -111,12 +111,26 @@ const ContactImport: React.FC<Props> = ({ onImported }) => {
     const guessedName = guess(nameCandidates, hdrs.find((h) => h.toLowerCase().includes("name")) || "");
     const guessedPhone = guess(phoneCandidates, hdrs.find((h) => h.toLowerCase().includes("phone")) || hdrs[0] || "");
 
-    setRawRows(rows);
+    // NEW: Filter rows where "Suburb District" equals 16 (digits-only, case-insensitive header match)
+    const districtIdx = lower.findIndex((h) => h === "suburb district" || h.includes("suburb district"));
+    const finalRows = districtIdx !== -1
+      ? rows.filter((r) => {
+          const val = getCell(r, hdrs[districtIdx]);
+          const digits = String(val).replace(/\D+/g, "");
+          return digits === "16";
+        })
+      : rows;
+
+    setRawRows(finalRows);
     setHeaders(hdrs);
     setMapping({ name: guessedName, phone: guessedPhone });
 
     dismissToast(loadingId);
-    showSuccess(`Loaded ${rows.length} row(s). Choose columns to import.`);
+    if (districtIdx !== -1) {
+      showSuccess(`Loaded ${rows.length} row(s). Filtered to ${finalRows.length} with Suburb District = 16. Choose columns to import.`);
+    } else {
+      showSuccess(`Loaded ${rows.length} row(s). Choose columns to import.`);
+    }
   };
 
   const importContacts = () => {
