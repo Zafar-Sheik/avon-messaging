@@ -3,9 +3,8 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { getWhatsAppStats, type Stats } from "@/utils/stats";
-import { Send, Clock, Users, LayoutDashboard, TrendingUp } from "lucide-react";
+import { Send, Clock, Users, LayoutDashboard } from "lucide-react";
 import { showSuccess } from "@/utils/toast";
 import { cn } from "@/lib/utils";
 
@@ -41,33 +40,22 @@ const StatTile = ({
   label,
   value,
   color = "indigo",
-  subtext,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number | string;
   color?: keyof typeof colorMap;
-  subtext?: string;
 }) => {
   const styles = colorMap[color];
   return (
-    <Card
-      className={cn(
-        "p-4 flex items-center justify-between gap-4 border shadow-sm transition-all duration-200 hover:shadow-md hover:translate-y-0.5",
-        styles.card
-      )}
-    >
+    <Card className={cn("p-4 flex items-center justify-between gap-4 border shadow-sm", styles.card)}>
       <div className="flex items-center gap-3">
         <div className={cn("p-2 rounded-md", styles.icon)}>{icon}</div>
         <div>
           <div className={cn("text-sm", styles.label)}>{label}</div>
-          <div className={cn("text-2xl font-semibold", styles.value)}>
-            {typeof value === "number" ? value.toLocaleString() : value}
-          </div>
-          {subtext && <div className="text-xs mt-1 text-muted-foreground">{subtext}</div>}
+          <div className={cn("text-2xl font-semibold", styles.value)}>{value}</div>
         </div>
       </div>
-      <TrendingUp className="size-5 text-muted-foreground opacity-60" />
     </Card>
   );
 };
@@ -80,11 +68,8 @@ const DashboardStats: React.FC = () => {
     showSuccess("Dashboard stats refreshed.");
   };
 
-  const sentPercent =
-    stats.contactCount > 0 ? Math.round((stats.sentCount / stats.contactCount) * 100) : 0;
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <LayoutDashboard className="size-5 text-muted-foreground" />
@@ -96,48 +81,11 @@ const DashboardStats: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatTile
-          icon={<Send className="size-5" />}
-          label="WhatsApp Sent"
-          value={stats.sentCount}
-          color="emerald"
-          subtext={`${sentPercent}% of contacts`}
-        />
-        <StatTile
-          icon={<Clock className="size-5" />}
-          label="Pending to Send"
-          value={stats.pendingCount}
-          color="amber"
-          subtext={`${(100 - sentPercent).toFixed(0)}% remaining`}
-        />
-        <StatTile
-          icon={<Users className="size-5" />}
-          label="Total Contacts"
-          value={stats.contactCount}
-          color="indigo"
-          subtext="All groups combined"
-        />
-        <StatTile
-          icon={<LayoutDashboard className="size-5" />}
-          label="Groups"
-          value={stats.groupCount}
-          color="violet"
-          subtext="Active groups"
-        />
+        <StatTile icon={<Send className="size-5" />} label="WhatsApp Sent" value={stats.sentCount} color="emerald" />
+        <StatTile icon={<Clock className="size-5" />} label="Pending to Send" value={stats.pendingCount} color="amber" />
+        <StatTile icon={<Users className="size-5" />} label="Total Contacts" value={stats.contactCount} color="indigo" />
+        <StatTile icon={<LayoutDashboard className="size-5" />} label="Groups" value={stats.groupCount} color="violet" />
       </div>
-
-      <Card className="p-4 border shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-900">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <div className="text-sm font-medium">Delivery Progress</div>
-            <div className="text-xs text-muted-foreground">
-              {stats.sentCount.toLocaleString()} of {stats.contactCount.toLocaleString()} contacts sent
-            </div>
-          </div>
-          <div className="text-sm font-semibold">{sentPercent}%</div>
-        </div>
-        <Progress value={sentPercent} className="h-2" />
-      </Card>
     </div>
   );
 };
