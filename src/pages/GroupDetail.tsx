@@ -15,6 +15,7 @@ import { getGroupById, addContactsToGroup, sendGroupMessage, formatWhatsAppLink,
 import type { Group } from "@/types/group";
 import { ExternalLink, Send, Paperclip, Trash2, ArrowLeft } from "lucide-react";
 import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat } from "@/utils/wahaClient";
+import SendProgress from "@/components/SendProgress";
 import { getReplyNowLink } from "@/utils/replyLink";
 
 // Helper to build message with a hardcoded reply link
@@ -36,6 +37,9 @@ const GroupDetailPage: React.FC = () => {
   const [newPhone, setNewPhone] = React.useState("");
   const [editName, setEditName] = React.useState("");
   const [editPhone, setEditPhone] = React.useState("");
+  const [isSending, setIsSending] = React.useState(false);
+  const [sendCurrent, setSendCurrent] = React.useState(0);
+  const [sendTotal, setSendTotal] = React.useState(0);
 
   React.useEffect(() => {
     if (!id) return;
@@ -131,15 +135,25 @@ const GroupDetailPage: React.FC = () => {
 
     const finalMessage = await buildMessageWithReply(message);
 
-    for (const c of group.contacts) {
-      if (attachments.length > 0) {
-        for (const file of attachments) {
-          const base64 = await readFileAsBase64(file);
-          await sendFileMessage(c.phone, file.name, file.type || "application/octet-stream", base64, finalMessage.trim() || undefined);
+    const totalOps = group.contacts.length * (attachments.length > 0 ? attachments.length : 1);
+    setIsSending(true);
+    setSendCurrent(0);
+    setSendTotal(totalOps);
+    try {
+      for (const c of group.contacts) {
+        if (attachments.length > 0) {
+          for (const file of attachments) {
+            const base64 = await readFileAsBase64(file);
+            await sendFileMessage(c.phone, file.name, file.type || "application/octet-stream", base64, finalMessage.trim() || undefined);
+            setSendCurrent((prev) => prev + 1);
+          }
+        } else {
+          await sendTextMessage(c.phone, finalMessage);
+          setSendCurrent((prev) => prev + 1);
         }
-      } else {
-        await sendTextMessage(c.phone, finalMessage);
       }
+    } finally {
+      setIsSending(false);
     }
 
     const { updated } = sendGroupMessage(group.id, finalMessage);
@@ -207,15 +221,25 @@ const GroupDetailPage: React.FC = () => {
 
     const finalMessage = await buildMessageWithReply(message);
 
-    for (const gid of ids) {
-      if (attachments.length > 0) {
-        for (const file of attachments) {
-          const base64 = await readFileAsBase64(file);
-          await sendFileToChat(gid, file.name, file.type || "application/octet-stream", base64, finalMessage.trim() || undefined);
+    const totalOps = ids.length * (attachments.length > 0 ? attachments.length : 1);
+    setIsSending(true);
+    setSendCurrent(0);
+    setSendTotal(totalOps);
+    try {
+      for (const gid of ids) {
+        if (attachments.length > 0) {
+          for (const file of attachments) {
+            const base64 = await readFileAsBase64(file);
+            await sendFileToChat(gid, file.name, file.type || "application/octet-stream", base64, finalMessage.trim() || undefined);
+            setSendCurrent((prev) => prev + 1);
+          }
+        } else {
+          await sendTextToChat(gid, finalMessage);
+          setSendCurrent((prev) => prev + 1);
         }
-      } else {
-        await sendTextToChat(gid, finalMessage);
       }
+    } finally {
+      setIsSending(false);
     }
 
     showSuccess(`Sent WAHA message${attachments.length ? " with attachments" : ""} to ${ids.length} WhatsApp group chat(s).`);
@@ -370,6 +394,9 @@ const GroupDetailPage: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="send" className="space-y-3 pt-3">
+            {isSending && (
+              <SendProgress current={sendCurrent} total={sendTotal} title="Sending via WAHA" />
+            )}
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -440,7 +467,7 @@ const GroupDetailPage: React.FC = () => {
               </Button>
               <Button
                 variant="secondary"
-                disabled={group.contacts.length === 0 || !message.trim()}
+                disabled={isSending || group.contacts.length === 0 || !message.trim()}
                 onClick={async () => {
                   const final = await buildMessageWithReply(message);
                   const preview = group.contacts.map((c) => formatWhatsAppLink(c.phone, final));
@@ -454,7 +481,7 @@ const GroupDetailPage: React.FC = () => {
               </Button>
               <Button
                 variant="default"
-                disabled={!isWahaConfigured() || group.contacts.length === 0 || (!message.trim() && attachments.length === 0)}
+                disabled={isSending || !isWahaConfigured() || group.contacts.length === 0 || (!message.trim() && attachments.length === 0)}
                 onClick={handleSendViaWaha}
                 title={isWahaConfigured() ? "Send via WAHA" : "Configure WAHA in Settings first"}
               >
@@ -463,7 +490,7 @@ const GroupDetailPage: React.FC = () => {
               </Button>
               <Button
                 variant="default"
-                disabled={!isWahaConfigured() || (!message.trim() && attachments.length === 0) || chatIds.trim() === ""}
+                disabled={isSending || !isWahaConfigured() || (!message.trim() && attachments.length === 0) || chatIds.trim() === ""}
                 onClick={handleSendToWahaChats}
                 title={isWahaConfigured() ? "Send to WhatsApp group chats via WAHA" : "Configure WAHA in Settings first"}
               >
