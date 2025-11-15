@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Package, Boxes, Wrench, Truck, BarChart3 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import StockItemForm from "@/components/pos/StockItemForm";
+import StockItemsManager from "@/components/pos/StockItemsManager";
 import AdjustmentManager from "@/components/pos/AdjustmentManager";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import PoweredBy from "@/components/PoweredBy";
 
 const StockControlPage: React.FC = () => {
   const { toast } = useToast();
-  const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = React.useState<string | null>("stock-items");
 
   return (
     <div className="space-y-6">
@@ -136,7 +136,7 @@ const StockControlPage: React.FC = () => {
           </div>
           </TooltipProvider>
 
-          {selectedSection === "stock-items" && <StockItemForm />}
+          {selectedSection === "stock-items" && <StockItemsManager />}
           {selectedSection === "adjustments" && <AdjustmentManager />}
           {!selectedSection && (
             <p className="text-muted-foreground">This section is coming soon.</p>
