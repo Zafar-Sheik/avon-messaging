@@ -18,16 +18,16 @@ const StockControlPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border-none bg-gradient-to-r from-emerald-600 via-blue-600 to-cyan-500 text-white">
-        <CardHeader className="p-4">
-          <CardTitle className="text-xl md:text-2xl font-semibold flex items-center gap-2">
-            <Package className="size-5" />
+        <CardHeader className="p-2">
+          <CardTitle className="text-base md:text-lg font-semibold flex items-center gap-2">
+            <Package className="size-4" />
             Stock Control
           </CardTitle>
-          <CardDescription className="text-white/90 text-sm">
+          <CardDescription className="text-white/90 text-xs">
             Track inventory, adjustments, and stock movements.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-4 pt-0 flex gap-3">
+        <CardContent className="p-2 pt-0 flex gap-2">
           <Link to="/store-pos">
             <Button variant="secondary" className="bg-white/10 hover:bg-white/20 text-white text-sm">Back to Store Pos</Button>
           </Link>
