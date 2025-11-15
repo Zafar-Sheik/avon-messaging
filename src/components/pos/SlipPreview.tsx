@@ -38,8 +38,8 @@ const SlipPreview: React.FC<Props> = ({ company, messages, className }) => {
       <div className="rounded-md border bg-white p-3">
         <div className="text-xs font-medium mb-1">Full Slip View (80mm width)</div>
         <div
-          className="relative rounded-md border bg-white p-3 mx-auto"
-          style={{ width: "80mm", minHeight: "80mm" }}
+          className="relative rounded-md border bg-white p-3 mx-auto shadow"
+          style={{ width: "80mm", minHeight: "80mm", backgroundColor: "#ffffff", opacity: 1 }}
         >
           {/* Content sits above */}
           <div className="relative z-10">
