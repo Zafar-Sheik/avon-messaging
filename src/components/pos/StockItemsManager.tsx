@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Pencil, Trash2 } from "lucide-react";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const stockItemSchema = z.object({
   stockCode: z.string().min(1, "Stock code is required"),
@@ -24,6 +25,7 @@ const stockItemSchema = z.object({
   quantityOnHand: z.coerce.number().min(0, "Quantity must be 0 or more"),
   supplier: z.string().optional(),
   vat: z.coerce.number().min(0, "VAT must be 0 or more").max(100, "VAT must be 100% or less"),
+  imageUrl: z.string().url("Enter a valid URL").optional(),
 });
 
 type StockItem = z.infer<typeof stockItemSchema>;
@@ -39,6 +41,7 @@ const initialData: StockItem[] = [
     quantityOnHand: 25,
     supplier: "Acme Supplies",
     vat: 15,
+    imageUrl: "/images/contact-messaging.jpg",
   },
   {
     stockCode: "SKU-002",
@@ -50,6 +53,7 @@ const initialData: StockItem[] = [
     quantityOnHand: 12,
     supplier: "Electro Co",
     vat: 15,
+    imageUrl: "/images/contact-online-solutions.png",
   },
 ];
 
@@ -72,6 +76,7 @@ const StockItemsManager: React.FC = () => {
       quantityOnHand: 0,
       supplier: "",
       vat: 15,
+      imageUrl: "",
     },
     mode: "onChange",
   });
@@ -87,6 +92,7 @@ const StockItemsManager: React.FC = () => {
       quantityOnHand: 0,
       supplier: "",
       vat: 15,
+      imageUrl: "",
     });
   };
 
@@ -157,6 +163,7 @@ const StockItemsManager: React.FC = () => {
   const sell = form.watch("sellingPrice") || 0;
   const gpAmount = sell - cost;
   const gpPercent = sell > 0 ? (gpAmount / sell) * 100 : 0;
+  const imagePreview = form.watch("imageUrl") || "";
 
   return (
     <div className="space-y-3">
@@ -188,6 +195,7 @@ const StockItemsManager: React.FC = () => {
                   aria-label="Select all"
                 />
               </TableHead>
+              <TableHead className="hidden md:table-cell w-16">Image</TableHead>
               <TableHead>Code</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="hidden md:table-cell">Category</TableHead>
@@ -217,6 +225,16 @@ const StockItemsManager: React.FC = () => {
                         onCheckedChange={(c: boolean) => toggleRowSelection(i.stockCode, !!c)}
                         aria-label={`Select ${i.stockCode}`}
                       />
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="w-12 h-12 overflow-hidden rounded bg-muted">
+                        <img
+                          src={i.imageUrl || "/placeholder.svg"}
+                          alt={i.stockDescr}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
                     </TableCell>
                     <TableCell className="font-mono">{i.stockCode}</TableCell>
                     <TableCell className="truncate">{i.stockDescr}</TableCell>
@@ -312,6 +330,37 @@ const StockItemsManager: React.FC = () => {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Image URL & preview */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <FormField
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Image URL</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://example.com/image.jpg"
+                          {...field}
+                          className="h-9 text-sm"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="space-y-1.5">
+                  <FormLabel>Preview</FormLabel>
+                  <AspectRatio ratio={1} className="rounded-md border bg-muted/40">
+                    <img
+                      src={imagePreview || "/placeholder.svg"}
+                      alt="Item preview"
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                  </AspectRatio>
+                </div>
               </div>
 
               {/* Pricing grouped */}
