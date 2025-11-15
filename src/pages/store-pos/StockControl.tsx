@@ -12,12 +12,16 @@ import { initialStockItems, type StockItem } from "@/components/pos/types";
 import AdjustmentManager from "@/components/pos/AdjustmentManager";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import PoweredBy from "@/components/PoweredBy";
+import { initialSuppliers, type Supplier } from "@/components/pos/supplierTypes";
+import SupplierGrvManager from "@/components/pos/SupplierGrvManager";
 
 const StockControlPage: React.FC = () => {
   const { toast } = useToast();
   const [selectedSection, setSelectedSection] = React.useState<string | null>("stock-items");
   // Shared items for stock sections
   const [items, setItems] = React.useState<StockItem[]>(initialStockItems);
+  // NEW: suppliers state for GRV updates
+  const [suppliers, setSuppliers] = React.useState<Supplier[]>(initialSuppliers);
 
   return (
     <div className="space-y-6">
@@ -138,9 +142,10 @@ const StockControlPage: React.FC = () => {
                 size="sm"
                 className="justify-start bg-indigo-600 hover:bg-indigo-700 text-white"
                 aria-label="Supplier Grv"
-                onClick={() =>
-                  toast({ title: "Selected", description: "Supplier Grv" })
-                }
+                onClick={() => {
+                  setSelectedSection("supplier-grv");
+                  toast({ title: "Selected", description: "Supplier GRV" });
+                }}
               >
                 <Truck className="mr-1 size-4" />
                 <span className="hidden md:inline">Supplier Grv</span>
@@ -202,6 +207,15 @@ const StockControlPage: React.FC = () => {
             <WarehouseTransferManager items={items} onItemsChange={setItems} />
           )}
           {selectedSection === "adjustments" && <AdjustmentManager />}
+          {/* NEW: Supplier GRV section */}
+          {selectedSection === "supplier-grv" && (
+            <SupplierGrvManager
+              items={items}
+              onItemsChange={setItems}
+              suppliers={suppliers}
+              onSuppliersChange={setSuppliers}
+            />
+          )}
           {!selectedSection && (
             <p className="text-muted-foreground">This section is coming soon.</p>
           )}
