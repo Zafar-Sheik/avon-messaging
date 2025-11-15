@@ -22,7 +22,7 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
   return (
     <div className="rounded-lg border overflow-hidden">
       {/* Header (desktop) */}
-      <div className="hidden md:grid grid-cols-[40px_64px_120px_1fr_120px_80px_80px_80px_80px_140px_80px] items-center gap-2 px-3 py-2 bg-muted/40 text-xs font-medium">
+      <div className="hidden md:grid grid-cols-[40px_48px_100px_1fr_100px_72px_72px_72px_72px_120px_72px] items-center gap-1.5 px-2 py-1 bg-gray-200 text-xs font-bold text-black">
         <div className="flex items-center justify-center">
           <Checkbox
             checked={allSelected}
@@ -30,15 +30,15 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
             aria-label="Select all"
           />
         </div>
-        <div className="text-muted-foreground">Image</div>
+        <div>Image</div>
         <div>Code</div>
         <div>Description</div>
-        <div className="text-muted-foreground">Category</div>
-        <div className="text-muted-foreground">Size</div>
+        <div>Category</div>
+        <div>Size</div>
         <div className="text-right">Cost</div>
         <div className="text-right">Price</div>
         <div className="text-right">Qty</div>
-        <div className="text-muted-foreground">Supplier</div>
+        <div>Supplier</div>
         <div className="text-right">VAT %</div>
       </div>
 
@@ -55,7 +55,7 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                 {/* Row (desktop) */}
                 <div
                   data-state={checked ? "selected" : undefined}
-                  className="hidden md:grid grid-cols-[40px_64px_120px_1fr_120px_80px_80px_80px_80px_140px_80px] items-center gap-2 px-3 py-2 hover:bg-muted/30"
+                  className="hidden md:grid grid-cols-[40px_48px_100px_1fr_100px_72px_72px_72px_72px_120px_72px] items-center gap-1.5 px-2 py-1 hover:bg-muted/30 text-xs"
                 >
                   <div className="flex items-center justify-center">
                     <Checkbox
@@ -65,9 +65,9 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                     />
                   </div>
                   <div>
-                    <div className="w-12 h-12 overflow-hidden rounded bg-muted">
+                    <div className="w-10 h-10 overflow-hidden rounded bg-muted">
                       <img
-                        src={i.imageUrl || "/placeholder.svg"}
+                        src={i.imageDataUrl || "/placeholder.svg"}
                         alt={i.stockDescr}
                         className="w-full h-full object-cover"
                         loading="lazy"
@@ -86,7 +86,7 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                 </div>
 
                 {/* Row (mobile) */}
-                <div className="md:hidden p-3 space-y-2">
+                <div className="md:hidden p-2 space-y-1.5 text-xs">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       checked={checked}
@@ -94,24 +94,24 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                       aria-label={`Select ${i.stockCode}`}
                     />
                     <span className="font-mono">{i.stockCode}</span>
-                    <span className="ml-auto text-sm font-semibold">{i.sellingPrice.toFixed(2)}</span>
+                    <span className="ml-auto font-semibold">{i.sellingPrice.toFixed(2)}</span>
                   </div>
-                  <div className="text-sm">{i.stockDescr}</div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <div>{i.stockDescr}</div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
                     <span>Qty: {i.quantityOnHand}</span>
                     <span>Cost: {i.costPrice.toFixed(2)}</span>
                     <span>VAT: {i.vat.toFixed(1)}%</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-12 h-12 overflow-hidden rounded bg-muted">
+                    <div className="w-10 h-10 overflow-hidden rounded bg-muted">
                       <img
-                        src={i.imageUrl || "/placeholder.svg"}
+                        src={i.imageDataUrl || "/placeholder.svg"}
                         alt={i.stockDescr}
                         className="w-full h-full object-cover"
                         loading="lazy"
                       />
                     </div>
-                    <div className="text-xs text-muted-foreground">{i.supplier || "-"}</div>
+                    <div className="text-muted-foreground">{i.supplier || "-"}</div>
                   </div>
                 </div>
               </div>

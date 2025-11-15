@@ -9,6 +9,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 
 interface StockItemDialogProps {
@@ -29,7 +30,13 @@ const defaultValues: StockItem = {
   quantityOnHand: 0,
   supplier: "",
   vat: 15,
-  imageUrl: "",
+  imageDataUrl: "",
+  minLevel: 0,
+  maxLevel: 0,
+  promotion: false,
+  promoStartDate: "",
+  promoEndDate: "",
+  promoPrice: 0,
 };
 
 const StockItemDialog: React.FC<StockItemDialogProps> = ({
@@ -57,7 +64,8 @@ const StockItemDialog: React.FC<StockItemDialogProps> = ({
   const sell = form.watch("sellingPrice") || 0;
   const gpAmount = sell - cost;
   const gpPercent = sell > 0 ? (gpAmount / sell) * 100 : 0;
-  const imagePreview = form.watch("imageUrl") || "";
+  const imagePreview = form.watch("imageDataUrl") || "";
+  const promotion = form.watch("promotion") || false;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -138,34 +146,38 @@ const StockItemDialog: React.FC<StockItemDialogProps> = ({
               />
             </div>
 
-            {/* Image URL & preview */}
+            {/* Image upload & smaller preview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <FormField
-                control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-2">
-                    <FormLabel>Image URL</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="https://example.com/image.jpg"
-                        {...field}
-                        className="h-9 text-sm"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormItem className="md:col-span-2">
+                <FormLabel>Image</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    className="h-9 text-sm"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        form.setValue("imageDataUrl", String(reader.result), { shouldDirty: true, shouldValidate: false });
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </FormControl>
+              </FormItem>
               <div className="space-y-1.5">
                 <FormLabel>Preview</FormLabel>
-                <AspectRatio ratio={1} className="rounded-md border bg-muted/40">
-                  <img
-                    src={imagePreview || "/placeholder.svg"}
-                    alt="Item preview"
-                    className="w-full h-full object-cover rounded-md"
-                  />
-                </AspectRatio>
+                <div className="w-20">
+                  <AspectRatio ratio={1} className="rounded-md border bg-muted/40">
+                    <img
+                      src={imagePreview || "/placeholder.svg"}
+                      alt="Item preview"
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                  </AspectRatio>
+                </div>
               </div>
             </div>
 
@@ -241,9 +253,35 @@ const StockItemDialog: React.FC<StockItemDialogProps> = ({
               />
               <FormField
                 control={form.control}
+                name="minLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Min Level</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="1" placeholder="0" {...field} className="h-9 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="maxLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Max Level</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="1" placeholder="0" {...field} className="h-9 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="supplier"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-2">
+                  <FormItem className="md:col-span-3">
                     <FormLabel>Supplier</FormLabel>
                     <FormControl>
                       <Input placeholder="Supplier name" {...field} className="h-9 text-sm" />
@@ -252,6 +290,61 @@ const StockItemDialog: React.FC<StockItemDialogProps> = ({
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Promotion */}
+            <div className="rounded-lg border bg-muted/30 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <FormLabel className="text-sm font-semibold">Promotion</FormLabel>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Off</span>
+                  <Switch checked={promotion} onCheckedChange={(v) => form.setValue("promotion", v)} />
+                  <span className="text-xs text-muted-foreground">On</span>
+                </div>
+              </div>
+              {promotion && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="promoStartDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} className="h-9 text-sm" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="promoEndDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Date</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} className="h-9 text-sm" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="promoPrice"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Promo Price</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-9 text-sm" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
             </div>
 
             <DialogFooter>
