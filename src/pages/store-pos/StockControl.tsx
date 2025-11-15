@@ -32,9 +32,9 @@ const StockControlPage: React.FC = () => {
       </Card>
 
       <Card>
-        <CardContent className="p-6 space-y-4">
+        <CardContent className="p-4 space-y-3">
           {/* Buttons replacing dropdown */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
             <Button
               variant="outline"
               size="sm"

@@ -116,7 +116,7 @@ const StockItemForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>Stock Code</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. SKU-001" {...field} />
+                      <Input placeholder="e.g. SKU-001" {...field} className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,7 +129,7 @@ const StockItemForm: React.FC = () => {
                   <FormItem className="md:col-span-2">
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="Item description" {...field} />
+                      <Input placeholder="Item description" {...field} className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -147,7 +147,7 @@ const StockItemForm: React.FC = () => {
                     <FormLabel>Category</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-9 text-sm">
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                       </FormControl>
@@ -169,7 +169,7 @@ const StockItemForm: React.FC = () => {
                   <FormItem className="md:col-span-2">
                     <FormLabel>Size</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. S, M, L or custom size" {...field} />
+                      <Input placeholder="e.g. S, M, L or custom size" {...field} className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -186,7 +186,7 @@ const StockItemForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>Cost Price</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,17 +199,17 @@ const StockItemForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>Selling Price</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <FormItem>
-                <FormLabel>GP</FormLabel>
-                <div className="px-3 py-2 border rounded-md bg-muted/40">
-                  <div className="text-sm">Amount: {gpAmount.toFixed(2)}</div>
-                  <div className="text-sm">Percent: {gpPercent.toFixed(1)}%</div>
+                <FormLabel className="text-sm">GP</FormLabel>
+                <div className="px-2 py-1.5 text-sm border rounded-md bg-muted/40">
+                  <div>Amount: {gpAmount.toFixed(2)}</div>
+                  <div>Percent: {gpPercent.toFixed(1)}%</div>
                 </div>
               </FormItem>
               <FormField
@@ -219,7 +219,7 @@ const StockItemForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>VAT (%)</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="15" {...field} />
+                      <Input type="number" step="0.01" placeholder="15" {...field} className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -236,7 +236,7 @@ const StockItemForm: React.FC = () => {
                   <FormItem>
                     <FormLabel>Quantity On Hand</FormLabel>
                     <FormControl>
-                      <Input type="number" step="1" placeholder="0" {...field} />
+                      <Input type="number" step="1" placeholder="0" {...field} className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -249,7 +249,7 @@ const StockItemForm: React.FC = () => {
                   <FormItem className="md:col-span-2">
                     <FormLabel>Supplier</FormLabel>
                     <FormControl>
-                      <Input placeholder="Supplier name" {...field} />
+                      <Input placeholder="Supplier name" {...field} className="h-9 text-sm" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
