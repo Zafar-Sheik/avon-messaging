@@ -16,6 +16,8 @@ const SlipPreview: React.FC<Props> = ({ company, messages, className }) => {
   const companyName = company?.name || "Company Name";
   const addressLine = company?.address || "Address line";
   const contactLine = `Contact: ${company?.phone || "-"}`;
+  const vatLine = company?.vatNumber ? `VAT No: ${company.vatNumber}` : "";
+  const regLine = company?.regNumber ? `Reg No: ${company.regNumber}` : "";
 
   // Sample items (kept simple for preview)
   const items = [
@@ -59,6 +61,8 @@ const SlipPreview: React.FC<Props> = ({ company, messages, className }) => {
               <div className="text-base md:text-lg font-bold">{companyName}</div>
               <div className="text-sm md:text-base font-bold">{addressLine}</div>
               <div className="text-sm md:text-base font-bold">{contactLine}</div>
+              {vatLine && <div className="text-[11px] md:text-xs text-muted-foreground">{vatLine}</div>}
+              {regLine && <div className="text-[11px] md:text-xs text-muted-foreground">{regLine}</div>}
               <div className="text-[11px] md:text-xs text-muted-foreground mt-1">
                 Date: {now.toLocaleDateString()} {now.toLocaleTimeString()}
               </div>
