@@ -9,7 +9,7 @@ const FloatingCornerLogo: React.FC = () => {
         <img
           src="/images/contact-online-solutions-logo.png"
           alt="Contact Online Solutions"
-          className="w-[85vw] md:w-[60vw] h-auto opacity-20 select-none"
+          className="w-[85vw] md:w-[60vw] h-auto opacity-10 select-none"
         />
       </div>
     </div>
