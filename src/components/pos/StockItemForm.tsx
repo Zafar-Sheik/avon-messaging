@@ -187,53 +187,58 @@ const StockItemForm: React.FC = () => {
             </div>
 
             {/* Pricing */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <FormField
-                control={form.control}
-                name="costPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cost Price</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-9 text-sm" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="sellingPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Selling Price</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-9 text-sm" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormItem>
-                <FormLabel className="text-sm">GP</FormLabel>
-                <div className="px-2 py-1.5 text-sm border rounded-md bg-muted/40">
-                  <div>Amount: {gpAmount.toFixed(2)}</div>
-                  <div>Percent: {gpPercent.toFixed(1)}%</div>
-                </div>
-              </FormItem>
-              <FormField
-                control={form.control}
-                name="vat"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>VAT (%)</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" placeholder="15" {...field} className="h-9 text-sm" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="rounded-lg border bg-muted/30 p-3">
+              <div className="mb-2">
+                <FormLabel className="text-sm font-semibold">Pricing</FormLabel>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <FormField
+                  control={form.control}
+                  name="costPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cost Price</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-9 text-sm" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="sellingPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Selling Price</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="0.00" {...field} className="h-9 text-sm" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormItem>
+                  <FormLabel className="text-sm">GP</FormLabel>
+                  <div className="px-2 py-1.5 text-sm border rounded-md bg-muted/40">
+                    <div>Amount: {gpAmount.toFixed(2)}</div>
+                    <div>Percent: {gpPercent.toFixed(1)}%</div>
+                  </div>
+                </FormItem>
+                <FormField
+                  control={form.control}
+                  name="vat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>VAT (%)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" placeholder="15" {...field} className="h-9 text-sm" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Inventory & supplier */}
