@@ -28,6 +28,7 @@ const defaultValues: StockItem = {
   costPrice: 0,
   sellingPrice: 0,
   quantityOnHand: 0,
+  quantityInWarehouse: 0,
   supplier: "",
   vat: 15,
   imageDataUrl: "",
@@ -237,13 +238,26 @@ const StockItemDialog: React.FC<StockItemDialogProps> = ({
             </div>
 
             {/* Inventory & supplier */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <FormField
                 control={form.control}
                 name="quantityOnHand"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Quantity On Hand</FormLabel>
+                    <FormControl>
+                      <Input type="number" step="1" placeholder="0" {...field} className="h-9 text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="quantityInWarehouse"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quantity in Warehouse</FormLabel>
                     <FormControl>
                       <Input type="number" step="1" placeholder="0" {...field} className="h-9 text-sm" />
                     </FormControl>
@@ -281,7 +295,7 @@ const StockItemDialog: React.FC<StockItemDialogProps> = ({
                 control={form.control}
                 name="supplier"
                 render={({ field }) => (
-                  <FormItem className="md:col-span-3">
+                  <FormItem className="md:col-span-4">
                     <FormLabel>Supplier</FormLabel>
                     <FormControl>
                       <Input placeholder="Supplier name" {...field} className="h-9 text-sm" />

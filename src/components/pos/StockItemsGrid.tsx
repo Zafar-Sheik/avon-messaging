@@ -22,7 +22,7 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
   return (
     <div className="rounded-lg border overflow-hidden">
       {/* Header (desktop) */}
-      <div className="hidden md:grid grid-cols-[40px_48px_100px_1fr_100px_72px_72px_72px_72px_120px_72px] items-center gap-1.5 px-2 py-1 bg-gray-200 text-xs font-bold text-black">
+      <div className="hidden md:grid grid-cols-[40px_48px_100px_1fr_100px_72px_72px_72px_72px_72px_120px_72px] items-center gap-1.5 px-2 py-1 bg-gray-200 text-xs font-bold text-black">
         <div className="flex items-center justify-center">
           <Checkbox
             checked={allSelected}
@@ -38,6 +38,7 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
         <div className="text-right">Cost</div>
         <div className="text-right">Price</div>
         <div className="text-right">Qty</div>
+        <div className="text-right">Store/Warehouse</div>
         <div>Supplier</div>
         <div className="text-right">VAT %</div>
       </div>
@@ -55,7 +56,7 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                 {/* Row (desktop) */}
                 <div
                   data-state={checked ? "selected" : undefined}
-                  className="hidden md:grid grid-cols-[40px_48px_100px_1fr_100px_72px_72px_72px_72px_120px_72px] items-center gap-1.5 px-2 py-1 hover:bg-muted/30 text-xs"
+                  className="hidden md:grid grid-cols-[40px_48px_100px_1fr_100px_72px_72px_72px_72px_72px_120px_72px] items-center gap-1.5 px-2 py-1 hover:bg-muted/30 text-xs"
                 >
                   <div className="flex items-center justify-center">
                     <Checkbox
@@ -81,6 +82,7 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                   <div className="text-right">{i.costPrice.toFixed(2)}</div>
                   <div className="text-right">{i.sellingPrice.toFixed(2)}</div>
                   <div className="text-right">{i.quantityOnHand}</div>
+                  <div className="text-right">{i.quantityInWarehouse}</div>
                   <div>{i.supplier || "-"}</div>
                   <div className="text-right">{i.vat.toFixed(1)}</div>
                 </div>
@@ -99,6 +101,7 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                   <div>{i.stockDescr}</div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <span>Qty: {i.quantityOnHand}</span>
+                    <span>Store: {i.quantityInWarehouse}</span>
                     <span>Cost: {i.costPrice.toFixed(2)}</span>
                     <span>VAT: {i.vat.toFixed(1)}%</span>
                   </div>
