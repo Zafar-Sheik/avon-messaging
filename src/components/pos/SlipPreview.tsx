@@ -43,13 +43,6 @@ const SlipPreview: React.FC<Props> = ({ company, messages, className }) => {
         >
           {/* Header with logo and emphasized company details */}
           <div className="text-center space-y-1">
-            {company?.logoDataUrl ? (
-              <img
-                src={company.logoDataUrl}
-                alt="Company Logo"
-                className="mx-auto h-16 w-16 object-contain mb-1"
-              />
-            ) : null}
             <div className="text-base md:text-lg font-bold">{companyName}</div>
             <div className="text-sm md:text-base font-bold">{addressLine}</div>
             <div className="text-sm md:text-base font-bold">{contactLine}</div>
