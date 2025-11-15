@@ -77,6 +77,9 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                   </div>
                   <div className="font-mono">{i.stockCode}</div>
                   <div className="truncate">{i.stockDescr}</div>
+                  {!i.isActive && (
+                    <div className="text-[11px] font-semibold text-red-600">Inactive</div>
+                  )}
                   <div>{i.category}</div>
                   <div>{i.size || "-"}</div>
                   <div className="text-right">{i.costPrice.toFixed(2)}</div>
@@ -98,7 +101,10 @@ const StockItemsGrid: React.FC<StockItemsGridProps> = ({
                     <span className="font-mono">{i.stockCode}</span>
                     <span className="ml-auto font-semibold">{i.sellingPrice.toFixed(2)}</span>
                   </div>
-                  <div>{i.stockDescr}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="truncate">{i.stockDescr}</span>
+                    {!i.isActive && <span className="px-1 rounded bg-red-100 text-red-700">Inactive</span>}
+                  </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <span>Qty: {i.quantityOnHand}</span>
                     <span>Store: {i.quantityInWarehouse}</span>

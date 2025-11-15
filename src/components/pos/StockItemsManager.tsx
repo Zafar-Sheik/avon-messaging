@@ -7,9 +7,16 @@ import StockItemsGrid from "@/components/pos/StockItemsGrid";
 import StockItemDialog from "@/components/pos/StockItemDialog";
 import { initialStockItems, type StockItem } from "@/components/pos/types";
 
-const StockItemsManager: React.FC = () => {
+interface StockItemsManagerProps {
+  items?: StockItem[];
+  onItemsChange?: (items: StockItem[]) => void;
+}
+
+const StockItemsManager: React.FC<StockItemsManagerProps> = ({ items: itemsProp, onItemsChange }) => {
   const { toast } = useToast();
-  const [items, setItems] = React.useState<StockItem[]>(initialStockItems);
+  const [internalItems, setInternalItems] = React.useState<StockItem[]>(initialStockItems);
+  const items = itemsProp ?? internalItems;
+  const setItems = onItemsChange ?? setInternalItems;
   const [selectedCodes, setSelectedCodes] = React.useState<string[]>([]);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [mode, setMode] = React.useState<"add" | "edit">("add");

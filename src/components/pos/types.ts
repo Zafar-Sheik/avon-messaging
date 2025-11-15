@@ -25,6 +25,9 @@ export const stockItemSchema = z
     promoStartDate: z.string().optional(),
     promoEndDate: z.string().optional(),
     promoPrice: z.coerce.number().min(0, "Promotion price must be 0 or more").optional(),
+
+    // NEW: active/inactive
+    isActive: z.boolean().default(true),
   })
   .superRefine((data, ctx) => {
     if (data.promotion) {
@@ -74,6 +77,7 @@ export const initialStockItems: StockItem[] = [
     promoStartDate: undefined,
     promoEndDate: undefined,
     promoPrice: undefined,
+    isActive: true,
   },
   {
     stockCode: "SKU-002",
@@ -93,5 +97,6 @@ export const initialStockItems: StockItem[] = [
     promoStartDate: undefined,
     promoEndDate: undefined,
     promoPrice: undefined,
+    isActive: true,
   },
 ];

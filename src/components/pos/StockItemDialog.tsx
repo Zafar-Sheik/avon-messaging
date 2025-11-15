@@ -38,6 +38,7 @@ const defaultValues: StockItem = {
   promoStartDate: "",
   promoEndDate: "",
   promoPrice: 0,
+  isActive: true,
 };
 
 const StockItemDialog: React.FC<StockItemDialogProps> = ({
@@ -67,6 +68,7 @@ const StockItemDialog: React.FC<StockItemDialogProps> = ({
   const gpPercent = sell > 0 ? (gpAmount / sell) * 100 : 0;
   const imagePreview = form.watch("imageDataUrl") || "";
   const promotion = form.watch("promotion") || false;
+  const isActive = form.watch("isActive");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,6 +107,14 @@ const StockItemDialog: React.FC<StockItemDialogProps> = ({
                   </FormItem>
                 )}
               />
+              <FormItem className="md:col-span-3">
+                <FormLabel>Status</FormLabel>
+                <div className="flex items-center gap-2 px-2 py-2 rounded-md border bg-muted/40">
+                  <span className="text-xs text-muted-foreground">Inactive</span>
+                  <Switch checked={!!isActive} onCheckedChange={(v) => form.setValue("isActive", v)} />
+                  <span className="text-xs text-muted-foreground">Active</span>
+                </div>
+              </FormItem>
             </div>
 
             {/* Category & size */}

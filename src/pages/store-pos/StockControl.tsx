@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import { Package, Boxes, Wrench, Truck, BarChart3 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import StockItemsManager from "@/components/pos/StockItemsManager";
+import WarehouseTransferManager from "@/components/pos/WarehouseTransferManager";
+import { initialStockItems, type StockItem } from "@/components/pos/types";
 import AdjustmentManager from "@/components/pos/AdjustmentManager";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import PoweredBy from "@/components/PoweredBy";
@@ -14,6 +16,8 @@ import PoweredBy from "@/components/PoweredBy";
 const StockControlPage: React.FC = () => {
   const { toast } = useToast();
   const [selectedSection, setSelectedSection] = React.useState<string | null>("stock-items");
+  // Shared items for stock sections
+  const [items, setItems] = React.useState<StockItem[]>(initialStockItems);
 
   return (
     <div className="space-y-6">
@@ -38,7 +42,7 @@ const StockControlPage: React.FC = () => {
         <CardContent className="p-4 space-y-3">
           {/* Buttons replacing dropdown */}
           <TooltipProvider delayDuration={300}>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-1">
             <Button
               variant="outline"
               size="sm"
@@ -52,6 +56,19 @@ const StockControlPage: React.FC = () => {
               <Boxes className="mr-1 size-4" />
               <span className="hidden md:inline">Stock items</span>
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="justify-start"
+              aria-label="Warehouse Transfer"
+              onClick={() => {
+                setSelectedSection("warehouse-transfer");
+                toast({ title: "Selected", description: "Warehouse Transfer" });
+              }}
+            >
+              <Truck className="mr-1 size-4" />
+              <span className="hidden md:inline">Warehouse Transfer</span>
+            </Button>
 
             <Tooltip>
               <TooltipTrigger asChild>
@@ -62,6 +79,17 @@ const StockControlPage: React.FC = () => {
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top">Stock items</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="md:hidden inline-flex">
+                  <Button variant="outline" size="sm" className="justify-start" aria-label="Warehouse Transfer">
+                    <Truck className="size-4" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">Warehouse Transfer</TooltipContent>
             </Tooltip>
 
             <Button
@@ -136,7 +164,12 @@ const StockControlPage: React.FC = () => {
           </div>
           </TooltipProvider>
 
-          {selectedSection === "stock-items" && <StockItemsManager />}
+          {selectedSection === "stock-items" && (
+            <StockItemsManager items={items} onItemsChange={setItems} />
+          )}
+          {selectedSection === "warehouse-transfer" && (
+            <WarehouseTransferManager items={items} onItemsChange={setItems} />
+          )}
           {selectedSection === "adjustments" && <AdjustmentManager />}
           {!selectedSection && (
             <p className="text-muted-foreground">This section is coming soon.</p>
