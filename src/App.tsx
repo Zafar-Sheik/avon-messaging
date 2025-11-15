@@ -128,9 +128,109 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
 const queryClient = new QueryClient();
 
-const App = () => {
+/* Add a routed layout that can read the current path */
+const RoutedApp = () => {
+  const location = useLocation();
+  const hideSidebar = location.pathname.startsWith("/store-pos");
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
+  return (
+    <SidebarProvider defaultCollapsed={false}>
+      <div className="flex h-screen overflow-hidden">
+        {/* SIDEBAR (hidden on store-pos routes) */}
+        {!hideSidebar && (
+          <Sidebar collapsible="icon" className="bg-blue-50 border-r">
+            {/* HEADER */}
+            <SidebarHeader>
+              <div
+                className={cn(
+                  "flex items-center gap-3",
+                  isCollapsed && "justify-center"
+                )}>
+                <div
+                  className={cn(
+                    "bg-white rounded-xl overflow-hidden",
+                    isCollapsed ? "size-10" : "size-12"
+                  )}>
+                  <img
+                    src="/images/contact-messaging.jpg"
+                    className={cn(
+                      "object-contain",
+                      isCollapsed ? "size-8" : "size-10"
+                    )}
+                  />
+                </div>
+
+                {!isCollapsed && (
+                  <div className="flex-1 min-w-0">
+                    <h1 className="font-bold text-gray-900 text-xl truncate">
+                      Contact Messaging
+                    </h1>
+                    <p className="text-sm text-gray-500 truncate mt-1">
+                      Send Bulk Messages
+                    </p>
+                  </div>
+                )}
+              </div>
+            </SidebarHeader>
+
+            {/* CONTENT */}
+            <SidebarContent>
+              <SidebarNavigation isCollapsed={isCollapsed} />
+            </SidebarContent>
+
+            {/* FOOTER LOGO */}
+            <SidebarFooter>
+              <div
+                className={cn(
+                  "flex items-center transition-all",
+                  isCollapsed ? "justify-center" : "justify-start"
+                )}>
+                <img
+                  src="/images/logo.png"
+                  className={cn(
+                    "object-contain transition-all",
+                    isCollapsed ? "size-12" : "size-14"
+                  )}
+                />
+              </div>
+            </SidebarFooter>
+          </Sidebar>
+        )}
+
+        {/* MAIN CONTENT */}
+        <SidebarInset>
+          {/* ROUTES */}
+          <main className="flex-1 overflow-auto p-6">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/groups" element={<GroupsPage />} />
+              <Route path="/groups/:id" element={<GroupDetailPage />} />
+              <Route path="/messages" element={<MessagesPage />} />
+              <Route path="/uploads" element={<UploadsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/scheduler" element={<SchedulerPage />} />
+              <Route path="/reminders" element={<RemindersPage />} />
+              <Route path="/store-pos" element={<StorePosPage />} />
+              <Route path="/store-pos/sales" element={<SalesPage />} />
+              <Route path="/store-pos/stock-control" element={<StockControlPage />} />
+              <Route path="/store-pos/supplier" element={<SupplierPage />} />
+              <Route path="/store-pos/customer" element={<CustomerPage />} />
+              <Route path="/store-pos/backoffice" element={<BackofficePage />} />
+              <Route path="/store-pos/reports" element={<ReportsPage />} />
+              <Route path="/store-pos/settings" element={<PosSettingsPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
+};
+
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -139,98 +239,7 @@ const App = () => {
           <Sonner />
 
           <BrowserRouter>
-            <SidebarProvider defaultCollapsed={false}>
-              <div className="flex h-screen overflow-hidden">
-                {/* SIDEBAR */}
-                <Sidebar collapsible="icon" className="bg-blue-50 border-r">
-                  {/* HEADER */}
-                  <SidebarHeader>
-                    <div
-                      className={cn(
-                        "flex items-center gap-3",
-                        isCollapsed && "justify-center"
-                      )}>
-                      <div
-                        className={cn(
-                          "bg-white rounded-xl overflow-hidden",
-                          isCollapsed ? "size-10" : "size-12"
-                        )}>
-                        <img
-                          src="/images/contact-messaging.jpg"
-                          className={cn(
-                            "object-contain",
-                            isCollapsed ? "size-8" : "size-10"
-                          )}
-                        />
-                      </div>
-
-                      {!isCollapsed && (
-                        <div className="flex-1 min-w-0">
-                          <h1 className="font-bold text-gray-900 text-xl truncate">
-                            Contact Messaging
-                          </h1>
-                          <p className="text-sm text-gray-500 truncate mt-1">
-                            Send Bulk Messages
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </SidebarHeader>
-
-                  {/* CONTENT */}
-                  <SidebarContent>
-                    <SidebarNavigation isCollapsed={isCollapsed} />
-                  </SidebarContent>
-
-                  {/* FOOTER LOGO */}
-                  <SidebarFooter>
-                    <div
-                      className={cn(
-                        "flex items-center transition-all",
-                        isCollapsed ? "justify-center" : "justify-start"
-                      )}>
-                      <img
-                        src="/images/logo.png"
-                        className={cn(
-                          "object-contain transition-all",
-                          isCollapsed ? "size-12" : "size-14"
-                        )}
-                      />
-                    </div>
-                  </SidebarFooter>
-                </Sidebar>
-
-                {/* MAIN CONTENT */}
-                <SidebarInset>
-                  {/* TOP HEADER */}
-
-                  {/* ROUTES */}
-                  <main className="flex-1 overflow-auto p-6">
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/dashboard" element={<DashboardPage />} />
-                      <Route path="/groups" element={<GroupsPage />} />
-                      <Route path="/groups/:id" element={<GroupDetailPage />} />
-                      <Route path="/messages" element={<MessagesPage />} />
-                      <Route path="/uploads" element={<UploadsPage />} />
-                      <Route path="/settings" element={<SettingsPage />} />
-                      <Route path="/scheduler" element={<SchedulerPage />} />
-                      <Route path="/reminders" element={<RemindersPage />} />
-                      <Route path="/store-pos" element={<StorePosPage />} />
-                      <Route path="/store-pos/sales" element={<SalesPage />} />
-                      <Route path="/store-pos/stock-control" element={<StockControlPage />} />
-                      <Route path="/store-pos/supplier" element={<SupplierPage />} />
-                      <Route path="/store-pos/customer" element={<CustomerPage />} />
-                      <Route path="/store-pos/backoffice" element={<BackofficePage />} />
-                      <Route path="/store-pos/reports" element={<ReportsPage />} />
-                      <Route path="/store-pos/settings" element={<PosSettingsPage />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </main>
-                </SidebarInset>
-              </div>
-            </SidebarProvider>
+            <RoutedApp />
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
