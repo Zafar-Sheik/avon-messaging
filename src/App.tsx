@@ -46,6 +46,13 @@ import SettingsPage from "./pages/Settings";
 import SchedulerPage from "./pages/Scheduler";
 import NotFound from "./pages/NotFound";
 import StorePosPage from "./pages/StorePos";
+import SalesPage from "./pages/store-pos/Sales";
+import StockControlPage from "./pages/store-pos/StockControl";
+import SupplierPage from "./pages/store-pos/Supplier";
+import CustomerPage from "./pages/store-pos/Customer";
+import BackofficePage from "./pages/store-pos/Backoffice";
+import ReportsPage from "./pages/store-pos/Reports";
+import PosSettingsPage from "./pages/store-pos/PosSettings";
 
 /* =========================================================================
     SIDEBAR NAVIGATION
@@ -211,6 +218,13 @@ const App = () => {
                       <Route path="/scheduler" element={<SchedulerPage />} />
                       <Route path="/reminders" element={<RemindersPage />} />
                       <Route path="/store-pos" element={<StorePosPage />} />
+                      <Route path="/store-pos/sales" element={<SalesPage />} />
+                      <Route path="/store-pos/stock-control" element={<StockControlPage />} />
+                      <Route path="/store-pos/supplier" element={<SupplierPage />} />
+                      <Route path="/store-pos/customer" element={<CustomerPage />} />
+                      <Route path="/store-pos/backoffice" element={<BackofficePage />} />
+                      <Route path="/store-pos/reports" element={<ReportsPage />} />
+                      <Route path="/store-pos/settings" element={<PosSettingsPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>

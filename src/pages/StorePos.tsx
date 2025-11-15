@@ -19,6 +19,7 @@ import {
   Settings as SettingsIcon,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 type MenuItem = {
   label: string;
@@ -38,12 +39,23 @@ const menuItems: MenuItem[] = [
 
 const StorePosPage: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const onMenuClick = (label: string) => {
-    toast({
-      title: label,
-      description: "This section is coming soon.",
-    });
+    const pathMap: Record<string, string> = {
+      "Sales": "/store-pos/sales",
+      "Stock Control": "/store-pos/stock-control",
+      "Supplier": "/store-pos/supplier",
+      "Customer": "/store-pos/customer",
+      "Backoffice": "/store-pos/backoffice",
+      "Reports": "/store-pos/reports",
+      "Settings": "/store-pos/settings",
+      "Quick Start": "/store-pos/sales",
+      "Documentation": "/store-pos/reports",
+    };
+    const target = pathMap[label];
+    toast({ title: label, description: "Opening " + label.toLowerCase() + "…" });
+    if (target) navigate(target);
   };
 
   return (
