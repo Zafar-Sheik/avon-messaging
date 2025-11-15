@@ -26,144 +26,175 @@ const StockControlPage: React.FC = () => {
           <CardTitle className="text-base md:text-lg font-semibold flex items-center gap-2">
             <Package className="size-4" />
             Stock Control
+            <Link to="/store-pos">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="ml-1 bg-white/20 hover:bg-white/30 text-white"
+                aria-label="Back to Store Pos"
+              >
+                Back to Store Pos
+              </Button>
+            </Link>
           </CardTitle>
           <CardDescription className="text-white/90 text-xs">
             Track inventory, adjustments, and stock movements.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-2 pt-0 flex gap-2">
-          <Link to="/store-pos">
-            <Button variant="secondary" className="bg-white/10 hover:bg-white/20 text-white text-sm">Back to Store Pos</Button>
-          </Link>
+        <CardContent className="p-2 pt-0">
+          <TooltipProvider delayDuration={300}>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-1">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="justify-start bg-emerald-600 hover:bg-emerald-700 text-white"
+                aria-label="Stock items"
+                onClick={() => {
+                  setSelectedSection("stock-items");
+                  toast({ title: "Selected", description: "Stock items" });
+                }}
+              >
+                <Boxes className="mr-1 size-4" />
+                <span className="hidden md:inline">Stock items</span>
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="justify-start bg-cyan-600 hover:bg-cyan-700 text-white"
+                aria-label="Warehouse Transfer"
+                onClick={() => {
+                  setSelectedSection("warehouse-transfer");
+                  toast({ title: "Selected", description: "Warehouse Transfer" });
+                }}
+              >
+                <Truck className="mr-1 size-4" />
+                <span className="hidden md:inline">Warehouse Transfer</span>
+              </Button>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="md:hidden inline-flex">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="justify-start bg-emerald-600 hover:bg-emerald-700 text-white"
+                      aria-label="Stock items"
+                    >
+                      <Boxes className="size-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">Stock items</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="md:hidden inline-flex">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="justify-start bg-cyan-600 hover:bg-cyan-700 text-white"
+                      aria-label="Warehouse Transfer"
+                    >
+                      <Truck className="size-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">Warehouse Transfer</TooltipContent>
+              </Tooltip>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="justify-start bg-amber-600 hover:bg-amber-700 text-white"
+                aria-label="Adjustments"
+                onClick={() => {
+                  setSelectedSection("adjustments");
+                  toast({ title: "Selected", description: "Adjustments" });
+                }}
+              >
+                <Wrench className="mr-1 size-4" />
+                <span className="hidden md:inline">Adjustments</span>
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="md:hidden inline-flex">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="justify-start bg-amber-600 hover:bg-amber-700 text-white"
+                      aria-label="Adjustments"
+                    >
+                      <Wrench className="size-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">Adjustments</TooltipContent>
+              </Tooltip>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="justify-start bg-indigo-600 hover:bg-indigo-700 text-white"
+                aria-label="Supplier Grv"
+                onClick={() =>
+                  toast({ title: "Selected", description: "Supplier Grv" })
+                }
+              >
+                <Truck className="mr-1 size-4" />
+                <span className="hidden md:inline">Supplier Grv</span>
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="md:hidden inline-flex">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="justify-start bg-indigo-600 hover:bg-indigo-700 text-white"
+                      aria-label="Supplier Grv"
+                    >
+                      <Truck className="size-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">Supplier Grv</TooltipContent>
+              </Tooltip>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="justify-start bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
+                aria-label="Reports"
+                onClick={() =>
+                  toast({ title: "Selected", description: "Reports" })
+                }
+              >
+                <BarChart3 className="mr-1 size-4" />
+                <span className="hidden md:inline">Reports</span>
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="md:hidden inline-flex">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="justify-start bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
+                      aria-label="Reports"
+                    >
+                      <BarChart3 className="size-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">Reports</TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="p-4 space-y-3">
-          {/* Buttons replacing dropdown */}
-          <TooltipProvider delayDuration={300}>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="justify-start"
-              aria-label="Stock items"
-              onClick={() => {
-                setSelectedSection("stock-items");
-                toast({ title: "Selected", description: "Stock items" });
-              }}
-            >
-              <Boxes className="mr-1 size-4" />
-              <span className="hidden md:inline">Stock items</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="justify-start"
-              aria-label="Warehouse Transfer"
-              onClick={() => {
-                setSelectedSection("warehouse-transfer");
-                toast({ title: "Selected", description: "Warehouse Transfer" });
-              }}
-            >
-              <Truck className="mr-1 size-4" />
-              <span className="hidden md:inline">Warehouse Transfer</span>
-            </Button>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="md:hidden inline-flex">
-                  <Button variant="outline" size="sm" className="justify-start" aria-label="Stock items">
-                    <Boxes className="size-4" />
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top">Stock items</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="md:hidden inline-flex">
-                  <Button variant="outline" size="sm" className="justify-start" aria-label="Warehouse Transfer">
-                    <Truck className="size-4" />
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top">Warehouse Transfer</TooltipContent>
-            </Tooltip>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="justify-start"
-              aria-label="Adjustments"
-              onClick={() => {
-                setSelectedSection("adjustments");
-                toast({ title: "Selected", description: "Adjustments" });
-              }}
-            >
-              <Wrench className="mr-1 size-4" />
-              <span className="hidden md:inline">Adjustments</span>
-            </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="md:hidden inline-flex">
-                  <Button variant="outline" size="sm" className="justify-start" aria-label="Adjustments">
-                    <Wrench className="size-4" />
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top">Adjustments</TooltipContent>
-            </Tooltip>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="justify-start"
-              aria-label="Supplier Grv"
-              onClick={() =>
-                toast({ title: "Selected", description: "Supplier Grv" })
-              }
-            >
-              <Truck className="mr-1 size-4" />
-              <span className="hidden md:inline">Supplier Grv</span>
-            </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="md:hidden inline-flex">
-                  <Button variant="outline" size="sm" className="justify-start" aria-label="Supplier Grv">
-                    <Truck className="size-4" />
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top">Supplier Grv</TooltipContent>
-            </Tooltip>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="justify-start"
-              aria-label="Reports"
-              onClick={() =>
-                toast({ title: "Selected", description: "Reports" })
-              }
-            >
-              <BarChart3 className="mr-1 size-4" />
-              <span className="hidden md:inline">Reports</span>
-            </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="md:hidden inline-flex">
-                  <Button variant="outline" size="sm" className="justify-start" aria-label="Reports">
-                    <BarChart3 className="size-4" />
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top">Reports</TooltipContent>
-            </Tooltip>
-          </div>
-          </TooltipProvider>
-
           {selectedSection === "stock-items" && (
             <StockItemsManager items={items} onItemsChange={setItems} />
           )}
