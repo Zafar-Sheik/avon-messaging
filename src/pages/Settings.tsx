@@ -14,6 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import SlipPreview from "@/components/pos/SlipPreview";
+import { getAppSettings, saveAppSettings, clearAppSettings } from "@/utils/appSettingsStore";
 import { showSuccess } from "@/utils/toast";
 import { clearAllReminders } from "@/utils/reminderStore";
 import { clearAllGroups } from "@/utils/groupStore";
@@ -46,9 +49,18 @@ const SettingsPage = () => {
   const [website, setWebsite] = React.useState("");
   const [address, setAddress] = React.useState("");
 
+  const [licenseNumber, setLicenseNumber] = React.useState("");
+
   const [wahaApiKey, setWahaApiKey] = React.useState("");
   const [wahaBaseUrl, setWahaBaseUrl] = React.useState("");
   const [wahaSessionName, setWahaSessionName] = React.useState("");
+
+  // NEW: app settings state
+  const [allowStockBelowCost, setAllowStockBelowCost] = React.useState<boolean>(true);
+  const [dontSellBelowCost, setDontSellBelowCost] = React.useState<boolean>(false);
+  const [slipMessage1, setSlipMessage1] = React.useState<string>("");
+  const [slipMessage2, setSlipMessage2] = React.useState<string>("");
+  const [slipMessage3, setSlipMessage3] = React.useState<string>("");
 
   React.useEffect(() => {
     const existing = getCompanyProfile();
@@ -58,6 +70,7 @@ const SettingsPage = () => {
       setPhone(existing.phone || "");
       setWebsite(existing.website || "");
       setAddress(existing.address || "");
+      setLicenseNumber(existing.licenseNumber || "");
     }
   }, []);
 
@@ -70,6 +83,15 @@ const SettingsPage = () => {
     }
   }, []);
 
+  React.useEffect(() => {
+    const s = getAppSettings();
+    setAllowStockBelowCost(s.allowStockBelowCost);
+    setDontSellBelowCost(s.dontSellBelowCost);
+    setSlipMessage1(s.slipMessage1 || "");
+    setSlipMessage2(s.slipMessage2 || "");
+    setSlipMessage3(s.slipMessage3 || "");
+  }, []);
+
   const handleSaveCompany = () => {
     saveCompanyProfile({
       name: name.trim(),
@@ -77,6 +99,7 @@ const SettingsPage = () => {
       phone: phone.trim() || undefined,
       website: website.trim() || undefined,
       address: address.trim() || undefined,
+      licenseNumber: licenseNumber.trim() || undefined,
     });
     showSuccess("Company profile saved successfully");
   };
@@ -88,6 +111,7 @@ const SettingsPage = () => {
     setPhone("");
     setWebsite("");
     setAddress("");
+    setLicenseNumber("");
     showSuccess("Company profile cleared");
   };
 
@@ -120,7 +144,28 @@ const SettingsPage = () => {
     showSuccess("All reminders cleared successfully");
   };
 
-  const hasCompanyData = name || email || phone || website || address;
+  const handleSaveAppSettings = () => {
+    saveAppSettings({
+      allowStockBelowCost,
+      dontSellBelowCost,
+      slipMessage1: slipMessage1.trim(),
+      slipMessage2: slipMessage2.trim(),
+      slipMessage3: slipMessage3.trim(),
+    });
+    showSuccess("App settings saved");
+  };
+
+  const handleClearAppSettings = () => {
+    clearAppSettings();
+    setAllowStockBelowCost(true);
+    setDontSellBelowCost(false);
+    setSlipMessage1("");
+    setSlipMessage2("");
+    setSlipMessage3("");
+    showSuccess("App settings cleared");
+  };
+
+  const hasCompanyData = name || email || phone || website || address || licenseNumber;
   const hasWahaData = wahaApiKey || wahaBaseUrl || wahaSessionName;
 
   return (
@@ -200,7 +245,7 @@ const SettingsPage = () => {
                       htmlFor="company-phone"
                       className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <Phone className="size-4" />
-                      Phone Number
+                      Contact Number
                     </Label>
                     <Input
                       id="company-phone"
@@ -230,7 +275,7 @@ const SettingsPage = () => {
                     <Label
                       htmlFor="company-address"
                       className="text-sm font-medium text-gray-700">
-                      Business Address
+                      Address
                     </Label>
                     <Textarea
                       id="company-address"
@@ -238,6 +283,20 @@ const SettingsPage = () => {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       className="min-h-20 border-gray-300 focus:border-blue-500 resize-none"
+                    />
+                  </div>
+                  <div className="space-y-3 md:col-span-2">
+                    <Label
+                      htmlFor="license-number"
+                      className="text-sm font-medium text-gray-700">
+                      License Number
+                    </Label>
+                    <Input
+                      id="license-number"
+                      placeholder="e.g. REG-123456"
+                      value={licenseNumber}
+                      onChange={(e) => setLicenseNumber(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
                     />
                   </div>
                 </div>
@@ -357,6 +416,108 @@ const SettingsPage = () => {
             {/* WAHA Connection Status */}
             <WahaConnect />
 
+            {/* NEW: Slip & App Settings Card */}
+            <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+              <CardHeader className="p-0 pb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Settings2 className="size-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-gray-900">
+                      Slip & App Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure slip messages and cost control switches
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">Slip Message 1</Label>
+                    <Input
+                      placeholder="Thank you for shopping with us!"
+                      value={slipMessage1}
+                      onChange={(e) => setSlipMessage1(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">Slip Message 2</Label>
+                    <Input
+                      placeholder="Keep your receipt for returns."
+                      value={slipMessage2}
+                      onChange={(e) => setSlipMessage2(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">Slip Message 3</Label>
+                    <Input
+                      placeholder="Visit us again soon."
+                      value={slipMessage3}
+                      onChange={(e) => setSlipMessage3(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">Select Stock Below Cost</Label>
+                    <div className="flex items-center justify-between rounded-md border p-3">
+                      <span className="text-sm text-gray-600">Allow selecting items priced below cost</span>
+                      <Switch
+                        checked={allowStockBelowCost}
+                        onCheckedChange={setAllowStockBelowCost}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">Don't Sell Below Cost</Label>
+                    <div className="flex items-center justify-between rounded-md border p-3">
+                      <span className="text-sm text-gray-600">Block sales if any item price is below its cost</span>
+                      <Switch
+                        checked={dontSellBelowCost}
+                        onCheckedChange={setDontSellBelowCost}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <SlipPreview
+                  company={{
+                    name,
+                    email,
+                    phone,
+                    website,
+                    address,
+                    licenseNumber,
+                  }}
+                  messages={[slipMessage1, slipMessage2, slipMessage3]}
+                  className="mt-2"
+                />
+              </CardContent>
+              <CardFooter className="flex gap-3 justify-end pt-6 px-0">
+                <Button
+                  variant="outline"
+                  onClick={handleClearAppSettings}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <Trash2 className="size-4 mr-2" />
+                  Clear
+                </Button>
+                <Button
+                  onClick={handleSaveAppSettings}
+                  className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+                >
+                  <Save className="size-4" />
+                  Save App Settings
+                </Button>
+              </CardFooter>
+            </Card>
+
             {/* Data Management Card */}
             <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
               <CardHeader className="p-0 pb-6">
@@ -421,9 +582,8 @@ const SettingsPage = () => {
                   <span className="text-sm text-gray-600">Company Profile</span>
                   <Badge
                     variant={hasCompanyData ? "default" : "secondary"}
-                    className={
-                      hasCompanyData ? "bg-green-100 text-green-800" : ""
-                    }>
+                    className={hasCompanyData ? "bg-green-100 text-green-800" : ""}
+                  >
                     {hasCompanyData ? "Configured" : "Not Set"}
                   </Badge>
                 </div>
@@ -431,9 +591,8 @@ const SettingsPage = () => {
                   <span className="text-sm text-gray-600">WAHA Settings</span>
                   <Badge
                     variant={hasWahaData ? "default" : "secondary"}
-                    className={
-                      hasWahaData ? "bg-green-100 text-green-800" : ""
-                    }>
+                    className={hasWahaData ? "bg-green-100 text-green-800" : ""}
+                  >
                     {hasWahaData ? "Configured" : "Not Set"}
                   </Badge>
                 </div>

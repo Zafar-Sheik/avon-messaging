@@ -36,6 +36,8 @@ import { Printer, Phone, Mail, Save } from "lucide-react";
 import { isWahaConfigured, sendTextMessage } from "@/utils/wahaClient";
 import { formatWhatsAppLink } from "@/utils/groupStore";
 import { recordSale } from "@/utils/saleStore";
+import { getCompanyProfile } from "@/utils/companyStore";
+import { getAppSettings } from "@/utils/appSettingsStore";
 
 type CartLine = {
   stockCode: string;
@@ -77,6 +79,19 @@ const SalesPage: React.FC = () => {
   const [emailAddress, setEmailAddress] = React.useState("");
   const [pendingSaleNo, setPendingSaleNo] = React.useState<string | null>(null);
 
+  // NEW: company + settings
+  const [company, setCompany] = React.useState<ReturnType<typeof getCompanyProfile> | null>(null);
+  const [settings, setSettings] = React.useState(getAppSettings());
+
+  React.useEffect(() => {
+    setCompany(getCompanyProfile());
+    setSettings(getAppSettings());
+
+    const onSettingsChange = () => setSettings(getAppSettings());
+    window.addEventListener("storage", onSettingsChange);
+    return () => window.removeEventListener("storage", onSettingsChange);
+  }, []);
+
   const filteredItems = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
@@ -88,6 +103,15 @@ const SalesPage: React.FC = () => {
   }, [query, items]);
 
   const addToCart = (it: StockItem) => {
+    // NEW: below-cost selection constraint
+    if (!settings.allowStockBelowCost && it.sellingPrice < it.costPrice) {
+      toast({
+        title: "Blocked",
+        description: `${it.stockCode} is priced below cost and selection is disabled.`,
+      });
+      return;
+    }
+
     setCart((prev) => {
       const existing = prev.find((l) => l.stockCode === it.stockCode);
       const available = it.quantityOnHand;
@@ -109,6 +133,15 @@ const SalesPage: React.FC = () => {
         toast({
           title: "Out of stock",
           description: `${it.stockCode} has no stock on hand.`
+        });
+        return prev;
+      }
+
+      // NEW: don't sell below cost enforcement at add time (optional)
+      if (settings.dontSellBelowCost && it.sellingPrice < it.costPrice) {
+        toast({
+          title: "Below cost",
+          description: `${it.stockCode} is priced below cost. Selling is disabled.`,
         });
         return prev;
       }
@@ -185,13 +218,23 @@ const SalesPage: React.FC = () => {
       (l) => `${l.stockCode} ${l.stockDescr}  x${l.qty}  @ ${l.price.toFixed(2)}  = ${(l.price * l.qty).toFixed(2)}`
     );
     const d = new Date();
+
+    // NEW: company header + license
+    const headerCompany: string[] = [];
+    if (company?.name) headerCompany.push(company.name);
+    if (company?.address) headerCompany.push(company.address);
+    if (company?.phone) headerCompany.push(`Contact: ${company.phone}`);
+    if (company?.licenseNumber) headerCompany.push(`License: ${company.licenseNumber}`);
+
     const header = [
+      ...headerCompany,
       `Sale No: ${saleNo}`,
       `Date: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`,
       `Type: ${saleType === "account" ? "Account" : "New"} ${saleType === "new" ? `(${method})` : ""}`,
       saleType === "account" ? `Customer: ${customerCode || "-"}` : "",
       "".trim(),
     ].filter(Boolean);
+
     const totals = [
       `Subtotal: ${subtotal.toFixed(2)}`,
       `Tax: ${tax.toFixed(2)}`,
@@ -199,7 +242,15 @@ const SalesPage: React.FC = () => {
       isCashPayment ? `Tendered: ${tenderedNum.toFixed(2)}` : "",
       isCashPayment ? `Change: ${change.toFixed(2)}` : "",
     ].filter(Boolean);
-    return [...header, "Items:", ...lines, "", ...totals, "", "Thank you!"].join("\n");
+
+    // NEW: slip messages
+    const msgs = [
+      settings.slipMessage1 || "",
+      settings.slipMessage2 || "",
+      settings.slipMessage3 || "",
+    ].filter((m) => m.trim() !== "");
+
+    return [...header, "Items:", ...lines, "", ...totals, "", ...msgs, "Thank you!"].join("\n");
   };
 
   // NEW: print slip (simple receipt window)
@@ -251,6 +302,21 @@ const SalesPage: React.FC = () => {
     if (cart.length === 0) {
       toast({ title: "Cart is empty", description: "Add items before completing the sale." });
       return;
+    }
+
+    // NEW: don't sell below cost enforcement before finalize
+    if (settings.dontSellBelowCost) {
+      const violating = cart.find((l) => {
+        const stock = items.find((i) => i.stockCode === l.stockCode);
+        return stock && stock.sellingPrice < stock.costPrice;
+      });
+      if (violating) {
+        toast({
+          title: "Below cost",
+          description: `Item ${violating.stockCode} is priced below cost. You cannot complete this sale.`,
+        });
+        return;
+      }
     }
 
     // Validate quantities against stock on hand
@@ -457,6 +523,7 @@ const SalesPage: React.FC = () => {
                         it.imageDataUrl && it.imageDataUrl.trim() !== ""
                           ? it.imageDataUrl
                           : "/placeholder.svg";
+                      const isBelowCost = it.sellingPrice < it.costPrice;
                       return (
                         <TableRow key={it.stockCode}>
                           <TableCell>
@@ -471,13 +538,16 @@ const SalesPage: React.FC = () => {
                                 <div className="text-xs text-muted-foreground font-mono truncate">
                                   {it.stockCode}
                                 </div>
+                                {isBelowCost && (
+                                  <div className="text-[11px] text-red-600">Below cost</div>
+                                )}
                               </div>
                             </div>
                           </TableCell>
                           <TableCell className="text-right">{it.quantityOnHand}</TableCell>
                           <TableCell className="text-right">{it.sellingPrice.toFixed(2)}</TableCell>
                           <TableCell className="text-right">
-                            <Button size="sm" onClick={() => addToCart(it)}>
+                            <Button size="sm" onClick={() => addToCart(it)} disabled={!settings.allowStockBelowCost && isBelowCost}>
                               Add
                             </Button>
                           </TableCell>
