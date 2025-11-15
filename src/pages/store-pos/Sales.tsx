@@ -31,6 +31,10 @@ import { useToast } from "@/components/ui/use-toast";
 import PoweredBy from "@/components/PoweredBy";
 import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
 import { initialStockItems, type StockItem } from "@/components/pos/types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Printer, Phone, Mail, Save } from "lucide-react";
+import { isWahaConfigured, sendTextMessage } from "@/utils/wahaClient";
+import { formatWhatsAppLink } from "@/utils/groupStore";
 
 type CartLine = {
   stockCode: string;
@@ -40,6 +44,9 @@ type CartLine = {
   vat: number;   // percent
   available: number; // quantityOnHand at time of add
 };
+
+// NEW: post-sale actions
+type PostSaleAction = "print" | "whatsapp" | "email" | "download";
 
 const SalesPage: React.FC = () => {
   const { toast } = useToast();
@@ -61,6 +68,13 @@ const SalesPage: React.FC = () => {
   const [saleType, setSaleType] = React.useState<"new" | "account">("new");
   const [customerCode, setCustomerCode] = React.useState<string>("");
   const [accountBalances, setAccountBalances] = React.useState<Record<string, number>>({});
+
+  // NEW: dialog and action state
+  const [isFinalizeOpen, setIsFinalizeOpen] = React.useState(false);
+  const [selectedAction, setSelectedAction] = React.useState<PostSaleAction>("print");
+  const [whatsAppPhone, setWhatsAppPhone] = React.useState("");
+  const [emailAddress, setEmailAddress] = React.useState("");
+  const [pendingSaleNo, setPendingSaleNo] = React.useState<string | null>(null);
 
   const filteredItems = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -147,10 +161,91 @@ const SalesPage: React.FC = () => {
 
   const total = subtotal + tax;
   const tenderedNum = parseFloat(tendered || "0");
-  // UPDATED: change only for cash in "new" sale
   const isCashPayment = saleType === "new" && method === "cash";
   const change = isCashPayment ? Math.max(0, tenderedNum - total) : 0;
 
+  // NEW: sale number generator (daily sequence)
+  const nextSaleNo = (): string => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const dateStr = `${y}${m}${day}`;
+    const key = `pos_sale_seq_${dateStr}`;
+    const current = parseInt(localStorage.getItem(key) || "0", 10) || 0;
+    const next = current + 1;
+    localStorage.setItem(key, String(next));
+    return `S-${dateStr}-${String(next).padStart(4, "0")}`;
+  };
+
+  // NEW: build receipt text
+  const buildReceiptText = (saleNo: string): string => {
+    const lines = cart.map(
+      (l) => `${l.stockCode} ${l.stockDescr}  x${l.qty}  @ ${l.price.toFixed(2)}  = ${(l.price * l.qty).toFixed(2)}`
+    );
+    const d = new Date();
+    const header = [
+      `Sale No: ${saleNo}`,
+      `Date: ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`,
+      `Type: ${saleType === "account" ? "Account" : "New"} ${saleType === "new" ? `(${method})` : ""}`,
+      saleType === "account" ? `Customer: ${customerCode || "-"}` : "",
+      "".trim(),
+    ].filter(Boolean);
+    const totals = [
+      `Subtotal: ${subtotal.toFixed(2)}`,
+      `Tax: ${tax.toFixed(2)}`,
+      `Total: ${total.toFixed(2)}`,
+      isCashPayment ? `Tendered: ${tenderedNum.toFixed(2)}` : "",
+      isCashPayment ? `Change: ${change.toFixed(2)}` : "",
+    ].filter(Boolean);
+    return [...header, "Items:", ...lines, "", ...totals, "", "Thank you!"].join("\n");
+  };
+
+  // NEW: print slip (simple receipt window)
+  const printSlip = (saleNo: string) => {
+    const text = buildReceiptText(saleNo).replace(/\n/g, "<br/>");
+    const html = `
+      <html>
+        <head>
+          <title>${saleNo}</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <style>
+            body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; padding: 12px; }
+            .receipt { width: 320px; max-width: 100%; }
+            .print { display: none; }
+            @media print { .no-print { display: none; } .receipt { width: 58mm; } }
+          </style>
+        </head>
+        <body>
+          <div class="receipt">${text}</div>
+          <button class="no-print" onclick="window.print()">Print</button>
+        </body>
+      </html>
+    `;
+    const w = window.open("", "_blank", "noopener,noreferrer,width=400,height=600");
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    // auto print after load
+    w.onload = () => w.print();
+  };
+
+  // NEW: download slip as .txt
+  const downloadSlip = (saleNo: string) => {
+    const text = buildReceiptText(saleNo);
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${saleNo}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  // UPDATED: do not finalize immediately; open action dialog first
   const completeSale = () => {
     if (cart.length === 0) {
       toast({ title: "Cart is empty", description: "Add items before completing the sale." });
@@ -166,20 +261,27 @@ const SalesPage: React.FC = () => {
       }
     }
 
-    // Handle "New Sale" (cash/card) or "Account Sale"
+    // Payment validation
     if (saleType === "new") {
       if (method === "cash" && (!Number.isFinite(tenderedNum) || tenderedNum < total)) {
         toast({ title: "Insufficient cash", description: "Tendered amount must cover the total." });
         return;
       }
     } else {
-      // Account sale must have a customer
       if (!customerCode.trim()) {
         toast({ title: "Customer required", description: "Enter a customer code/name for account sale." });
         return;
       }
     }
 
+    // Prepare sale number and open dialog
+    const saleNo = nextSaleNo();
+    setPendingSaleNo(saleNo);
+    setIsFinalizeOpen(true);
+  };
+
+  // NEW: finalize stock + balances and reset
+  const finalizeSale = (saleNo: string) => {
     // Reduce stock on hand
     const nextItems = items.map((i) => {
       const line = cart.find((l) => l.stockCode === i.stockCode);
@@ -188,7 +290,7 @@ const SalesPage: React.FC = () => {
     });
     setItems(nextItems);
 
-    // Post to account balance if account sale
+    // Account sale: update balances
     if (saleType === "account") {
       const code = customerCode.trim();
       setAccountBalances((prev) => {
@@ -196,12 +298,12 @@ const SalesPage: React.FC = () => {
         return { ...prev, [code]: current + total };
       });
       toast({
-        title: "Account sale recorded",
+        title: `Sale ${saleNo} recorded`,
         description: `Customer ${code} charged ${total.toFixed(2)}.`,
       });
     } else {
       toast({
-        title: "Sale completed",
+        title: `Sale ${saleNo} completed`,
         description: `Total ${total.toFixed(2)}${isCashPayment ? `, change ${change.toFixed(2)}` : ""}.`,
       });
     }
@@ -210,6 +312,60 @@ const SalesPage: React.FC = () => {
     setCart([]);
     setTendered("");
     setCustomerCode("");
+    setPendingSaleNo(null);
+    setIsFinalizeOpen(false);
+  };
+
+  // NEW: perform selected action then finalize
+  const performSelectedAction = async () => {
+    if (!pendingSaleNo) return;
+    const saleNo = pendingSaleNo;
+    const receiptText = buildReceiptText(saleNo);
+
+    if (selectedAction === "print") {
+      printSlip(saleNo);
+      finalizeSale(saleNo);
+      return;
+    }
+
+    if (selectedAction === "download") {
+      downloadSlip(saleNo);
+      finalizeSale(saleNo);
+      return;
+    }
+
+    if (selectedAction === "whatsapp") {
+      const phone = (whatsAppPhone || "").trim();
+      if (!phone) {
+        toast({ title: "Phone required", description: "Enter a WhatsApp phone number." });
+        return;
+      }
+      if (isWahaConfigured()) {
+        await sendTextMessage(phone, receiptText);
+        toast({ title: "WhatsApp sent", description: `Receipt sent to ${phone}.` });
+      } else {
+        const url = formatWhatsAppLink(phone, receiptText);
+        window.open(url, "_blank", "noopener,noreferrer");
+        toast({ title: "WhatsApp link opened", description: `Use WhatsApp to send the message.` });
+      }
+      finalizeSale(saleNo);
+      return;
+    }
+
+    if (selectedAction === "email") {
+      const email = (emailAddress || "").trim();
+      if (!email) {
+        toast({ title: "Email required", description: "Enter a recipient email address." });
+        return;
+      }
+      const subject = encodeURIComponent(`Sale Receipt ${saleNo}`);
+      const body = encodeURIComponent(receiptText);
+      const mailto = `mailto:${email}?subject=${subject}&body=${body}`;
+      window.location.href = mailto;
+      toast({ title: "Email composed", description: `Opening your email client for ${email}.` });
+      finalizeSale(saleNo);
+      return;
+    }
   };
 
   return (
@@ -514,6 +670,89 @@ const SalesPage: React.FC = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* NEW: Finalize dialog */}
+          <Dialog open={isFinalizeOpen} onOpenChange={setIsFinalizeOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Finalize Sale</DialogTitle>
+                <DialogDescription>
+                  Choose how you want to output the receipt. The sale will be updated after your choice.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Sale No</Label>
+                    <Input readOnly value={pendingSaleNo || ""} className="h-9 text-sm font-mono" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Action</Label>
+                    <Select value={selectedAction} onValueChange={(v: PostSaleAction) => setSelectedAction(v)}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select action" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="print">
+                          <div className="flex items-center gap-2"><Printer className="h-4 w-4" /> Print Slip</div>
+                        </SelectItem>
+                        <SelectItem value="whatsapp">
+                          <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> Send WhatsApp</div>
+                        </SelectItem>
+                        <SelectItem value="email">
+                          <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> Send Email</div>
+                        </SelectItem>
+                        <SelectItem value="download">
+                          <div className="flex items-center gap-2"><Save className="h-4 w-4" /> Store on PC</div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {selectedAction === "whatsapp" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">WhatsApp Phone</Label>
+                    <Input
+                      placeholder="e.g. 27821234567"
+                      value={whatsAppPhone}
+                      onChange={(e) => setWhatsAppPhone(e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                    <div className="text-[11px] text-muted-foreground">
+                      Use international format numbers (digits only).
+                    </div>
+                  </div>
+                )}
+
+                {selectedAction === "email" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="customer@example.com"
+                      value={emailAddress}
+                      onChange={(e) => setEmailAddress(e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                )}
+
+                <div className="rounded-md border p-3 bg-muted/30">
+                  <div className="text-xs font-medium mb-1">Receipt Preview</div>
+                  <pre className="text-xs whitespace-pre-wrap">{pendingSaleNo ? buildReceiptText(pendingSaleNo) : ""}</pre>
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setIsFinalizeOpen(false)}>Cancel</Button>
+                <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={performSelectedAction}>
+                  Confirm & Update
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <PoweredBy className="pt-2" />
         </div>
