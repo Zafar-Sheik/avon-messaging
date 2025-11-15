@@ -17,9 +17,22 @@ import {
   Cog,
   BarChart3,
   Settings as SettingsIcon,
+  ArrowLeft,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { POS_EXIT_PASSWORD } from "@/utils/posConfig";
 
 type MenuItem = {
   label: string;
@@ -40,6 +53,8 @@ const menuItems: MenuItem[] = [
 const StorePosPage: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [exitOpen, setExitOpen] = React.useState(false);
+  const [password, setPassword] = React.useState("");
 
   const onMenuClick = (label: string) => {
     const pathMap: Record<string, string> = {
@@ -58,17 +73,71 @@ const StorePosPage: React.FC = () => {
     if (target) navigate(target);
   };
 
+  const handleConfirmExit = () => {
+    if (password === POS_EXIT_PASSWORD) {
+      setExitOpen(false);
+      setPassword("");
+      toast({ title: "Unlocked", description: "Returning to main menu…" });
+      navigate("/");
+    } else {
+      toast({
+        title: "Incorrect password",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Modern header card */}
       <Card className="overflow-hidden border-none bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 text-white">
         <CardHeader className="p-6">
-          <CardTitle className="text-2xl md:text-3xl font-bold">
-            Contact Point-Of-Sale
-          </CardTitle>
-          <CardDescription className="text-white/90">
-            Cloud based System
-          </CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle className="text-2xl md:text-3xl font-bold">
+                Contact Point-Of-Sale
+              </CardTitle>
+              <CardDescription className="text-white/90">
+                Cloud based System
+              </CardDescription>
+            </div>
+            <Dialog open={exitOpen} onOpenChange={setExitOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="secondary"
+                  className="bg-white/10 hover:bg-white/20 text-white"
+                >
+                  <ArrowLeft className="mr-2" />
+                  Back
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Enter password</DialogTitle>
+                  <DialogDescription>
+                    Please enter the password to return to the main menu.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-2">
+                  <Label htmlFor="pos-exit-password">Password</Label>
+                  <Input
+                    id="pos-exit-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="ghost" onClick={() => setExitOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleConfirmExit}>Confirm</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent className="p-6 pt-0">
           <div className="flex flex-wrap gap-3">
