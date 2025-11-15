@@ -64,10 +64,10 @@ const StorePosPage: React.FC = () => {
       <Card className="overflow-hidden border-none bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 text-white">
         <CardHeader className="p-6">
           <CardTitle className="text-2xl md:text-3xl font-bold">
-            Contact Online Cloud Pos System
+            Contact Point-Of-Sale
           </CardTitle>
           <CardDescription className="text-white/90">
-            Manage sales, stock, suppliers, customers, backoffice, and reports in one place.
+            Cloud based System
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6 pt-0">
