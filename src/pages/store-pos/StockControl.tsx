@@ -4,8 +4,7 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Package } from "lucide-react";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Package, Boxes, Wrench, Truck, BarChart3 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const StockControlPage: React.FC = () => {
@@ -32,32 +31,48 @@ const StockControlPage: React.FC = () => {
 
       <Card>
         <CardContent className="p-6 space-y-4">
-          <div className="max-w-sm">
-            <label className="text-sm font-medium mb-2 block">Section</label>
-            <Select
-              onValueChange={(value) => {
-                const labelMap: Record<string, string> = {
-                  "stock-items": "Stock items",
-                  "adjustments": "Adjustments",
-                  "supplier-grv": "Supplier Grv",
-                  "reports": "Reports",
-                };
-                toast({
-                  title: "Selected",
-                  description: labelMap[value] ?? value,
-                });
-              }}
+          {/* Buttons replacing dropdown */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <Button
+              variant="outline"
+              className="justify-start"
+              onClick={() =>
+                toast({ title: "Selected", description: "Stock items" })
+              }
             >
-              <SelectTrigger className="w-64">
-                <SelectValue placeholder="Select section" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="stock-items">Stock items</SelectItem>
-                <SelectItem value="adjustments">Adjustments</SelectItem>
-                <SelectItem value="supplier-grv">Supplier Grv</SelectItem>
-                <SelectItem value="reports">Reports</SelectItem>
-              </SelectContent>
-            </Select>
+              <Boxes className="mr-2" />
+              Stock items
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start"
+              onClick={() =>
+                toast({ title: "Selected", description: "Adjustments" })
+              }
+            >
+              <Wrench className="mr-2" />
+              Adjustments
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start"
+              onClick={() =>
+                toast({ title: "Selected", description: "Supplier Grv" })
+              }
+            >
+              <Truck className="mr-2" />
+              Supplier Grv
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start"
+              onClick={() =>
+                toast({ title: "Selected", description: "Reports" })
+              }
+            >
+              <BarChart3 className="mr-2" />
+              Reports
+            </Button>
           </div>
 
           <p className="text-muted-foreground">This section is coming soon.</p>
