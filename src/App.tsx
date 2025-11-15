@@ -142,7 +142,7 @@ const App = () => {
             <SidebarProvider defaultCollapsed={false}>
               <div className="flex h-screen overflow-hidden">
                 {/* SIDEBAR */}
-                <Sidebar collapsible="icon" className="bg-white border-r">
+                <Sidebar collapsible="icon" className="bg-blue-50 border-r">
                   {/* HEADER */}
                   <SidebarHeader>
                     <div
