@@ -267,8 +267,7 @@ const SalesPage: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-24">Code</TableHead>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Product</TableHead>
                     <TableHead className="text-right w-24">On Hand</TableHead>
                     <TableHead className="text-right w-24">Price</TableHead>
                     <TableHead className="text-right w-28">Action</TableHead>
@@ -277,24 +276,43 @@ const SalesPage: React.FC = () => {
                 <TableBody>
                   {filteredItems.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">
                         No items found.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredItems.map((it) => (
-                      <TableRow key={it.stockCode}>
-                        <TableCell className="font-mono">{it.stockCode}</TableCell>
-                        <TableCell className="truncate">{it.stockDescr}</TableCell>
-                        <TableCell className="text-right">{it.quantityOnHand}</TableCell>
-                        <TableCell className="text-right">{it.sellingPrice.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">
-                          <Button size="sm" onClick={() => addToCart(it)}>
-                            Add
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    filteredItems.map((it) => {
+                      const imgSrc =
+                        it.imageDataUrl && it.imageDataUrl.trim() !== ""
+                          ? it.imageDataUrl
+                          : "/placeholder.svg";
+                      return (
+                        <TableRow key={it.stockCode}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={imgSrc}
+                                alt={it.stockDescr}
+                                className="h-12 w-12 rounded-md border object-cover bg-white"
+                              />
+                              <div className="min-w-0">
+                                <div className="truncate font-medium">{it.stockDescr}</div>
+                                <div className="text-xs text-muted-foreground font-mono truncate">
+                                  {it.stockCode}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">{it.quantityOnHand}</TableCell>
+                          <TableCell className="text-right">{it.sellingPrice.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">
+                            <Button size="sm" onClick={() => addToCart(it)}>
+                              Add
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
