@@ -53,6 +53,7 @@ import CustomerPage from "./pages/store-pos/Customer";
 import BackofficePage from "./pages/store-pos/Backoffice";
 import ReportsPage from "./pages/store-pos/Reports";
 import PosSettingsPage from "./pages/store-pos/PosSettings";
+import FloatingCornerLogo from "@/components/FloatingCornerLogo";
 
 /* =========================================================================
     SIDEBAR NAVIGATION
@@ -241,6 +242,9 @@ const App = () => {
           <BrowserRouter>
             <RoutedApp />
           </BrowserRouter>
+
+          {/* Floating corner logo */}
+          <FloatingCornerLogo />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
