@@ -11,6 +11,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Image as ImageIcon } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 const stockItemSchema = z.object({
   stockCode: z.string().min(1, "Stock code is required"),
@@ -79,31 +80,39 @@ const StockItemForm: React.FC = () => {
         <CardDescription>Add item details and upload an image.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Image upload */}
-        <div className="space-y-2">
-          <FormLabel>Item Image</FormLabel>
-          <div className="flex items-center gap-4">
-            <label
-              htmlFor="stock-image"
-              className="inline-flex items-center gap-2 px-2 py-1.5 text-sm border rounded-md cursor-pointer hover:bg-muted"
-            >
+        {/* Image upload (collapsible) */}
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" size="sm" className="inline-flex items-center gap-2">
               <ImageIcon className="size-4" />
-              <span>Upload image</span>
-            </label>
-            <Input id="stock-image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-            {imagePreview ? (
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="h-14 w-14 rounded-md object-cover border"
-              />
-            ) : (
-              <div className="h-14 w-14 rounded-md border bg-muted/40 flex items-center justify-center text-muted-foreground text-xs">
-                No image
-              </div>
-            )}
-          </div>
-        </div>
+              Add image
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-2 pt-2">
+            <FormLabel>Item Image</FormLabel>
+            <div className="flex items-center gap-4">
+              <label
+                htmlFor="stock-image"
+                className="inline-flex items-center gap-2 px-2 py-1.5 text-sm border rounded-md cursor-pointer hover:bg-muted"
+              >
+                <ImageIcon className="size-4" />
+                <span>Upload image</span>
+              </label>
+              <Input id="stock-image" type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="h-14 w-14 rounded-md object-cover border"
+                />
+              ) : (
+                <div className="h-14 w-14 rounded-md border bg-muted/40 flex items-center justify-center text-muted-foreground text-xs">
+                  No image
+                </div>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

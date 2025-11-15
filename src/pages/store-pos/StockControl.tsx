@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { Package, Boxes, Wrench, Truck, BarChart3 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import StockItemForm from "@/components/pos/StockItemForm";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 const StockControlPage: React.FC = () => {
   const { toast } = useToast();
@@ -34,53 +35,103 @@ const StockControlPage: React.FC = () => {
       <Card>
         <CardContent className="p-4 space-y-3">
           {/* Buttons replacing dropdown */}
+          <TooltipProvider delayDuration={300}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-1">
             <Button
               variant="outline"
               size="sm"
               className="justify-start"
+              aria-label="Stock items"
               onClick={() => {
                 setSelectedSection("stock-items");
                 toast({ title: "Selected", description: "Stock items" });
               }}
             >
               <Boxes className="mr-1 size-4" />
-              Stock items
+              <span className="hidden md:inline">Stock items</span>
             </Button>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="md:hidden inline-flex">
+                  <Button variant="outline" size="sm" className="justify-start" aria-label="Stock items">
+                    <Boxes className="size-4" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">Stock items</TooltipContent>
+            </Tooltip>
+
             <Button
               variant="outline"
               size="sm"
               className="justify-start"
+              aria-label="Adjustments"
               onClick={() =>
                 toast({ title: "Selected", description: "Adjustments" })
               }
             >
               <Wrench className="mr-1 size-4" />
-              Adjustments
+              <span className="hidden md:inline">Adjustments</span>
             </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="md:hidden inline-flex">
+                  <Button variant="outline" size="sm" className="justify-start" aria-label="Adjustments">
+                    <Wrench className="size-4" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">Adjustments</TooltipContent>
+            </Tooltip>
+
             <Button
               variant="outline"
               size="sm"
               className="justify-start"
+              aria-label="Supplier Grv"
               onClick={() =>
                 toast({ title: "Selected", description: "Supplier Grv" })
               }
             >
               <Truck className="mr-1 size-4" />
-              Supplier Grv
+              <span className="hidden md:inline">Supplier Grv</span>
             </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="md:hidden inline-flex">
+                  <Button variant="outline" size="sm" className="justify-start" aria-label="Supplier Grv">
+                    <Truck className="size-4" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">Supplier Grv</TooltipContent>
+            </Tooltip>
+
             <Button
               variant="outline"
               size="sm"
               className="justify-start"
+              aria-label="Reports"
               onClick={() =>
                 toast({ title: "Selected", description: "Reports" })
               }
             >
               <BarChart3 className="mr-1 size-4" />
-              Reports
+              <span className="hidden md:inline">Reports</span>
             </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="md:hidden inline-flex">
+                  <Button variant="outline" size="sm" className="justify-start" aria-label="Reports">
+                    <BarChart3 className="size-4" />
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">Reports</TooltipContent>
+            </Tooltip>
           </div>
+          </TooltipProvider>
 
           {selectedSection === "stock-items" ? (
             <StockItemForm />
