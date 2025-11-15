@@ -93,10 +93,10 @@ const StorePosPage: React.FC = () => {
     <div className="space-y-6">
       {/* Modern header card */}
       <Card className="overflow-hidden border-none bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-500 text-white">
-        <CardHeader className="p-6">
+        <CardHeader className="p-4">
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-2xl md:text-3xl font-bold">
+              <CardTitle className="text-xl md:text-2xl font-bold">
                 Contact Point-Of-Sale
               </CardTitle>
               <CardDescription className="text-white/90">
@@ -140,7 +140,7 @@ const StorePosPage: React.FC = () => {
             </Dialog>
           </div>
         </CardHeader>
-        <CardContent className="p-6 pt-0">
+        <CardContent className="p-4 pt-0">
           <div className="flex flex-wrap gap-3">
             <Button
               variant="secondary"
