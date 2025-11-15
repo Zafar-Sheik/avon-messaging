@@ -34,46 +34,50 @@ const StockControlPage: React.FC = () => {
       <Card>
         <CardContent className="p-6 space-y-4">
           {/* Buttons replacing dropdown */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <Button
               variant="outline"
+              size="sm"
               className="justify-start"
               onClick={() => {
                 setSelectedSection("stock-items");
                 toast({ title: "Selected", description: "Stock items" });
               }}
             >
-              <Boxes className="mr-2" />
+              <Boxes className="mr-1 size-4" />
               Stock items
             </Button>
             <Button
               variant="outline"
+              size="sm"
               className="justify-start"
               onClick={() =>
                 toast({ title: "Selected", description: "Adjustments" })
               }
             >
-              <Wrench className="mr-2" />
+              <Wrench className="mr-1 size-4" />
               Adjustments
             </Button>
             <Button
               variant="outline"
+              size="sm"
               className="justify-start"
               onClick={() =>
                 toast({ title: "Selected", description: "Supplier Grv" })
               }
             >
-              <Truck className="mr-2" />
+              <Truck className="mr-1 size-4" />
               Supplier Grv
             </Button>
             <Button
               variant="outline"
+              size="sm"
               className="justify-start"
               onClick={() =>
                 toast({ title: "Selected", description: "Reports" })
               }
             >
-              <BarChart3 className="mr-2" />
+              <BarChart3 className="mr-1 size-4" />
               Reports
             </Button>
           </div>

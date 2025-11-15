@@ -78,14 +78,14 @@ const StockItemForm: React.FC = () => {
         <CardTitle className="text-lg">Stock Item</CardTitle>
         <CardDescription>Add item details and upload an image.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Image upload */}
         <div className="space-y-2">
           <FormLabel>Item Image</FormLabel>
           <div className="flex items-center gap-4">
             <label
               htmlFor="stock-image"
-              className="inline-flex items-center gap-2 px-3 py-2 border rounded-md cursor-pointer hover:bg-muted"
+              className="inline-flex items-center gap-2 px-2 py-1.5 text-sm border rounded-md cursor-pointer hover:bg-muted"
             >
               <ImageIcon className="size-4" />
               <span>Upload image</span>
@@ -95,10 +95,10 @@ const StockItemForm: React.FC = () => {
               <img
                 src={imagePreview}
                 alt="Preview"
-                className="h-16 w-16 rounded-md object-cover border"
+                className="h-14 w-14 rounded-md object-cover border"
               />
             ) : (
-              <div className="h-16 w-16 rounded-md border bg-muted/40 flex items-center justify-center text-muted-foreground">
+              <div className="h-14 w-14 rounded-md border bg-muted/40 flex items-center justify-center text-muted-foreground text-xs">
                 No image
               </div>
             )}
@@ -108,7 +108,7 @@ const StockItemForm: React.FC = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic details */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <FormField
                 control={form.control}
                 name="stockCode"
@@ -138,7 +138,7 @@ const StockItemForm: React.FC = () => {
             </div>
 
             {/* Category & size */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <FormField
                 control={form.control}
                 name="category"
@@ -178,7 +178,7 @@ const StockItemForm: React.FC = () => {
             </div>
 
             {/* Pricing */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <FormField
                 control={form.control}
                 name="costPrice"
@@ -228,7 +228,7 @@ const StockItemForm: React.FC = () => {
             </div>
 
             {/* Inventory & supplier */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <FormField
                 control={form.control}
                 name="quantityOnHand"
@@ -258,9 +258,10 @@ const StockItemForm: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button type="submit" className="w-fit">Save Item</Button>
+              <Button type="submit" size="sm" className="w-fit">Save Item</Button>
               <Button
                 type="button"
+                size="sm"
                 variant="outline"
                 onClick={() => {
                   form.reset();
