@@ -27,6 +27,7 @@ import {
   Clock,
   Settings,
   Calendar,
+  Store
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ import RemindersPage from "./pages/Reminders";
 import SettingsPage from "./pages/Settings";
 import SchedulerPage from "./pages/Scheduler";
 import NotFound from "./pages/NotFound";
+import StorePosPage from "./pages/StorePos";
 
 /* =========================================================================
     SIDEBAR NAVIGATION
@@ -58,6 +60,7 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
     { icon: Users, label: "Groups", path: "/groups" },
     { icon: MessageSquare, label: "Messages", path: "/messages" },
     { icon: Upload, label: "Uploads", path: "/uploads" },
+    { icon: Store, label: "Store Pos", path: "/store-pos" },
     { icon: Calendar, label: "Scheduler", path: "/scheduler" },
     { icon: Clock, label: "Reminders", path: "/reminders" },
     { icon: Settings, label: "Settings", path: "/settings" },
@@ -207,7 +210,7 @@ const App = () => {
                       <Route path="/settings" element={<SettingsPage />} />
                       <Route path="/scheduler" element={<SchedulerPage />} />
                       <Route path="/reminders" element={<RemindersPage />} />
-
+                      <Route path="/store-pos" element={<StorePosPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>
