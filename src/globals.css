@@ -168,6 +168,86 @@
     --sidebar-border: 228 16% 22%;
     --sidebar-ring: 258 90% 65%;
   }
+
+  /* Vibe Coding theme (light) */
+  .vibe-coding {
+    --background: 0 0% 100%;
+    --foreground: 224 71% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+
+    --primary: 142 72% 40%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 71% 4%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 183 83% 45%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 142 72% 40%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 224 71% 4%;
+    --sidebar-primary: 142 72% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 224 71% 4%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 142 72% 40%;
+  }
+
+  /* Vibe Coding theme (dark) */
+  .vibe-coding-dark {
+    --background: 222 28% 8%;
+    --foreground: 210 40% 96%;
+    --card: 222 28% 10%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 28% 10%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 142 72% 45%;
+    --primary-foreground: 222 28% 8%;
+
+    --secondary: 225 15% 18%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 225 15% 18%;
+    --muted-foreground: 220 9% 66%;
+
+    --accent: 183 83% 50%;
+    --accent-foreground: 222 28% 8%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 210 40% 96%;
+
+    --border: 225 15% 22%;
+    --input: 225 15% 22%;
+    --ring: 142 72% 45%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 222 28% 9%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 142 72% 45%;
+    --sidebar-primary-foreground: 222 28% 8%;
+    --sidebar-accent: 225 15% 18%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 225 15% 22%;
+    --sidebar-ring: 142 72% 45%;
+  }
 }
 
 @layer base {

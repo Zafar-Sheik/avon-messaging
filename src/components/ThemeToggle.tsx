@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sun, Moon, Sparkles, MoonStar } from "lucide-react";
+import { Sun, Moon, Sparkles, MoonStar, Code, Terminal } from "lucide-react";
 
 const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -22,6 +22,10 @@ const ThemeToggle: React.FC = () => {
         return <Sparkles className="h-4 w-4" />;
       case "modern-dark":
         return <MoonStar className="h-4 w-4" />;
+      case "vibe-coding":
+        return <Code className="h-4 w-4" />;
+      case "vibe-coding-dark":
+        return <Terminal className="h-4 w-4" />;
       case "light":
       default:
         return <Sun className="h-4 w-4" />;
@@ -33,6 +37,10 @@ const ThemeToggle: React.FC = () => {
       ? "Modern Dark"
       : theme === "modern"
       ? "Modern"
+      : theme === "vibe-coding-dark"
+      ? "Vibe Coding Dark"
+      : theme === "vibe-coding"
+      ? "Vibe Coding"
       : theme
       ? theme[0].toUpperCase() + theme.slice(1)
       : "Theme";
@@ -65,6 +73,14 @@ const ThemeToggle: React.FC = () => {
         <DropdownMenuItem onClick={() => setTheme("modern-dark")}>
           <MoonStar className="mr-2 h-4 w-4" />
           Modern Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("vibe-coding")}>
+          <Code className="mr-2 h-4 w-4" />
+          Vibe Coding
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("vibe-coding-dark")}>
+          <Terminal className="mr-2 h-4 w-4" />
+          Vibe Coding Dark
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
