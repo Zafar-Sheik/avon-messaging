@@ -35,6 +35,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Printer, Phone, Mail, Save } from "lucide-react";
 import { isWahaConfigured, sendTextMessage } from "@/utils/wahaClient";
 import { formatWhatsAppLink } from "@/utils/groupStore";
+import { recordSale } from "@/utils/saleStore";
 
 type CartLine = {
   stockCode: string;
@@ -289,6 +290,20 @@ const SalesPage: React.FC = () => {
       return { ...i, quantityOnHand: i.quantityOnHand - line.qty };
     });
     setItems(nextItems);
+
+    // Record sale in local store
+    const methodForStore: "cash" | "card" | "account" =
+      saleType === "account" ? "account" : method;
+    recordSale({
+      saleNo,
+      date: new Date().toISOString(),
+      saleType,
+      method: methodForStore,
+      customerCode: saleType === "account" ? customerCode.trim() : undefined,
+      subtotal,
+      tax,
+      total,
+    });
 
     // Account sale: update balances
     if (saleType === "account") {
