@@ -36,8 +36,11 @@ const SlipPreview: React.FC<Props> = ({ company, messages, className }) => {
   return (
     <div className={className}>
       <div className="rounded-md border bg-white p-3">
-        <div className="text-xs font-medium mb-1">Slip Layout Preview</div>
-        <div className="rounded-md border bg-muted/30 p-3">
+        <div className="text-xs font-medium mb-1">Slip Layout Preview (80×80mm)</div>
+        <div
+          className="rounded-md border bg-muted/30 p-3 mx-auto overflow-y-auto"
+          style={{ width: "80mm", height: "80mm" }}
+        >
           {/* Header with logo and emphasized company details */}
           <div className="text-center space-y-1">
             {company?.logoDataUrl ? (
