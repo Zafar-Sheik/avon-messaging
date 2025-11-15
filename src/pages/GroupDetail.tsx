@@ -6,15 +6,38 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 import ContactImport from "@/components/ContactImport";
 import { showError, showSuccess } from "@/utils/toast";
-import { getGroupById, addContactsToGroup, sendGroupMessage, updateContactInGroup, deleteContactFromGroup } from "@/utils/groupStore";
+import {
+  getGroupById,
+  addContactsToGroup,
+  sendGroupMessage,
+  updateContactInGroup,
+  deleteContactFromGroup,
+} from "@/utils/groupStore";
 import type { Group } from "@/types/group";
 import { Send, Paperclip, Trash2, ArrowLeft } from "lucide-react";
-import { isWahaConfigured, sendTextMessage, sendFileMessage, sendTextToChat, sendFileToChat } from "@/utils/wahaClient";
+import {
+  isWahaConfigured,
+  sendTextMessage,
+  sendFileMessage,
+  sendTextToChat,
+  sendFileToChat,
+} from "@/utils/wahaClient";
 import SendProgress from "@/components/SendProgress";
 import { getReplyNowLink } from "@/utils/replyLink";
 
@@ -28,11 +51,15 @@ const buildMessageWithReply = async (original: string): Promise<string> => {
 
 const GroupDetailPage: React.FC = () => {
   const { id } = useParams();
-  const [group, setGroup] = React.useState<Group | undefined>(id ? getGroupById(id) : undefined);
+  const [group, setGroup] = React.useState<Group | undefined>(
+    id ? getGroupById(id) : undefined
+  );
   const [message, setMessage] = React.useState("");
   const [attachments, setAttachments] = React.useState<File[]>([]);
   const [chatIds, setChatIds] = React.useState<string>("");
-  const [selectedContactId, setSelectedContactId] = React.useState<string | null>(group?.contacts[0]?.id ?? null);
+  const [selectedContactId, setSelectedContactId] = React.useState<
+    string | null
+  >(group?.contacts[0]?.id ?? null);
   const [newName, setNewName] = React.useState("");
   const [newPhone, setNewPhone] = React.useState("");
   const [editName, setEditName] = React.useState("");
@@ -125,7 +152,9 @@ const GroupDetailPage: React.FC = () => {
   const handleSendViaWaha = async () => {
     if (!group) return;
     if (!isWahaConfigured()) {
-      showError("Please configure WAHA in Settings to send messages and media.");
+      showError(
+        "Please configure WAHA in Settings to send messages and media."
+      );
       return;
     }
     if (!message.trim() && attachments.length === 0) {
@@ -135,7 +164,8 @@ const GroupDetailPage: React.FC = () => {
 
     const finalMessage = await buildMessageWithReply(message);
 
-    const totalOps = group.contacts.length * (attachments.length > 0 ? attachments.length : 1);
+    const totalOps =
+      group.contacts.length * (attachments.length > 0 ? attachments.length : 1);
     setIsSending(true);
     setSendCurrent(0);
     setSendTotal(totalOps);
@@ -144,7 +174,13 @@ const GroupDetailPage: React.FC = () => {
         if (attachments.length > 0) {
           for (const file of attachments) {
             const base64 = await readFileAsBase64(file);
-            await sendFileMessage(c.phone, file.name, file.type || "application/octet-stream", base64, finalMessage.trim() || undefined);
+            await sendFileMessage(
+              c.phone,
+              file.name,
+              file.type || "application/octet-stream",
+              base64,
+              finalMessage.trim() || undefined
+            );
             setSendCurrent((prev) => prev + 1);
           }
         } else {
@@ -163,7 +199,11 @@ const GroupDetailPage: React.FC = () => {
       setAttachments([]);
       refresh();
     }
-    showSuccess(`Sent WAHA message${attachments.length ? " with attachments" : ""} to ${group.contacts.length} contact(s).`);
+    showSuccess(
+      `Sent WAHA message${attachments.length ? " with attachments" : ""} to ${
+        group.contacts.length
+      } contact(s).`
+    );
   };
 
   const handleImport = (contacts: Array<{ name: string; phone: string }>) => {
@@ -172,7 +212,9 @@ const GroupDetailPage: React.FC = () => {
     if (updated) {
       setGroup(updated);
       refresh();
-      showSuccess(`Imported ${contacts.length} contact(s) into "${updated.name}".`);
+      showSuccess(
+        `Imported ${contacts.length} contact(s) into "${updated.name}".`
+      );
     } else {
       showError("Failed to import contacts.");
     }
@@ -180,12 +222,19 @@ const GroupDetailPage: React.FC = () => {
 
   const handleSendToWahaChats = async () => {
     if (!isWahaConfigured()) {
-      showError("Please configure WAHA in Settings to send messages and media.");
+      showError(
+        "Please configure WAHA in Settings to send messages and media."
+      );
       return;
     }
-    const ids = chatIds.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+    const ids = chatIds
+      .split(/[\s,]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (ids.length === 0) {
-      showError("Enter at least one WhatsApp group chat ID (e.g., 12345-67890@g.us).");
+      showError(
+        "Enter at least one WhatsApp group chat ID (e.g., 12345-67890@g.us)."
+      );
       return;
     }
     if (!message.trim() && attachments.length === 0) {
@@ -195,7 +244,8 @@ const GroupDetailPage: React.FC = () => {
 
     const finalMessage = await buildMessageWithReply(message);
 
-    const totalOps = ids.length * (attachments.length > 0 ? attachments.length : 1);
+    const totalOps =
+      ids.length * (attachments.length > 0 ? attachments.length : 1);
     setIsSending(true);
     setSendCurrent(0);
     setSendTotal(totalOps);
@@ -204,7 +254,13 @@ const GroupDetailPage: React.FC = () => {
         if (attachments.length > 0) {
           for (const file of attachments) {
             const base64 = await readFileAsBase64(file);
-            await sendFileToChat(gid, file.name, file.type || "application/octet-stream", base64, finalMessage.trim() || undefined);
+            await sendFileToChat(
+              gid,
+              file.name,
+              file.type || "application/octet-stream",
+              base64,
+              finalMessage.trim() || undefined
+            );
             setSendCurrent((prev) => prev + 1);
           }
         } else {
@@ -216,7 +272,11 @@ const GroupDetailPage: React.FC = () => {
       setIsSending(false);
     }
 
-    showSuccess(`Sent WAHA message${attachments.length ? " with attachments" : ""} to ${ids.length} WhatsApp group chat(s).`);
+    showSuccess(
+      `Sent WAHA message${attachments.length ? " with attachments" : ""} to ${
+        ids.length
+      } WhatsApp group chat(s).`
+    );
     setMessage("");
     setAttachments([]);
   };
@@ -224,7 +284,7 @@ const GroupDetailPage: React.FC = () => {
   if (!group) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-5xl mx-auto p-6 space-y-4">
+        <div className="max-w-full mx-auto p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
               <Link to="/groups">
@@ -234,7 +294,9 @@ const GroupDetailPage: React.FC = () => {
             </Button>
             <h1 className="text-2xl font-bold">Group not found</h1>
           </div>
-          <p className="text-sm text-muted-foreground">The requested group does not exist.</p>
+          <p className="text-sm text-muted-foreground">
+            The requested group does not exist.
+          </p>
         </div>
       </div>
     );
@@ -253,15 +315,20 @@ const GroupDetailPage: React.FC = () => {
           <h1 className="text-2xl font-bold truncate">{group.name}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Manage contacts, import from Excel, send WhatsApp messages, and review sent history.
+          Manage contacts, import from Excel, send WhatsApp messages, and review
+          sent history.
         </p>
 
         <Tabs defaultValue="contacts" className="w-full">
           <TabsList className="grid grid-cols-4">
-            <TabsTrigger value="contacts">Contacts ({group.contacts.length})</TabsTrigger>
+            <TabsTrigger value="contacts">
+              Contacts ({group.contacts.length})
+            </TabsTrigger>
             <TabsTrigger value="import">Import</TabsTrigger>
             <TabsTrigger value="send">Send</TabsTrigger>
-            <TabsTrigger value="history">History ({group.sentHistory.length})</TabsTrigger>
+            <TabsTrigger value="history">
+              History ({group.sentHistory.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="contacts" className="space-y-3 pt-3">
@@ -270,11 +337,21 @@ const GroupDetailPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div className="space-y-1">
                   <Label htmlFor="new-contact-name">Name</Label>
-                  <Input id="new-contact-name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Optional" />
+                  <Input
+                    id="new-contact-name"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Optional"
+                  />
                 </div>
                 <div className="space-y-1 sm:col-span-2">
                   <Label htmlFor="new-contact-phone">Phone</Label>
-                  <Input id="new-contact-phone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="e.g., +123456789" />
+                  <Input
+                    id="new-contact-phone"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    placeholder="e.g., +123456789"
+                  />
                 </div>
               </div>
               <div className="flex justify-end">
@@ -282,18 +359,31 @@ const GroupDetailPage: React.FC = () => {
               </div>
             </div>
             {group.contacts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No contacts yet. Import some from Excel.</p>
+              <p className="text-sm text-muted-foreground">
+                No contacts yet. Import some from Excel.
+              </p>
             ) : (
               <div className="rounded-md border bg-card">
-                <ResizablePanelGroup direction="horizontal" className="min-h-[300px] overflow-hidden">
-                  <ResizablePanel defaultSize={40} minSize={25} className="border-r min-w-0">
+                <ResizablePanelGroup
+                  direction="horizontal"
+                  className="min-h-[300px] overflow-hidden">
+                  <ResizablePanel
+                    defaultSize={40}
+                    minSize={25}
+                    className="border-r min-w-0">
                     <div className="overflow-auto min-w-0">
                       <Table className="table-fixed w-full">
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="w-12 px-2 py-1 text-xs">#</TableHead>
-                            <TableHead className="px-2 py-1 text-xs">Name</TableHead>
-                            <TableHead className="px-2 py-1 text-xs">Phone</TableHead>
+                            <TableHead className="w-12 px-2 py-1 text-xs">
+                              #
+                            </TableHead>
+                            <TableHead className="px-2 py-1 text-xs">
+                              Name
+                            </TableHead>
+                            <TableHead className="px-2 py-1 text-xs">
+                              Phone
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -301,11 +391,20 @@ const GroupDetailPage: React.FC = () => {
                             <TableRow
                               key={c.id}
                               onClick={() => setSelectedContactId(c.id)}
-                              className={`cursor-pointer ${c.id === selectedContactId ? "bg-muted/50" : "hover:bg-muted/30"}`}
-                            >
-                              <TableCell className="px-2 py-1.5 text-xs text-muted-foreground">{idx + 1}</TableCell>
-                              <TableCell className="px-2 py-1.5 text-xs truncate">{c.name || "Unnamed"}</TableCell>
-                              <TableCell className="px-2 py-1.5 text-xs font-mono whitespace-nowrap">{c.phone}</TableCell>
+                              className={`cursor-pointer ${
+                                c.id === selectedContactId
+                                  ? "bg-muted/50"
+                                  : "hover:bg-muted/30"
+                              }`}>
+                              <TableCell className="px-2 py-1.5 text-xs text-muted-foreground">
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell className="px-2 py-1.5 text-xs truncate">
+                                {c.name || "Unnamed"}
+                              </TableCell>
+                              <TableCell className="px-2 py-1.5 text-xs font-mono whitespace-nowrap">
+                                {c.phone}
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -315,9 +414,14 @@ const GroupDetailPage: React.FC = () => {
 
                   <ResizableHandle withHandle />
 
-                  <ResizablePanel defaultSize={60} minSize={35} className="p-3 min-w-0 overflow-auto">
+                  <ResizablePanel
+                    defaultSize={60}
+                    minSize={35}
+                    className="p-3 min-w-0 overflow-auto">
                     {(() => {
-                      const selected = group.contacts.find((c) => c.id === selectedContactId);
+                      const selected = group.contacts.find(
+                        (c) => c.id === selectedContactId
+                      );
                       if (!selected) {
                         return (
                           <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
@@ -329,8 +433,12 @@ const GroupDetailPage: React.FC = () => {
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="min-w-0">
-                              <div className="truncate text-base font-semibold">{selected.name || "Unnamed contact"}</div>
-                              <div className="font-mono text-sm text-muted-foreground whitespace-nowrap">{selected.phone}</div>
+                              <div className="truncate text-base font-semibold">
+                                {selected.name || "Unnamed contact"}
+                              </div>
+                              <div className="font-mono text-sm text-muted-foreground whitespace-nowrap">
+                                {selected.phone}
+                              </div>
                             </div>
                           </div>
                           <div className="rounded-md border p-3 text-sm">
@@ -342,16 +450,32 @@ const GroupDetailPage: React.FC = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                               <div className="space-y-1">
                                 <Label htmlFor="edit-contact-name">Name</Label>
-                                <Input id="edit-contact-name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                                <Input
+                                  id="edit-contact-name"
+                                  value={editName}
+                                  onChange={(e) => setEditName(e.target.value)}
+                                />
                               </div>
                               <div className="space-y-1 sm:col-span-2">
-                                <Label htmlFor="edit-contact-phone">Phone</Label>
-                                <Input id="edit-contact-phone" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} />
+                                <Label htmlFor="edit-contact-phone">
+                                  Phone
+                                </Label>
+                                <Input
+                                  id="edit-contact-phone"
+                                  value={editPhone}
+                                  onChange={(e) => setEditPhone(e.target.value)}
+                                />
                               </div>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              <Button onClick={handleUpdateContact}>Save Changes</Button>
-                              <Button variant="destructive" onClick={handleDeleteContact}>Delete Contact</Button>
+                              <Button onClick={handleUpdateContact}>
+                                Save Changes
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={handleDeleteContact}>
+                                Delete Contact
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -369,7 +493,11 @@ const GroupDetailPage: React.FC = () => {
 
           <TabsContent value="send" className="space-y-3 pt-3">
             {isSending && (
-              <SendProgress current={sendCurrent} total={sendTotal} title="Sending via WAHA" />
+              <SendProgress
+                current={sendCurrent}
+                total={sendTotal}
+                title="Sending via WAHA"
+              />
             )}
             <Textarea
               value={message}
@@ -386,8 +514,7 @@ const GroupDetailPage: React.FC = () => {
                 {attachments.length > 0 && (
                   <button
                     className="text-sm text-muted-foreground hover:text-foreground"
-                    onClick={() => setAttachments([])}
-                  >
+                    onClick={() => setAttachments([])}>
                     Clear all
                   </button>
                 )}
@@ -396,23 +523,37 @@ const GroupDetailPage: React.FC = () => {
                 type="file"
                 multiple
                 accept="image/*,application/*"
-                onChange={(e) => setAttachments(e.target.files ? Array.from(e.target.files) : [])}
+                onChange={(e) =>
+                  setAttachments(
+                    e.target.files ? Array.from(e.target.files) : []
+                  )
+                }
               />
               {attachments.length > 0 && (
                 <div className="rounded-md border">
                   <div className="max-h-40 overflow-auto divide-y">
                     {attachments.map((f, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2">
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2">
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-medium">{f.name}</div>
-                          <div className="text-xs text-muted-foreground">{f.type || "Unknown"} • {(f.size / 1024).toFixed(1)} KB</div>
+                          <div className="truncate text-sm font-medium">
+                            {f.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {f.type || "Unknown"} • {(f.size / 1024).toFixed(1)}{" "}
+                            KB
+                          </div>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setAttachments((prev) => prev.filter((_, i) => i !== idx))}
-                          title="Remove"
-                        >
+                          onClick={() =>
+                            setAttachments((prev) =>
+                              prev.filter((_, i) => i !== idx)
+                            )
+                          }
+                          title="Remove">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -423,14 +564,18 @@ const GroupDetailPage: React.FC = () => {
             </div>
 
             <div className="rounded-md border p-3 space-y-2">
-              <div className="text-sm font-medium">WhatsApp Group Chat IDs (via WAHA)</div>
+              <div className="text-sm font-medium">
+                WhatsApp Group Chat IDs (via WAHA)
+              </div>
               <Input
                 value={chatIds}
                 onChange={(e) => setChatIds(e.target.value)}
                 placeholder="e.g., 12345-67890@g.us, 22222-33333@g.us"
               />
               <p className="text-xs text-muted-foreground">
-                Paste WhatsApp group chat IDs ending with <span className="font-mono">@g.us</span>, separated by commas or spaces.
+                Paste WhatsApp group chat IDs ending with{" "}
+                <span className="font-mono">@g.us</span>, separated by commas or
+                spaces.
               </p>
             </div>
 
@@ -438,32 +583,52 @@ const GroupDetailPage: React.FC = () => {
               {/* REMOVED: Send to Group and Preview Links (link-based flows) */}
               <Button
                 variant="default"
-                disabled={isSending || !isWahaConfigured() || group.contacts.length === 0 || (!message.trim() && attachments.length === 0)}
+                disabled={
+                  isSending ||
+                  !isWahaConfigured() ||
+                  group.contacts.length === 0 ||
+                  (!message.trim() && attachments.length === 0)
+                }
                 onClick={handleSendViaWaha}
-                title={isWahaConfigured() ? "Send via WAHA" : "Configure WAHA in Settings first"}
-              >
+                title={
+                  isWahaConfigured()
+                    ? "Send via WAHA"
+                    : "Configure WAHA in Settings first"
+                }>
                 <Send className="size-4" />
                 <span>Send via WAHA</span>
               </Button>
               <Button
                 variant="default"
-                disabled={isSending || !isWahaConfigured() || (!message.trim() && attachments.length === 0) || chatIds.trim() === ""}
+                disabled={
+                  isSending ||
+                  !isWahaConfigured() ||
+                  (!message.trim() && attachments.length === 0) ||
+                  chatIds.trim() === ""
+                }
                 onClick={handleSendToWahaChats}
-                title={isWahaConfigured() ? "Send to WhatsApp group chats via WAHA" : "Configure WAHA in Settings first"}
-              >
+                title={
+                  isWahaConfigured()
+                    ? "Send to WhatsApp group chats via WAHA"
+                    : "Configure WAHA in Settings first"
+                }>
                 <Send className="size-4" />
                 <span>Send to Chats via WAHA</span>
               </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Use "Send via WAHA" to send text and attachments directly to contacts, or "Send to Chats via WAHA" for WhatsApp group chat IDs you provide above.
+              Use "Send via WAHA" to send text and attachments directly to
+              contacts, or "Send to Chats via WAHA" for WhatsApp group chat IDs
+              you provide above.
             </p>
           </TabsContent>
 
           <TabsContent value="history" className="space-y-3 pt-3">
             {group.sentHistory.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No sent history yet.</p>
+              <p className="text-sm text-muted-foreground">
+                No sent history yet.
+              </p>
             ) : (
               <div className="rounded-md border">
                 <Table>
@@ -478,10 +643,14 @@ const GroupDetailPage: React.FC = () => {
                   <TableBody>
                     {group.sentHistory.map((h) => (
                       <TableRow key={h.id}>
-                        <TableCell>{new Date(h.sentAt).toLocaleString()}</TableCell>
+                        <TableCell>
+                          {new Date(h.sentAt).toLocaleString()}
+                        </TableCell>
                         <TableCell>{h.name}</TableCell>
                         <TableCell>{h.phone}</TableCell>
-                        <TableCell className="max-w-xs truncate" title={h.message}>
+                        <TableCell
+                          className="max-w-xs truncate"
+                          title={h.message}>
                           {h.message}
                         </TableCell>
                       </TableRow>

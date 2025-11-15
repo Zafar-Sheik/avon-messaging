@@ -31,7 +31,6 @@ const WahaConnect: React.FC = () => {
   const [configVersion, setConfigVersion] = React.useState<number>(0);
 
   const cfg = getWahaConfig();
-  const configured = isWahaConfigured();
 
   const refreshStatus = React.useCallback(async () => {
     const s = await getSessionStatus();
@@ -107,77 +106,74 @@ const WahaConnect: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="items-center">
-        <CardTitle className="text-center">
-          <span className="text-blue-600">WAHA</span>{" "}
-          <span className="text-red-600">Connect</span>
-        </CardTitle>
-        <CardDescription className="text-center">
-          Start a session, scan the QR code, and link your phone number.
-        </CardDescription>
+      <CardHeader>
+        <CardTitle>WAHA Connect</CardTitle>
+        <CardDescription>Start a session, scan the QR code, and link your phone number.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!configured && (
-          <div className="rounded-md border p-3 text-sm text-muted-foreground">
-            WAHA is not configured. Fill Base URL, API Key, and Session Name in WAHA Settings above, then click Save to enable the buttons.
+        {!isWahaConfigured() ? (
+          <div className="text-sm text-muted-foreground">
+            WAHA is not configured. Please fill Base URL, API Key, and Session Name in WAHA Settings above.
           </div>
-        )}
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Smartphone className="size-4 text-muted-foreground" />
-          <span className="text-sm">Session:</span>
-          <Badge variant="outline">{cfg?.sessionName ?? "—"}</Badge>
-          <span className="text-sm">Status:</span>
-          <StatusBadge status={status} />
-          {phone ? (
-            <>
-              <Link2 className="size-4 text-muted-foreground" />
-              <span className="text-sm">Linked:</span>
-              <Badge>{phone}</Badge>
-            </>
-          ) : null}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={handleStartAndShowQr} title="Start session and display QR" disabled={!configured}>
-            <QrCode className="size-4" />
-            <span>Start & Show QR</span>
-          </Button>
-          <Button variant="secondary" onClick={handleRefreshQr} disabled={!qrBase64 || !configured}>
-            <RefreshCcw className="size-4" />
-            <span>Refresh QR</span>
-          </Button>
-          <Button variant="secondary" onClick={handleRefreshStatus} disabled={!configured}>
-            <RefreshCcw className="size-4" />
-            <span>Refresh Status</span>
-          </Button>
-          <Button variant="outline" onClick={handleStop} disabled={!configured}>
-            <Power className="size-4" />
-            <span>Stop</span>
-          </Button>
-          <Button variant="destructive" onClick={handleLogout} disabled={!configured}>
-            <Power className="size-4" />
-            <span>Logout</span>
-          </Button>
-        </div>
-
-        {qrBase64 && (
-          <div className="rounded-md border p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <QrCode className="size-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Scan this QR with WhatsApp on your phone</span>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center gap-3">
+              <Smartphone className="size-4 text-muted-foreground" />
+              <span className="text-sm">Session:</span>
+              <Badge variant="outline">{cfg?.sessionName}</Badge>
+              <span className="text-sm">Status:</span>
+              <StatusBadge status={status} />
+              {phone ? (
+                <>
+                  <Link2 className="size-4 text-muted-foreground" />
+                  <span className="text-sm">Linked:</span>
+                  <Badge>{phone}</Badge>
+                </>
+              ) : null}
             </div>
-            <div className="flex items-center justify-center">
-              <img
-                src={`data:image/png;base64,${qrBase64}`}
-                alt="WAHA QR code"
-                className="w-64 h-64 object-contain rounded-md border bg-white"
-              />
+
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={handleStartAndShowQr} title="Start session and display QR">
+                <QrCode className="size-4" />
+                <span>Start & Show QR</span>
+              </Button>
+              <Button variant="secondary" onClick={handleRefreshQr} disabled={!qrBase64}>
+                <RefreshCcw className="size-4" />
+                <span>Refresh QR</span>
+              </Button>
+              <Button variant="secondary" onClick={handleRefreshStatus}>
+                <RefreshCcw className="size-4" />
+                <span>Refresh Status</span>
+              </Button>
+              <Button variant="outline" onClick={handleStop}>
+                <Power className="size-4" />
+                <span>Stop</span>
+              </Button>
+              <Button variant="destructive" onClick={handleLogout}>
+                <Power className="size-4" />
+                <span>Logout</span>
+              </Button>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Open WhatsApp on your phone → Menu → Linked devices → Link a device → Scan the QR shown here.
-            </p>
-          </div>
+
+            {qrBase64 && (
+              <div className="rounded-md border p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <QrCode className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Scan this QR with WhatsApp on your phone</span>
+                </div>
+                <div className="flex items-center justify-center">
+                  <img
+                    src={`data:image/png;base64,${qrBase64}`}
+                    alt="WAHA QR code"
+                    className="w-64 h-64 object-contain rounded-md border bg-white"
+                  />
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Open WhatsApp on your phone → Menu → Linked devices → Link a device → Scan the QR shown here.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">

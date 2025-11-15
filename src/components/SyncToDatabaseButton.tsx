@@ -3,7 +3,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Database } from "lucide-react";
-import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
+import {
+  showError,
+  showSuccess,
+  showLoading,
+  dismissToast,
+} from "@/utils/toast";
 import { syncAvonGroups } from "@/utils/dbSync";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +25,7 @@ const SyncToDatabaseButton: React.FC = () => {
     try {
       const { data: userRes } = await supabase.auth.getUser();
       if (!userRes.user) {
-        dismissToast(toastId);
+        dismissToast(toastId.toString());
         showError("Please sign in to sync. Redirecting to login...");
         navigate("/login");
         setLoading(false);
@@ -28,10 +33,12 @@ const SyncToDatabaseButton: React.FC = () => {
       }
 
       const result = await syncAvonGroups();
-      dismissToast(toastId);
-      showSuccess(`Synced: ${result.groupsCreated} new group(s), ${result.contactsInserted} contact(s).`);
+      dismissToast(toastId.toString());
+      showSuccess(
+        `Synced: ${result.groupsCreated} new group(s), ${result.contactsInserted} contact(s).`
+      );
     } catch (err: any) {
-      dismissToast(toastId);
+      dismissToast(toastId.toString());
       showError(err?.message || "Failed to sync data.");
     } finally {
       setLoading(false);
