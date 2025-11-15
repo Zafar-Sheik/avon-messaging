@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Package, Boxes, Wrench, Truck, BarChart3 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import StockItemForm from "@/components/pos/StockItemForm";
 
 const StockControlPage: React.FC = () => {
   const { toast } = useToast();
+  const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
 
   return (
     <div className="space-y-6">
@@ -36,9 +38,10 @@ const StockControlPage: React.FC = () => {
             <Button
               variant="outline"
               className="justify-start"
-              onClick={() =>
-                toast({ title: "Selected", description: "Stock items" })
-              }
+              onClick={() => {
+                setSelectedSection("stock-items");
+                toast({ title: "Selected", description: "Stock items" });
+              }}
             >
               <Boxes className="mr-2" />
               Stock items
@@ -75,7 +78,11 @@ const StockControlPage: React.FC = () => {
             </Button>
           </div>
 
-          <p className="text-muted-foreground">This section is coming soon.</p>
+          {selectedSection === "stock-items" ? (
+            <StockItemForm />
+          ) : (
+            <p className="text-muted-foreground">This section is coming soon.</p>
+          )}
         </CardContent>
       </Card>
     </div>
