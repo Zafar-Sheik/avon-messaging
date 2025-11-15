@@ -140,19 +140,28 @@ const StockItemsManager: React.FC = () => {
   };
 
   const onSubmit = (values: StockItem) => {
+    const newCode = values.stockCode.trim().toLowerCase();
     if (mode === "add") {
-      // enforce unique stockCode
-      if (items.some((i) => i.stockCode.trim().toLowerCase() === values.stockCode.trim().toLowerCase())) {
+      if (items.some((i) => i.stockCode.trim().toLowerCase() === newCode)) {
         toast({ title: "Duplicate code", description: "An item with this stock code already exists." });
         return;
       }
       setItems((prev) => [{ ...values }, ...prev]);
       toast({ title: "Saved", description: `Item ${values.stockCode} added.` });
     } else {
-      const code = selectedCodes[0];
+      const originalCode = selectedCodes[0]?.trim().toLowerCase();
+      if (!originalCode) {
+        toast({ title: "No item selected", description: "Please select an item to edit." });
+        return;
+      }
+      if (newCode !== originalCode && items.some((i) => i.stockCode.trim().toLowerCase() === newCode)) {
+        toast({ title: "Duplicate code", description: "Another item already uses this stock code." });
+        return;
+      }
       setItems((prev) =>
-        prev.map((i) => (i.stockCode === code ? { ...values } : i)),
+        prev.map((i) => (i.stockCode.trim().toLowerCase() === originalCode ? { ...values } : i)),
       );
+      setSelectedCodes([values.stockCode]);
       toast({ title: "Updated", description: `Item ${values.stockCode} updated.` });
     }
     setDialogOpen(false);
