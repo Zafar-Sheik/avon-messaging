@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import SlipPreview from "@/components/pos/SlipPreview";
 import { getAppSettings, saveAppSettings, clearAppSettings } from "@/utils/appSettingsStore";
 import { getCompanyProfile } from "@/utils/companyStore";
+import { saveCompanyProfile } from "@/utils/companyStore";
 import { showSuccess } from "@/utils/toast";
 import { Save, Trash2 } from "lucide-react";
 
@@ -24,6 +25,10 @@ const PosSettingsPage: React.FC = () => {
 
   const [company, setCompany] = React.useState(getCompanyProfile());
 
+  const [vatNumber, setVatNumber] = React.useState<string>("");
+  const [regNumber, setRegNumber] = React.useState<string>("");
+  const [logoDataUrl, setLogoDataUrl] = React.useState<string | null>(null);
+
   React.useEffect(() => {
     const s = getAppSettings();
     setAllowStockBelowCost(s.allowStockBelowCost);
@@ -32,7 +37,34 @@ const PosSettingsPage: React.FC = () => {
     setSlipMessage2(s.slipMessage2 || "");
     setSlipMessage3(s.slipMessage3 || "");
     setCompany(getCompanyProfile());
+    const c = getCompanyProfile();
+    setVatNumber(c?.vatNumber || "");
+    setRegNumber(c?.regNumber || "");
+    setLogoDataUrl(c?.logoDataUrl || null);
   }, []);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setLogoDataUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const canSaveCompanyExtras = !!company && !!company.name && !!company.email;
+
+  const handleSaveCompanyExtras = () => {
+    if (!canSaveCompanyExtras) return;
+    const updated = {
+      ...company!,
+      vatNumber: vatNumber.trim() || undefined,
+      regNumber: regNumber.trim() || undefined,
+      logoDataUrl: logoDataUrl || undefined,
+    };
+    saveCompanyProfile(updated);
+    setCompany(getCompanyProfile());
+    showSuccess("Company compliance details saved");
+  };
 
   const handleSaveAppSettings = () => {
     saveAppSettings({
@@ -166,6 +198,100 @@ const PosSettingsPage: React.FC = () => {
           >
             <Save className="size-4" />
             Save POS Settings
+          </Button>
+        </div>
+      </Card>
+
+      <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+        <CardHeader className="p-0 pb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Settings className="size-5 text-blue-600" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-semibold text-gray-900">
+                Company Compliance
+              </CardTitle>
+              <CardDescription>
+                Manage VAT number, registration number, and company logo for slips
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label htmlFor="vat-number" className="text-sm font-medium text-gray-700">
+                VAT No
+              </Label>
+              <Input
+                id="vat-number"
+                placeholder="e.g. VAT-789012"
+                value={vatNumber}
+                onChange={(e) => setVatNumber(e.target.value)}
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="reg-number" className="text-sm font-medium text-gray-700">
+                Registration No
+              </Label>
+              <Input
+                id="reg-number"
+                placeholder="e.g. REG-345678"
+                value={regNumber}
+                onChange={(e) => setRegNumber(e.target.value)}
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="md:col-span-2 space-y-3">
+              <Label className="text-sm font-medium text-gray-700">
+                Company Logo
+              </Label>
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                  className="border-gray-300 focus:border-blue-500 sm:max-w-xs"
+                />
+                {logoDataUrl ? (
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={logoDataUrl}
+                      alt="Company Logo Preview"
+                      className="h-16 w-16 rounded-md border object-contain bg-white"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => setLogoDataUrl(null)}
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                    >
+                      Remove Logo
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    Upload a PNG or JPG. Max ~1MB recommended.
+                  </p>
+                )}
+              </div>
+              {!canSaveCompanyExtras && (
+                <p className="text-xs text-gray-500">
+                  Company name and email must be set in Settings to save these details.
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+        <div className="flex gap-3 justify-end pt-6">
+          <Button
+            onClick={handleSaveCompanyExtras}
+            disabled={!canSaveCompanyExtras}
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+          >
+            <Save className="size-4" />
+            Save Company Details
           </Button>
         </div>
       </Card>
