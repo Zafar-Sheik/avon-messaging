@@ -13,6 +13,7 @@ import SlipPreview from "@/components/pos/SlipPreview";
 import { getAppSettings, saveAppSettings, clearAppSettings } from "@/utils/appSettingsStore";
 import { getCompanyProfile } from "@/utils/companyStore";
 import { saveCompanyProfile } from "@/utils/companyStore";
+import { clearCompanyProfile } from "@/utils/companyStore";
 import { showSuccess } from "@/utils/toast";
 import { Save, Trash2 } from "lucide-react";
 
@@ -25,6 +26,13 @@ const PosSettingsPage: React.FC = () => {
 
   const [company, setCompany] = React.useState(getCompanyProfile());
 
+  const [name, setName] = React.useState<string>("");
+  const [email, setEmail] = React.useState<string>("");
+  const [phone, setPhone] = React.useState<string>("");
+  const [website, setWebsite] = React.useState<string>("");
+  const [address, setAddress] = React.useState<string>("");
+  const [licenseNumber, setLicenseNumber] = React.useState<string>("");
+
   const [vatNumber, setVatNumber] = React.useState<string>("");
   const [regNumber, setRegNumber] = React.useState<string>("");
   const [logoDataUrl, setLogoDataUrl] = React.useState<string | null>(null);
@@ -36,12 +44,51 @@ const PosSettingsPage: React.FC = () => {
     setSlipMessage1(s.slipMessage1 || "");
     setSlipMessage2(s.slipMessage2 || "");
     setSlipMessage3(s.slipMessage3 || "");
-    setCompany(getCompanyProfile());
+
     const c = getCompanyProfile();
+    setCompany(c);
+    setName(c?.name || "");
+    setEmail(c?.email || "");
+    setPhone(c?.phone || "");
+    setWebsite(c?.website || "");
+    setAddress(c?.address || "");
+    setLicenseNumber(c?.licenseNumber || "");
     setVatNumber(c?.vatNumber || "");
     setRegNumber(c?.regNumber || "");
     setLogoDataUrl(c?.logoDataUrl || null);
   }, []);
+
+  const handleSaveCompany = () => {
+    const payload = {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim() || undefined,
+      website: website.trim() || undefined,
+      address: address.trim() || undefined,
+      licenseNumber: licenseNumber.trim() || undefined,
+      vatNumber: vatNumber.trim() || undefined,
+      regNumber: regNumber.trim() || undefined,
+      logoDataUrl: logoDataUrl || undefined,
+    };
+    saveCompanyProfile(payload);
+    setCompany(getCompanyProfile());
+    showSuccess("Company profile saved successfully");
+  };
+
+  const handleClearCompany = () => {
+    clearCompanyProfile();
+    setCompany(getCompanyProfile());
+    setName("");
+    setEmail("");
+    setPhone("");
+    setWebsite("");
+    setAddress("");
+    setLicenseNumber("");
+    setVatNumber("");
+    setRegNumber("");
+    setLogoDataUrl(null);
+    showSuccess("Company profile cleared");
+  };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,20 +98,7 @@ const PosSettingsPage: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const canSaveCompanyExtras = !!company && !!company.name && !!company.email;
-
-  const handleSaveCompanyExtras = () => {
-    if (!canSaveCompanyExtras) return;
-    const updated = {
-      ...company!,
-      vatNumber: vatNumber.trim() || undefined,
-      regNumber: regNumber.trim() || undefined,
-      logoDataUrl: logoDataUrl || undefined,
-    };
-    saveCompanyProfile(updated);
-    setCompany(getCompanyProfile());
-    showSuccess("Company compliance details saved");
-  };
+  const canSaveCompanyExtras = !!name.trim() && !!email.trim();
 
   const handleSaveAppSettings = () => {
     saveAppSettings({
@@ -104,6 +138,120 @@ const PosSettingsPage: React.FC = () => {
             <Button variant="secondary" className="bg-white/10 hover:bg-white/20 text-white">Back to Store Pos</Button>
           </Link>
         </CardContent>
+      </Card>
+
+      <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+        <CardHeader className="p-0 pb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Settings className="size-5 text-blue-600" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-semibold text-gray-900">
+                Company Profile
+              </CardTitle>
+              <CardDescription>
+                Organization details used on Store POS slips
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <Label htmlFor="company-name" className="text-sm font-medium text-gray-700">
+                Company Name *
+              </Label>
+              <Input
+                id="company-name"
+                placeholder="Acme Inc."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="company-email" className="text-sm font-medium text-gray-700">
+                Email Address *
+              </Label>
+              <Input
+                id="company-email"
+                type="email"
+                placeholder="hello@acme.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="company-phone" className="text-sm font-medium text-gray-700">
+                Contact Number
+              </Label>
+              <Input
+                id="company-phone"
+                placeholder="+1 (555) 000-0000"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="company-website" className="text-sm font-medium text-gray-700">
+                Website
+              </Label>
+              <Input
+                id="company-website"
+                type="url"
+                placeholder="https://www.example.com"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="md:col-span-2 space-y-3">
+              <Label htmlFor="company-address" className="text-sm font-medium text-gray-700">
+                Address
+              </Label>
+              <Input
+                id="company-address"
+                placeholder="123 Business Rd, Suite 100, City, State, ZIP"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+            <div className="space-y-3 md:col-span-2">
+              <Label htmlFor="license-number" className="text-sm font-medium text-gray-700">
+                License Number
+              </Label>
+              <Input
+                id="license-number"
+                placeholder="e.g. REG-123456"
+                value={licenseNumber}
+                onChange={(e) => setLicenseNumber(e.target.value)}
+                className="border-gray-300 focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </CardContent>
+        <div className="flex gap-3 justify-end pt-6">
+          <Button
+            variant="outline"
+            onClick={handleClearCompany}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            <Trash2 className="size-4 mr-2" />
+            Clear
+          </Button>
+          <Button
+            onClick={handleSaveCompany}
+            disabled={!name.trim() || !email.trim()}
+            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+          >
+            <Save className="size-4" />
+            Save Profile
+          </Button>
+        </div>
       </Card>
 
       <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
@@ -278,7 +426,7 @@ const PosSettingsPage: React.FC = () => {
               </div>
               {!canSaveCompanyExtras && (
                 <p className="text-xs text-gray-500">
-                  Company name and email must be set in Settings to save these details.
+                  Company name and email must be set to save these details.
                 </p>
               )}
             </div>
