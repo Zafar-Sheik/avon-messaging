@@ -74,8 +74,8 @@ const StockItemForm: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Stock Item</CardTitle>
+      <CardHeader className="p-4">
+        <CardTitle className="text-lg">Stock Item</CardTitle>
         <CardDescription>Add item details and upload an image.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
