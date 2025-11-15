@@ -27,7 +27,6 @@ import {
   Clock,
   Settings,
   Calendar,
-  BarChart3,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -56,7 +55,6 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
   const navigationItems = [
     { icon: Home, label: "Dashboard", path: "/", exact: true },
-    { icon: BarChart3, label: "Analytics", path: "/dashboard" },
     { icon: Users, label: "Groups", path: "/groups" },
     { icon: MessageSquare, label: "Messages", path: "/messages" },
     { icon: Upload, label: "Uploads", path: "/uploads" },
