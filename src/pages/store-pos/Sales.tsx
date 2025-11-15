@@ -57,6 +57,11 @@ const SalesPage: React.FC = () => {
   const [method, setMethod] = React.useState<"cash" | "card">("cash");
   const [tendered, setTendered] = React.useState<string>("");
 
+  // NEW: sale type and account sale fields
+  const [saleType, setSaleType] = React.useState<"new" | "account">("new");
+  const [customerCode, setCustomerCode] = React.useState<string>("");
+  const [accountBalances, setAccountBalances] = React.useState<Record<string, number>>({});
+
   const filteredItems = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
@@ -142,19 +147,17 @@ const SalesPage: React.FC = () => {
 
   const total = subtotal + tax;
   const tenderedNum = parseFloat(tendered || "0");
-  const change = method === "cash" ? Math.max(0, tenderedNum - total) : 0;
+  // UPDATED: change only for cash in "new" sale
+  const isCashPayment = saleType === "new" && method === "cash";
+  const change = isCashPayment ? Math.max(0, tenderedNum - total) : 0;
 
   const completeSale = () => {
     if (cart.length === 0) {
       toast({ title: "Cart is empty", description: "Add items before completing the sale." });
       return;
     }
-    if (method === "cash" && (!Number.isFinite(tenderedNum) || tenderedNum < total)) {
-      toast({ title: "Insufficient cash", description: "Tendered amount must cover the total." });
-      return;
-    }
 
-    // Validate again that all qty <= on hand
+    // Validate quantities against stock on hand
     for (const line of cart) {
       const stock = items.find((i) => i.stockCode === line.stockCode);
       if (!stock || line.qty > stock.quantityOnHand) {
@@ -163,23 +166,50 @@ const SalesPage: React.FC = () => {
       }
     }
 
+    // Handle "New Sale" (cash/card) or "Account Sale"
+    if (saleType === "new") {
+      if (method === "cash" && (!Number.isFinite(tenderedNum) || tenderedNum < total)) {
+        toast({ title: "Insufficient cash", description: "Tendered amount must cover the total." });
+        return;
+      }
+    } else {
+      // Account sale must have a customer
+      if (!customerCode.trim()) {
+        toast({ title: "Customer required", description: "Enter a customer code/name for account sale." });
+        return;
+      }
+    }
+
     // Reduce stock on hand
     const nextItems = items.map((i) => {
       const line = cart.find((l) => l.stockCode === i.stockCode);
       if (!line) return i;
-      return {
-        ...i,
-        quantityOnHand: i.quantityOnHand - line.qty
-      };
+      return { ...i, quantityOnHand: i.quantityOnHand - line.qty };
     });
-
     setItems(nextItems);
+
+    // Post to account balance if account sale
+    if (saleType === "account") {
+      const code = customerCode.trim();
+      setAccountBalances((prev) => {
+        const current = prev[code] ?? 0;
+        return { ...prev, [code]: current + total };
+      });
+      toast({
+        title: "Account sale recorded",
+        description: `Customer ${code} charged ${total.toFixed(2)}.`,
+      });
+    } else {
+      toast({
+        title: "Sale completed",
+        description: `Total ${total.toFixed(2)}${isCashPayment ? `, change ${change.toFixed(2)}` : ""}.`,
+      });
+    }
+
+    // Reset cart/payment fields
     setCart([]);
     setTendered("");
-    toast({
-      title: "Sale completed",
-      description: `Total ${total.toFixed(2)}${method === "cash" ? `, change ${change.toFixed(2)}` : ""}.`
-    });
+    setCustomerCode("");
   };
 
   return (
@@ -363,18 +393,35 @@ const SalesPage: React.FC = () => {
             </CardHeader>
             <CardContent className="p-4 space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* NEW: Sale Type */}
                 <div className="space-y-1.5">
-                  <Label className="text-sm">Method</Label>
-                  <Select value={method} onValueChange={(v: "cash" | "card") => setMethod(v)}>
+                  <Label className="text-sm">Sale Type</Label>
+                  <Select value={saleType} onValueChange={(v: "new" | "account") => setSaleType(v)}>
                     <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select method" />
+                      <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="card">Card</SelectItem>
+                      <SelectItem value="new">New Sale (Counter)</SelectItem>
+                      <SelectItem value="account">Account Sale</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Show method only for New Sale */}
+                {saleType === "new" && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Method</Label>
+                    <Select value={method} onValueChange={(v: "cash" | "card") => setMethod(v)}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <Label className="text-sm">Subtotal</Label>
@@ -391,7 +438,24 @@ const SalesPage: React.FC = () => {
                   <Input readOnly value={total.toFixed(2)} className="h-9 text-sm font-semibold" />
                 </div>
 
-                {method === "cash" && (
+                {/* Account Sale: Customer field */}
+                {saleType === "account" && (
+                  <div className="space-y-1.5 md:col-span-1">
+                    <Label className="text-sm">Customer</Label>
+                    <Input
+                      placeholder="Customer code or name"
+                      value={customerCode}
+                      onChange={(e) => setCustomerCode(e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                    <div className="text-[11px] text-muted-foreground">
+                      This sale will be charged to the customer's account.
+                    </div>
+                  </div>
+                )}
+
+                {/* Cash tendered + change only for New Sale and cash */}
+                {saleType === "new" && method === "cash" && (
                   <>
                     <div className="space-y-1.5">
                       <Label className="text-sm">Tendered</Label>
@@ -422,6 +486,14 @@ const SalesPage: React.FC = () => {
                   Complete Sale
                 </Button>
               </div>
+
+              {/* Optional: show in-memory balances summary */}
+              {Object.keys(accountBalances).length > 0 && (
+                <div className="pt-2 text-xs text-muted-foreground">
+                  Account balances:{" "}
+                  {Object.entries(accountBalances).map(([code, bal]) => `${code}: ${bal.toFixed(2)}`).join(" • ")}
+                </div>
+              )}
             </CardContent>
           </Card>
 
