@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import SupplierGrid from "@/components/pos/SupplierGrid";
 import StockItemsToolbar from "@/components/pos/StockItemsToolbar";
 import { initialSuppliers, type Supplier } from "@/components/pos/supplierTypes";
+import SupplierPaymentDialog from "@/components/pos/SupplierPaymentDialog";
 
 interface SupplierManagerProps {
   suppliers?: Supplier[];
@@ -17,6 +18,7 @@ const SupplierManager: React.FC<SupplierManagerProps> = ({ suppliers: suppliersP
   const suppliers = suppliersProp ?? internalSuppliers;
   const setSuppliers = onSuppliersChange ?? setInternalSuppliers;
   const [selectedCodes, setSelectedCodes] = React.useState<string[]>([]);
+  const [paymentOpen, setPaymentOpen] = React.useState(false);
 
   const resetSelection = () => setSelectedCodes([]);
 
@@ -30,6 +32,14 @@ const SupplierManager: React.FC<SupplierManagerProps> = ({ suppliers: suppliersP
       return;
     }
     toast({ title: "Edit supplier", description: "Supplier edit dialog coming soon." });
+  };
+
+  const openPay = () => {
+    if (selectedCodes.length !== 1) {
+      toast({ title: "Select one supplier", description: "Please select exactly one supplier to pay." });
+      return;
+    }
+    setPaymentOpen(true);
   };
 
   const handleDelete = () => {
@@ -60,7 +70,7 @@ const SupplierManager: React.FC<SupplierManagerProps> = ({ suppliers: suppliersP
   return (
     <div className="space-y-3">
       {/* Toolbar (reused from stock items for consistency) */}
-      <StockItemsToolbar onAdd={openAdd} onEdit={openEdit} onDelete={handleDelete} />
+      <StockItemsToolbar onAdd={openAdd} onEdit={openEdit} onDelete={handleDelete} onPay={openPay} />
 
       {/* Grid */}
       <SupplierGrid
@@ -69,6 +79,28 @@ const SupplierManager: React.FC<SupplierManagerProps> = ({ suppliers: suppliersP
         onToggleRow={toggleRowSelection}
         allSelected={allSelected}
         onToggleSelectAll={toggleSelectAll}
+      />
+
+      {/* Payment Dialog */}
+      <SupplierPaymentDialog
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        supplier={suppliers.find((s) => s.supplierCode === selectedCodes[0]) ?? null}
+        onConfirm={(amount) => {
+          const code = selectedCodes[0];
+          setSuppliers((prev) =>
+            prev.map((s) => {
+              if (s.supplierCode !== code) return s;
+              const newBalance = Math.max(0, s.currentBalance - amount);
+              return { ...s, currentBalance: newBalance };
+            })
+          );
+          setPaymentOpen(false);
+          toast({
+            title: "Payment recorded",
+            description: `Amount ${amount.toFixed(2)} applied to ${code}.`,
+          });
+        }}
       />
     </div>
   );
