@@ -51,6 +51,11 @@ const SettingsPage = () => {
 
   const [licenseNumber, setLicenseNumber] = React.useState("");
 
+  // NEW: VAT, Registration, and Logo
+  const [vatNumber, setVatNumber] = React.useState("");
+  const [regNumber, setRegNumber] = React.useState("");
+  const [logoDataUrl, setLogoDataUrl] = React.useState<string | null>(null);
+
   const [wahaApiKey, setWahaApiKey] = React.useState("");
   const [wahaBaseUrl, setWahaBaseUrl] = React.useState("");
   const [wahaSessionName, setWahaSessionName] = React.useState("");
@@ -64,6 +69,9 @@ const SettingsPage = () => {
       setWebsite(existing.website || "");
       setAddress(existing.address || "");
       setLicenseNumber(existing.licenseNumber || "");
+      setVatNumber(existing.vatNumber || "");           // NEW
+      setRegNumber(existing.regNumber || "");           // NEW
+      setLogoDataUrl(existing.logoDataUrl || null);     // NEW
     }
   }, []);
 
@@ -84,6 +92,9 @@ const SettingsPage = () => {
       website: website.trim() || undefined,
       address: address.trim() || undefined,
       licenseNumber: licenseNumber.trim() || undefined,
+      vatNumber: vatNumber.trim() || undefined,           // NEW
+      regNumber: regNumber.trim() || undefined,           // NEW
+      logoDataUrl: logoDataUrl || undefined,              // NEW
     });
     showSuccess("Company profile saved successfully");
   };
@@ -96,7 +107,18 @@ const SettingsPage = () => {
     setWebsite("");
     setAddress("");
     setLicenseNumber("");
+    setVatNumber("");           // NEW
+    setRegNumber("");           // NEW
+    setLogoDataUrl(null);       // NEW
     showSuccess("Company profile cleared");
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setLogoDataUrl(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
   const handleSaveWaha = () => {
@@ -128,7 +150,7 @@ const SettingsPage = () => {
     showSuccess("All reminders cleared successfully");
   };
 
-  const hasCompanyData = name || email || phone || website || address || licenseNumber;
+  const hasCompanyData = name || email || phone || website || address || licenseNumber || vatNumber || regNumber || logoDataUrl;
   const hasWahaData = wahaApiKey || wahaBaseUrl || wahaSessionName;
 
   return (
@@ -261,6 +283,73 @@ const SettingsPage = () => {
                       onChange={(e) => setLicenseNumber(e.target.value)}
                       className="border-gray-300 focus:border-blue-500"
                     />
+                  </div>
+
+                  {/* NEW: VAT Number */}
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="vat-number"
+                      className="text-sm font-medium text-gray-700">
+                      VAT No
+                    </Label>
+                    <Input
+                      id="vat-number"
+                      placeholder="e.g. VAT-789012"
+                      value={vatNumber}
+                      onChange={(e) => setVatNumber(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* NEW: Registration Number */}
+                  <div className="space-y-3">
+                    <Label
+                      htmlFor="reg-number"
+                      className="text-sm font-medium text-gray-700">
+                      Registration No
+                    </Label>
+                    <Input
+                      id="reg-number"
+                      placeholder="e.g. REG-345678"
+                      value={regNumber}
+                      onChange={(e) => setRegNumber(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* NEW: Company Logo */}
+                  <div className="md:col-span-2 space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">
+                      Company Logo
+                    </Label>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoChange}
+                        className="border-gray-300 focus:border-blue-500 sm:max-w-xs"
+                      />
+                      {logoDataUrl ? (
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={logoDataUrl}
+                            alt="Company Logo Preview"
+                            className="h-16 w-16 rounded-md border object-contain bg-white"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => setLogoDataUrl(null)}
+                            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                          >
+                            Remove Logo
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          Upload a PNG or JPG. Max ~1MB recommended.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>

@@ -5,6 +5,9 @@ export type CompanyProfile = {
   website?: string;
   address?: string;
   licenseNumber?: string;
+  vatNumber?: string;
+  regNumber?: string;
+  logoDataUrl?: string;
 };
 
 const STORAGE_KEY = "companyProfile";

@@ -16,6 +16,8 @@ const SlipPreview: React.FC<Props> = ({ company, messages, className }) => {
     company?.address || "Address line",
     `Contact: ${company?.phone || "-"}`,
     company?.licenseNumber ? `License: ${company.licenseNumber}` : undefined,
+    company?.vatNumber ? `VAT No: ${company.vatNumber}` : undefined,
+    company?.regNumber ? `Reg No: ${company.regNumber}` : undefined,
   ].filter(Boolean) as string[];
 
   const sampleLines = [
