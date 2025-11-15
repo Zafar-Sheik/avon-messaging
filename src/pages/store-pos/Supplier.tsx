@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Truck } from "lucide-react";
 import PoweredBy from "@/components/PoweredBy";
+import SupplierManager from "@/components/pos/SupplierManager";
 
 const SupplierPage: React.FC = () => {
   return (
@@ -29,7 +30,7 @@ const SupplierPage: React.FC = () => {
 
       <Card>
         <CardContent className="p-6">
-          <p className="text-muted-foreground">This section is coming soon.</p>
+          <SupplierManager />
         </CardContent>
       </Card>
       <PoweredBy className="pt-2" />
