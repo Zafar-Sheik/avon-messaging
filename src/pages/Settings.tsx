@@ -266,6 +266,9 @@ const SettingsPage = () => {
                       onChange={(e) => setLicenseNumber(e.target.value)}
                       className="border-gray-300 focus:border-blue-500"
                     />
+                    <p className="text-xs text-red-600">
+                      Kindly note the system will not work until the license number is updated. License is updated by the installers Contact Computers.
+                    </p>
                   </div>
                 </div>
               </CardContent>
