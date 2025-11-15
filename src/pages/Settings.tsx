@@ -20,6 +20,8 @@ import { clearAllReminders } from "@/utils/reminderStore";
 import { clearAllGroups } from "@/utils/groupStore";
 import {
   getCompanyProfile,
+  saveCompanyProfile,
+  clearCompanyProfile,
 } from "@/utils/companyStore";
 import {
   getWahaConfig,
@@ -40,6 +42,17 @@ const SettingsPage = () => {
   const [wahaBaseUrl, setWahaBaseUrl] = React.useState("");
   const [wahaSessionName, setWahaSessionName] = React.useState("");
 
+  // NEW: Company profile state
+  const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [website, setWebsite] = React.useState("");
+  const [address, setAddress] = React.useState("");
+  const [licenseNumber, setLicenseNumber] = React.useState("");
+  const [vatNumber, setVatNumber] = React.useState("");
+  const [regNumber, setRegNumber] = React.useState("");
+  const [logoDataUrl, setLogoDataUrl] = React.useState<string | null>(null);
+
   React.useEffect(() => {
     const waha = getWahaConfig();
     if (waha) {
@@ -49,8 +62,60 @@ const SettingsPage = () => {
     }
   }, []);
 
-  // Compute status from stored profile
-  const hasCompanyData = !!getCompanyProfile();
+  // NEW: Initialize company profile
+  React.useEffect(() => {
+    const c = getCompanyProfile();
+    if (c) {
+      setName(c.name || "");
+      setEmail(c.email || "");
+      setPhone(c.phone || "");
+      setWebsite(c.website || "");
+      setAddress(c.address || "");
+      setLicenseNumber(c.licenseNumber || "");
+      setVatNumber(c.vatNumber || "");
+      setRegNumber(c.regNumber || "");
+      setLogoDataUrl(c.logoDataUrl || null);
+    }
+  }, []);
+
+  // NEW: handlers
+  const handleSaveCompany = () => {
+    const payload = {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim() || undefined,
+      website: website.trim() || undefined,
+      address: address.trim() || undefined,
+      licenseNumber: licenseNumber.trim() || undefined,
+      vatNumber: vatNumber.trim() || undefined,
+      regNumber: regNumber.trim() || undefined,
+      logoDataUrl: logoDataUrl || undefined,
+    };
+    saveCompanyProfile(payload);
+    showSuccess("Company profile saved successfully");
+  };
+
+  const handleClearCompany = () => {
+    clearCompanyProfile();
+    setName("");
+    setEmail("");
+    setPhone("");
+    setWebsite("");
+    setAddress("");
+    setLicenseNumber("");
+    setVatNumber("");
+    setRegNumber("");
+    setLogoDataUrl(null);
+    showSuccess("Company profile cleared");
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setLogoDataUrl(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const handleSaveWaha = () => {
     saveWahaConfig({
@@ -81,6 +146,8 @@ const SettingsPage = () => {
     showSuccess("All reminders cleared successfully");
   };
 
+  const hasCompanyData = !!getCompanyProfile();
+  const canSaveCompanyExtras = !!name.trim() && !!email.trim();
   const hasWahaData = wahaApiKey || wahaBaseUrl || wahaSessionName;
 
   return (
@@ -107,6 +174,216 @@ const SettingsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* NEW: Company Profile Card */}
+            <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+              <CardHeader className="p-0 pb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Settings2 className="size-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-gray-900">
+                      Company Profile
+                    </CardTitle>
+                    <CardDescription>
+                      Organization details used on Store POS slips
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="company-name" className="text-sm font-medium text-gray-700">
+                      Company Name *
+                    </Label>
+                    <Input
+                      id="company-name"
+                      placeholder="Acme Inc."
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="company-email" className="text-sm font-medium text-gray-700">
+                      Email Address *
+                    </Label>
+                    <Input
+                      id="company-email"
+                      type="email"
+                      placeholder="hello@acme.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="company-phone" className="text-sm font-medium text-gray-700">
+                      Contact Number
+                    </Label>
+                    <Input
+                      id="company-phone"
+                      placeholder="+1 (555) 000-0000"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="company-website" className="text-sm font-medium text-gray-700">
+                      Website
+                    </Label>
+                    <Input
+                      id="company-website"
+                      type="url"
+                      placeholder="https://www.example.com"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-3">
+                    <Label htmlFor="company-address" className="text-sm font-medium text-gray-700">
+                      Address
+                    </Label>
+                    <Input
+                      id="company-address"
+                      placeholder="123 Business Rd, Suite 100, City, State, ZIP"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-3 md:col-span-2">
+                    <Label htmlFor="license-number" className="text-sm font-medium text-gray-700">
+                      License Number
+                    </Label>
+                    <Input
+                      id="license-number"
+                      placeholder="e.g. REG-123456"
+                      value={licenseNumber}
+                      onChange={(e) => setLicenseNumber(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex gap-3 justify-end pt-6 px-0">
+                <Button
+                  variant="outline"
+                  onClick={handleClearCompany}
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <Trash2 className="size-4 mr-2" />
+                  Clear
+                </Button>
+                <Button
+                  onClick={handleSaveCompany}
+                  disabled={!name.trim() || !email.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                >
+                  <Save className="size-4" />
+                  Save Profile
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* NEW: Company Compliance Card */}
+            <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+              <CardHeader className="p-0 pb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Shield className="size-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-gray-900">
+                      Company Compliance
+                    </CardTitle>
+                    <CardDescription>
+                      Manage VAT number, registration number, and company logo for slips
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="vat-number" className="text-sm font-medium text-gray-700">
+                      VAT No
+                    </Label>
+                    <Input
+                      id="vat-number"
+                      placeholder="e.g. VAT-789012"
+                      value={vatNumber}
+                      onChange={(e) => setVatNumber(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="reg-number" className="text-sm font-medium text-gray-700">
+                      Registration No
+                    </Label>
+                    <Input
+                      id="reg-number"
+                      placeholder="e.g. REG-345678"
+                      value={regNumber}
+                      onChange={(e) => setRegNumber(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">
+                      Company Logo
+                    </Label>
+                    <div className="flex flex-col sm:flex-row gap-4 items-start">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoChange}
+                        className="border-gray-300 focus:border-blue-500 sm:max-w-xs"
+                      />
+                      {logoDataUrl ? (
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={logoDataUrl}
+                            alt="Company Logo Preview"
+                            className="h-16 w-16 rounded-md border object-contain bg-white"
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() => setLogoDataUrl(null)}
+                            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                          >
+                            Remove Logo
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          Upload a PNG or JPG. Max ~1MB recommended.
+                        </p>
+                      )}
+                    </div>
+                    {!canSaveCompanyExtras && (
+                      <p className="text-xs text-gray-500">
+                        Company name and email must be set to save these details.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex gap-3 justify-end pt-6 px-0">
+                <Button
+                  onClick={handleSaveCompany}
+                  disabled={!canSaveCompanyExtras}
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                >
+                  <Save className="size-4" />
+                  Save Company Details
+                </Button>
+              </CardFooter>
+            </Card>
+
             {/* WAHA Settings Card */}
             <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
               <CardHeader className="p-0 pb-6">
