@@ -38,52 +38,57 @@ const SlipPreview: React.FC<Props> = ({ company, messages, className }) => {
       <div className="rounded-md border bg-white p-3">
         <div className="text-xs font-medium mb-1">Full Slip View (80mm width)</div>
         <div
-          className="rounded-md border bg-muted/30 p-3 mx-auto"
+          className="relative rounded-md border bg-muted/30 p-3 mx-auto"
           style={{ width: "80mm", minHeight: "80mm" }}
         >
-          {/* Top logo */}
+          {/* Centered faded watermark */}
           {company?.logoDataUrl ? (
-            <img
-              src={company.logoDataUrl}
-              alt="Company Logo"
-              className="mx-auto mb-2 h-16 object-contain"
-            />
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <img
+                src={company.logoDataUrl}
+                alt="Company Watermark"
+                className="opacity-10 h-24 md:h-28 object-contain"
+              />
+            </div>
           ) : null}
 
-          {/* Header with logo and emphasized company details */}
-          <div className="text-center space-y-1">
-            <div className="text-base md:text-lg font-bold">{companyName}</div>
-            <div className="text-sm md:text-base font-bold">{addressLine}</div>
-            <div className="text-sm md:text-base font-bold">{contactLine}</div>
-            <div className="text-[11px] md:text-xs text-muted-foreground mt-1">
-              Date: {now.toLocaleDateString()} {now.toLocaleTimeString()}
+          {/* Content sits above the watermark */}
+          <div className="relative z-10">
+            {/* Header with emphasized company details */}
+            <div className="text-center space-y-1">
+              <div className="text-base md:text-lg font-bold">{companyName}</div>
+              <div className="text-sm md:text-base font-bold">{addressLine}</div>
+              <div className="text-sm md:text-base font-bold">{contactLine}</div>
+              <div className="text-[11px] md:text-xs text-muted-foreground mt-1">
+                Date: {now.toLocaleDateString()} {now.toLocaleTimeString()}
+              </div>
             </div>
-          </div>
 
-          {/* Items section */}
-          <div className="mt-3">
-            <div className="text-[12px] font-semibold">Items:</div>
-            <div className="mt-1 font-mono text-[12px] whitespace-pre-wrap leading-5">
-              {items.map((line) => (
-                <div key={line}>{line}</div>
+            {/* Items section */}
+            <div className="mt-3">
+              <div className="text-[12px] font-semibold">Items:</div>
+              <div className="mt-1 font-mono text-[12px] whitespace-pre-wrap leading-5">
+                {items.map((line) => (
+                  <div key={line}>{line}</div>
+                ))}
+              </div>
+            </div>
+
+            {/* Totals aligned to the right */}
+            <div className="mt-2 border-t pt-2">
+              <div className="text-right space-y-1">
+                <div className="text-[12px] font-semibold">Subtotal: {subtotal}</div>
+                <div className="text-[12px] font-semibold">Tax: {tax}</div>
+                <div className="text-sm md:text-base font-bold">Total: {total}</div>
+              </div>
+            </div>
+
+            {/* Footer messages */}
+            <div className="mt-3 text-center space-y-1">
+              {footer.map((m, i) => (
+                <div key={i} className="text-[12px]">{m}</div>
               ))}
             </div>
-          </div>
-
-          {/* Totals aligned to the right */}
-          <div className="mt-2 border-t pt-2">
-            <div className="text-right space-y-1">
-              <div className="text-[12px] font-semibold">Subtotal: {subtotal}</div>
-              <div className="text-[12px] font-semibold">Tax: {tax}</div>
-              <div className="text-sm md:text-base font-bold">Total: {total}</div>
-            </div>
-          </div>
-
-          {/* Footer messages */}
-          <div className="mt-3 text-center space-y-1">
-            {footer.map((m, i) => (
-              <div key={i} className="text-[12px]">{m}</div>
-            ))}
           </div>
         </div>
       </div>
