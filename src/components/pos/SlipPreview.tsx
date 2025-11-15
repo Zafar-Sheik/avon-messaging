@@ -38,22 +38,22 @@ const SlipPreview: React.FC<Props> = ({ company, messages, className }) => {
       <div className="rounded-md border bg-white p-3">
         <div className="text-xs font-medium mb-1">Full Slip View (80mm width)</div>
         <div
-          className="relative rounded-md border bg-muted/30 p-3 mx-auto"
+          className="relative rounded-md border bg-white p-3 mx-auto"
           style={{ width: "80mm", minHeight: "80mm" }}
         >
-          {/* Centered faded watermark */}
-          {company?.logoDataUrl ? (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <img
-                src={company.logoDataUrl}
-                alt="Company Watermark"
-                className="opacity-10 h-24 md:h-28 object-contain"
-              />
-            </div>
-          ) : null}
-
-          {/* Content sits above the watermark */}
+          {/* Content sits above */}
           <div className="relative z-10">
+            {/* Logo at the top */}
+            {company?.logoDataUrl ? (
+              <div className="flex justify-center">
+                <img
+                  src={company.logoDataUrl}
+                  alt="Company Logo"
+                  className="h-16 md:h-20 object-contain mb-2"
+                />
+              </div>
+            ) : null}
+
             {/* Header with emphasized company details */}
             <div className="text-center space-y-1">
               <div className="text-base md:text-lg font-bold">{companyName}</div>
