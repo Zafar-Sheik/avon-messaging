@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { Package, Boxes, Wrench, Truck, BarChart3 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import StockItemForm from "@/components/pos/StockItemForm";
+import AdjustmentManager from "@/components/pos/AdjustmentManager";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import PoweredBy from "@/components/PoweredBy";
 
@@ -68,9 +69,10 @@ const StockControlPage: React.FC = () => {
               size="sm"
               className="justify-start"
               aria-label="Adjustments"
-              onClick={() =>
-                toast({ title: "Selected", description: "Adjustments" })
-              }
+              onClick={() => {
+                setSelectedSection("adjustments");
+                toast({ title: "Selected", description: "Adjustments" });
+              }}
             >
               <Wrench className="mr-1 size-4" />
               <span className="hidden md:inline">Adjustments</span>
@@ -134,9 +136,9 @@ const StockControlPage: React.FC = () => {
           </div>
           </TooltipProvider>
 
-          {selectedSection === "stock-items" ? (
-            <StockItemForm />
-          ) : (
+          {selectedSection === "stock-items" && <StockItemForm />}
+          {selectedSection === "adjustments" && <AdjustmentManager />}
+          {!selectedSection && (
             <p className="text-muted-foreground">This section is coming soon.</p>
           )}
         </CardContent>
