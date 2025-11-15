@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Users } from "lucide-react";
+import PoweredBy from "@/components/PoweredBy";
 
 const CustomerPage: React.FC = () => {
   return (
@@ -31,6 +32,7 @@ const CustomerPage: React.FC = () => {
           <p className="text-muted-foreground">This section is coming soon.</p>
         </CardContent>
       </Card>
+      <PoweredBy className="pt-2" />
     </div>
   );
 };

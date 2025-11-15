@@ -8,6 +8,7 @@ import { Package, Boxes, Wrench, Truck, BarChart3 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import StockItemForm from "@/components/pos/StockItemForm";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import PoweredBy from "@/components/PoweredBy";
 
 const StockControlPage: React.FC = () => {
   const { toast } = useToast();
@@ -140,6 +141,7 @@ const StockControlPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      <PoweredBy className="pt-2" />
     </div>
   );
 };

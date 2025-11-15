@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { POS_EXIT_PASSWORD } from "@/utils/posConfig";
+import PoweredBy from "@/components/PoweredBy";
 
 type MenuItem = {
   label: string;
@@ -184,15 +185,7 @@ const StorePosPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Powered by footer */}
-      <div className="flex items-center justify-center gap-2 pt-2">
-        <span className="text-xs text-muted-foreground">Powered by Contact Online Solutions</span>
-        <img
-          src="/images/contact-online-solutions.png"
-          alt="Contact Online Solutions logo"
-          className="h-5 w-auto"
-        />
-      </div>
+      <PoweredBy className="pt-2" />
     </div>
   );
 };

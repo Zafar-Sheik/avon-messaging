@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Cog } from "lucide-react";
+import PoweredBy from "@/components/PoweredBy";
 
 const BackofficePage: React.FC = () => {
   return (
@@ -31,6 +32,7 @@ const BackofficePage: React.FC = () => {
           <p className="text-muted-foreground">This section is coming soon.</p>
         </CardContent>
       </Card>
+      <PoweredBy className="pt-2" />
     </div>
   );
 };
