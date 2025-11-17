@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,18 +25,17 @@ import { showError, showSuccess } from "@/utils/toast";
 import {
   getGroupById,
   addContactsToGroup,
-  recordGroupMessageSent, // Renamed from sendGroupMessage
+  recordGroupMessageSent,
   updateContactInGroup,
   deleteContactFromGroup,
   formatWhatsAppLink,
 } from "@/utils/groupStore";
 import type { Group } from "@/types/group";
 import { Send, Paperclip, Trash2, ArrowLeft, ExternalLink, Phone, Calendar, Pencil, History } from "lucide-react";
-import SendProgress from "@/components/SendProgress";
 import EditGroupDialog from "@/components/EditGroupDialog";
 import DeleteGroupAlert from "@/components/DeleteGroupAlert";
 import { getReplyNowLink } from "@/utils/replyLink";
-import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast"; // New import
+import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast";
 
 // Helper to build message with a hardcoded reply link
 const buildMessageWithReply = (original: string): string => {
@@ -48,6 +47,7 @@ const buildMessageWithReply = (original: string): string => {
 
 const GroupDetailPage: React.FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [group, setGroup] = React.useState<Group | undefined>(
     id ? getGroupById(id) : undefined
   );
@@ -63,7 +63,7 @@ const GroupDetailPage: React.FC = () => {
   
   const [isEditGroupOpen, setIsEditGroupOpen] = React.useState(false);
   const [isDeleteGroupAlertOpen, setIsDeleteGroupAlertOpen] = React.useState(false);
-  const [isSendingBroadcast, setIsSendingBroadcast] = React.useState(false); // State for broadcast loading
+  const [isSendingBroadcast, setIsSendingBroadcast] = React.useState(false);
 
   React.useEffect(() => {
     if (!id) return;
@@ -221,8 +221,6 @@ const GroupDetailPage: React.FC = () => {
             </TabsTrigger>
             <TabsTrigger value="import">Import</TabsTrigger>
             <TabsTrigger value="send">Send</TabsTrigger>
-            {/* Removed WAHA-specific tab */}
-            {/* <TabsTrigger value="send-waha">Send (WAHA)</TabsTrigger> */}
             <TabsTrigger value="history">
               History ({group.sentHistory.length})
             </TabsTrigger>
@@ -569,8 +567,7 @@ const GroupDetailPage: React.FC = () => {
               open={isDeleteGroupAlertOpen}
               onOpenChange={setIsDeleteGroupAlertOpen}
               onDeleted={() => {
-                onOpenChange(false); // Close the detail dialog
-                refresh(); // Refresh the groups list
+                navigate("/groups"); // Navigate back to groups list
               }}
             />
           </>
