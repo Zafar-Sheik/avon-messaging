@@ -31,7 +31,7 @@ import {
   formatWhatsAppLink,
 } from "@/utils/groupStore";
 import type { Group } from "@/types/group";
-import { Send, Paperclip, Trash2, ArrowLeft, ExternalLink, Phone, Calendar, Pencil } from "lucide-react";
+import { Send, Paperclip, Trash2, ArrowLeft, ExternalLink, Phone, Calendar, Pencil, History } from "lucide-react";
 import SendProgress from "@/components/SendProgress";
 import EditGroupDialog from "@/components/EditGroupDialog";
 import DeleteGroupAlert from "@/components/DeleteGroupAlert";
@@ -558,8 +558,7 @@ const GroupDetailPage: React.FC = () => {
                 </div>
               )}
             </TabsContent>
-          </div>
-        </Tabs>
+          </Tabs>
 
         {group && (
           <>
