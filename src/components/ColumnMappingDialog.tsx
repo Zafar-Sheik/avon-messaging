@@ -72,13 +72,15 @@ const ColumnMappingDialog: React.FC<Props> = ({
             </Label>
             <Select
               value={mapping.name}
-              onValueChange={(value) => setMapping((m) => ({ ...m, name: value }))}
+              onValueChange={(value) =>
+                setMapping((m) => ({ ...m, name: value === "_NONE_" ? "" : value }))
+              }
             >
               <SelectTrigger id="map-name" className="col-span-2">
                 <SelectValue placeholder="Select a column" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">(None)</SelectItem>
+                <SelectItem value="_NONE_">(None)</SelectItem>
                 {headers.map((h) => (
                   <SelectItem key={`name-${h}`} value={h}>
                     {h}

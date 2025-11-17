@@ -338,12 +338,15 @@ const ExcelDashboard: React.FC = () => {
               >
                 Group By Column
               </Label>
-              <Select value={groupCol} onValueChange={(v) => setGroupCol(v)}>
+              <Select
+                value={groupCol}
+                onValueChange={(v) => setGroupCol(v === "_NONE_" ? "" : v)}
+              >
                 <SelectTrigger id="group-col" className="w-full">
                   <SelectValue placeholder="Optional category column" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{`(No grouping)`}</SelectItem>
+                  <SelectItem value="_NONE_">{`(No grouping)`}</SelectItem>
                   {headers.map((h) => (
                     <SelectItem key={`grp-${h}`} value={h}>
                       {h}
