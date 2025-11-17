@@ -28,21 +28,17 @@ import {
   sendGroupMessage,
   updateContactInGroup,
   deleteContactFromGroup,
+  formatWhatsAppLink,
 } from "@/utils/groupStore";
 import type { Group } from "@/types/group";
-import { Send, Paperclip, Trash2, ArrowLeft } from "lucide-react";
-import {
-  isWahaConfigured,
-  sendTextMessage,
-  sendFileMessage,
-  sendTextToChat,
-  sendFileToChat,
-} from "@/utils/wahaClient";
+import { Send, Paperclip, Trash2, ArrowLeft, ExternalLink, Phone, Calendar, Pencil } from "lucide-react";
 import SendProgress from "@/components/SendProgress";
+import EditGroupDialog from "@/components/EditGroupDialog";
+import DeleteGroupAlert from "@/components/DeleteGroupAlert";
 import { getReplyNowLink } from "@/utils/replyLink";
 
 // Helper to build message with a hardcoded reply link
-const buildMessageWithReply = async (original: string): Promise<string> => {
+const buildMessageWithReply = (original: string): string => {
   const trimmed = (original || "").trim();
   const link = getReplyNowLink();
   if (!link) return trimmed;
@@ -56,7 +52,6 @@ const GroupDetailPage: React.FC = () => {
   );
   const [message, setMessage] = React.useState("");
   const [attachments, setAttachments] = React.useState<File[]>([]);
-  const [chatIds, setChatIds] = React.useState<string>("");
   const [selectedContactId, setSelectedContactId] = React.useState<
     string | null
   >(group?.contacts[0]?.id ?? null);
@@ -67,6 +62,9 @@ const GroupDetailPage: React.FC = () => {
   const [isSending, setIsSending] = React.useState(false);
   const [sendCurrent, setSendCurrent] = React.useState(0);
   const [sendTotal, setSendTotal] = React.useState(0);
+
+  const [isEditGroupOpen, setIsEditGroupOpen] = React.useState(false);
+  const [isDeleteGroupAlertOpen, setIsDeleteGroupAlertOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!id) return;
@@ -137,75 +135,6 @@ const GroupDetailPage: React.FC = () => {
     setGroup(g);
   };
 
-  const readFileAsBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.includes(",") ? result.split(",")[1] : result;
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-  const handleSendViaWaha = async () => {
-    if (!group) return;
-    if (!isWahaConfigured()) {
-      showError(
-        "Please configure WAHA in Settings to send messages and media."
-      );
-      return;
-    }
-    if (!message.trim() && attachments.length === 0) {
-      showError("Add a message or attach files to send.");
-      return;
-    }
-
-    const finalMessage = await buildMessageWithReply(message);
-
-    const totalOps =
-      group.contacts.length * (attachments.length > 0 ? attachments.length : 1);
-    setIsSending(true);
-    setSendCurrent(0);
-    setSendTotal(totalOps);
-    try {
-      for (const c of group.contacts) {
-        if (attachments.length > 0) {
-          for (const file of attachments) {
-            const base64 = await readFileAsBase64(file);
-            await sendFileMessage(
-              c.phone,
-              file.name,
-              file.type || "application/octet-stream",
-              base64,
-              finalMessage.trim() || undefined
-            );
-            setSendCurrent((prev) => prev + 1);
-          }
-        } else {
-          await sendTextMessage(c.phone, finalMessage);
-          setSendCurrent((prev) => prev + 1);
-        }
-      }
-    } finally {
-      setIsSending(false);
-    }
-
-    const { updated } = sendGroupMessage(group.id, finalMessage);
-    if (updated) {
-      setGroup(updated);
-      setMessage("");
-      setAttachments([]);
-      refresh();
-    }
-    showSuccess(
-      `Sent WAHA message${attachments.length ? " with attachments" : ""} to ${
-        group.contacts.length
-      } contact(s).`
-    );
-  };
-
   const handleImport = (contacts: Array<{ name: string; phone: string }>) => {
     if (!group) return;
     const updated = addContactsToGroup(group.id, contacts);
@@ -220,65 +149,33 @@ const GroupDetailPage: React.FC = () => {
     }
   };
 
-  const handleSendToWahaChats = async () => {
-    if (!isWahaConfigured()) {
-      showError(
-        "Please configure WAHA in Settings to send messages and media."
-      );
+  const openWhatsAppWindows = (links: string[]) => {
+    let opened = 0;
+    for (const url of links) {
+      const win = window.open(url, "_blank");
+      if (win) opened++;
+    }
+    return opened;
+  };
+
+  const handleSend = () => {
+    if (!group) return;
+    if (!message.trim()) {
+      showError("Please enter a message.");
       return;
     }
-    const ids = chatIds
-      .split(/[\s,]+/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (ids.length === 0) {
-      showError(
-        "Enter at least one WhatsApp group chat ID (e.g., 12345-67890@g.us)."
-      );
-      return;
-    }
-    if (!message.trim() && attachments.length === 0) {
-      showError("Add a message or attach files to send.");
-      return;
-    }
-
-    const finalMessage = await buildMessageWithReply(message);
-
-    const totalOps =
-      ids.length * (attachments.length > 0 ? attachments.length : 1);
-    setIsSending(true);
-    setSendCurrent(0);
-    setSendTotal(totalOps);
-    try {
-      for (const gid of ids) {
-        if (attachments.length > 0) {
-          for (const file of attachments) {
-            const base64 = await readFileAsBase64(file);
-            await sendFileToChat(
-              gid,
-              file.name,
-              file.type || "application/octet-stream",
-              base64,
-              finalMessage.trim() || undefined
-            );
-            setSendCurrent((prev) => prev + 1);
-          }
-        } else {
-          await sendTextToChat(gid, finalMessage);
-          setSendCurrent((prev) => prev + 1);
-        }
-      }
-    } finally {
-      setIsSending(false);
-    }
-
+    const finalMessage = buildMessageWithReply(message);
+    const { links, updated } = sendGroupMessage(group.id, finalMessage);
+    const opened = openWhatsAppWindows(links);
     showSuccess(
-      `Sent WAHA message${attachments.length ? " with attachments" : ""} to ${
-        ids.length
-      } WhatsApp group chat(s).`
+      `Prepared ${links.length} WhatsApp chats. Opened ${opened} tab(s).`
     );
-    setMessage("");
-    setAttachments([]);
+    if (updated) {
+      setGroup(updated);
+      setMessage("");
+      setAttachments([]); // Clear attachments as well
+      refresh();
+    }
   };
 
   if (!group) {
@@ -320,12 +217,14 @@ const GroupDetailPage: React.FC = () => {
         </p>
 
         <Tabs defaultValue="contacts" className="w-full">
-          <TabsList className="grid grid-cols-4">
+          <TabsList className="grid grid-cols-3">
             <TabsTrigger value="contacts">
               Contacts ({group.contacts.length})
             </TabsTrigger>
             <TabsTrigger value="import">Import</TabsTrigger>
             <TabsTrigger value="send">Send</TabsTrigger>
+            {/* Removed WAHA-specific tab */}
+            {/* <TabsTrigger value="send-waha">Send (WAHA)</TabsTrigger> */}
             <TabsTrigger value="history">
               History ({group.sentHistory.length})
             </TabsTrigger>
@@ -496,7 +395,7 @@ const GroupDetailPage: React.FC = () => {
               <SendProgress
                 current={sendCurrent}
                 total={sendTotal}
-                title="Sending via WAHA"
+                title="Sending via WhatsApp"
               />
             )}
             <Textarea
@@ -563,104 +462,129 @@ const GroupDetailPage: React.FC = () => {
               )}
             </div>
 
-            <div className="rounded-md border p-3 space-y-2">
-              <div className="text-sm font-medium">
-                WhatsApp Group Chat IDs (via WAHA)
-              </div>
-              <Input
-                value={chatIds}
-                onChange={(e) => setChatIds(e.target.value)}
-                placeholder="e.g., 12345-67890@g.us, 22222-33333@g.us"
-              />
-              <p className="text-xs text-muted-foreground">
-                Paste WhatsApp group chat IDs ending with{" "}
-                <span className="font-mono">@g.us</span>, separated by commas or
-                spaces.
-              </p>
-            </div>
-
             <div className="flex flex-wrap items-center gap-2">
-              {/* REMOVED: Send to Group and Preview Links (link-based flows) */}
               <Button
-                variant="default"
-                disabled={
-                  isSending ||
-                  !isWahaConfigured() ||
-                  group.contacts.length === 0 ||
-                  (!message.trim() && attachments.length === 0)
-                }
-                onClick={handleSendViaWaha}
-                title={
-                  isWahaConfigured()
-                    ? "Send via WAHA"
-                    : "Configure WAHA in Settings first"
-                }>
+                onClick={handleSend}
+                disabled={!message.trim() || group.contacts.length === 0}
+                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
                 <Send className="size-4" />
-                <span>Send via WAHA</span>
+                Send to {group.contacts.length} Contacts
               </Button>
+
               <Button
-                variant="default"
-                disabled={
-                  isSending ||
-                  !isWahaConfigured() ||
-                  (!message.trim() && attachments.length === 0) ||
-                  chatIds.trim() === ""
-                }
-                onClick={handleSendToWahaChats}
-                title={
-                  isWahaConfigured()
-                    ? "Send to WhatsApp group chats via WAHA"
-                    : "Configure WAHA in Settings first"
-                }>
-                <Send className="size-4" />
-                <span>Send to Chats via WAHA</span>
+                variant="outline"
+                disabled={group.contacts.length === 0 || !message.trim()}
+                onClick={() => {
+                  const preview = group.contacts.map((c) =>
+                    formatWhatsAppLink(c.phone, message)
+                  );
+                  const sample = preview.slice(0, 3);
+                  showSuccess(
+                    `Previewing ${preview.length} links. Opening 3 samples.`
+                  );
+                  for (const url of sample) window.open(url, "_blank");
+                }}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                <ExternalLink className="size-4" />
+                Preview Links
               </Button>
             </div>
 
             <p className="text-xs text-muted-foreground">
-              Use "Send via WAHA" to send text and attachments directly to
-              contacts, or "Send to Chats via WAHA" for WhatsApp group chat IDs
-              you provide above.
+              Use "Send to Contacts" to open WhatsApp chats in your browser. Preview links to test before sending to all
+              contacts.
             </p>
           </TabsContent>
 
           <TabsContent value="history" className="space-y-3 pt-3">
             {group.sentHistory.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No sent history yet.
-              </p>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Sent At</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Message</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {group.sentHistory.map((h) => (
-                      <TableRow key={h.id}>
-                        <TableCell>
-                          {new Date(h.sentAt).toLocaleString()}
-                        </TableCell>
-                        <TableCell>{h.name}</TableCell>
-                        <TableCell>{h.phone}</TableCell>
-                        <TableCell
-                          className="max-w-xs truncate"
-                          title={h.message}>
-                          {h.message}
-                        </TableCell>
+              <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                  <History className="size-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="font-medium text-gray-900 mb-1">
+                    No message history
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Send your first message to see history here
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-gray-200 overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="font-semibold text-gray-700">
+                          Sent Date
+                        </TableHead>
+                        <TableHead className="font-semibold text-gray-700">
+                          Contact
+                        </TableHead>
+                        <TableHead className="font-semibold text-gray-700">
+                          Phone
+                        </TableHead>
+                        <TableHead className="font-semibold text-gray-700">
+                          Message
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </TabsContent>
+                    </TableHeader>
+                    <TableBody>
+                      {group.sentHistory.map((h) => (
+                        <TableRow
+                          key={h.id}
+                          className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="text-sm text-gray-600">
+                            {new Date(h.sentAt).toLocaleDateString()}
+                            <br />
+                            <span className="text-xs text-gray-500">
+                              {new Date(h.sentAt).toLocaleTimeString()}
+                            </span>
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900">
+                            {h.name}
+                          </TableCell>
+                          <TableCell className="font-mono text-sm text-gray-600">
+                            {h.phone}
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            <div
+                              className="text-sm text-gray-900 line-clamp-2"
+                              title={h.message}>
+                              {h.message}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+          </div>
         </Tabs>
+
+        {group && (
+          <>
+            <EditGroupDialog
+              groupId={group.id}
+              initialName={group.name}
+              open={isEditGroupOpen}
+              onOpenChange={setIsEditGroupOpen}
+              onUpdated={(newName) => {
+                setGroup((prev) => prev ? { ...prev, name: newName } : undefined);
+                refresh();
+              }}
+            />
+            <DeleteGroupAlert
+              groupId={group.id}
+              groupName={group.name}
+              open={isDeleteGroupAlertOpen}
+              onOpenChange={setIsDeleteGroupAlertOpen}
+              onDeleted={() => {
+                onOpenChange(false); // Close the detail dialog
+                refresh(); // Refresh the groups list
+              }}
+            />
+          </>
+        )}
       </div>
     </div>
   );

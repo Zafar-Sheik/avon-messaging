@@ -48,7 +48,6 @@ const MessagesPage = () => {
             <div className="text-xs text-gray-500 mt-2">{description}</div>
           )}
         </div>
-      </div>
     </Card>
   );
 

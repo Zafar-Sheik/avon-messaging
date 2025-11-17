@@ -43,11 +43,6 @@ import {
   Pencil,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  isWahaConfigured,
-  sendTextMessage,
-  sendFileMessage,
-} from "@/utils/wahaClient";
 import EditGroupDialog from "@/components/EditGroupDialog";
 import DeleteGroupAlert from "@/components/DeleteGroupAlert";
 
@@ -77,62 +72,6 @@ const GroupDetailDialog: React.FC<Props> = ({
   React.useEffect(() => {
     setGroup(getGroupById(groupId));
   }, [groupId, open]);
-
-  const readFileAsBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.includes(",") ? result.split(",")[1] : result;
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-  const handleSendViaWaha = async () => {
-    if (!group) return;
-    if (!isWahaConfigured()) {
-      showError(
-        "Please configure WAHA in Settings to send messages and media."
-      );
-      return;
-    }
-    if (!message.trim() && attachments.length === 0) {
-      showError("Add a message or attach files to send.");
-      return;
-    }
-
-    for (const c of group.contacts) {
-      if (attachments.length > 0) {
-        for (const file of attachments) {
-          const base64 = await readFileAsBase64(file);
-          await sendFileMessage(
-            c.phone,
-            file.name,
-            file.type || "application/octet-stream",
-            base64,
-            message.trim() || undefined
-          );
-        }
-      } else {
-        await sendTextMessage(c.phone, message);
-      }
-    }
-
-    const { updated } = sendGroupMessage(groupId, message);
-    if (updated) {
-      setGroup(updated);
-      setMessage("");
-      setAttachments([]);
-      onRefresh();
-    }
-    showSuccess(
-      `Sent WAHA message${attachments.length ? " with attachments" : ""} to ${
-        group.contacts.length
-      } contact(s).`
-    );
-  };
 
   const handleImport = (contacts: Array<{ name: string; phone: string }>) => {
     const updated = addContactsToGroup(groupId, contacts);
@@ -170,6 +109,7 @@ const GroupDetailDialog: React.FC<Props> = ({
     if (updated) {
       setGroup(updated);
       setMessage("");
+      setAttachments([]); // Clear attachments as well
       onRefresh();
     }
   };
@@ -226,7 +166,7 @@ const GroupDetailDialog: React.FC<Props> = ({
         <Tabs
           defaultValue="contacts"
           className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid grid-cols-4 bg-gray-100 p-1 rounded-lg">
+          <TabsList className="grid grid-cols-3 bg-gray-100 p-1 rounded-lg">
             <TabsTrigger
               value="contacts"
               className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
@@ -413,22 +353,6 @@ const GroupDetailDialog: React.FC<Props> = ({
                   )}
                 </div>
 
-                <div className="rounded-lg border border-gray-200 p-4 space-y-2">
-                  <div className="text-sm font-medium">
-                    WhatsApp Group Chat IDs (via WAHA)
-                  </div>
-                  <Input
-                    value={chatIds}
-                    onChange={(e) => setChatIds(e.target.value)}
-                    placeholder="e.g., 12345-67890@g.us, 22222-33333@g.us"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Paste WhatsApp group chat IDs ending with{" "}
-                    <span className="font-mono">@g.us</span>, separated by commas or
-                    spaces.
-                  </p>
-                </div>
-
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <Button
                     onClick={handleSend}
@@ -455,31 +379,12 @@ const GroupDetailDialog: React.FC<Props> = ({
                     <ExternalLink className="size-4" />
                     Preview Links
                   </Button>
-
-                  <Button
-                    variant="default"
-                    disabled={
-                      !isWahaConfigured() ||
-                      group.contacts.length === 0 ||
-                      (!message.trim() && attachments.length === 0)
-                    }
-                    onClick={handleSendViaWaha}
-                    className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-                    title={
-                      isWahaConfigured()
-                        ? "Send via WAHA"
-                        : "Configure WAHA in Settings first"
-                    }>
-                    <Send className="size-4" />
-                    Send via WAHA
-                  </Button>
                 </div>
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-700">
-                    <strong>Note:</strong> "Send to Group" opens WhatsApp chats
-                    in browser. "Send via WAHA" sends directly through WhatsApp
-                    if configured. Preview links to test before sending to all
+                    <strong>Note:</strong> "Send to Contacts" opens WhatsApp chats
+                    in browser. Preview links to test before sending to all
                     contacts.
                   </p>
                 </div>
