@@ -9,46 +9,39 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Replace invoke with a single robust direct fetch
 async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T> {
-  const resp = await fetch(`${SUPABASE_FUNCTIONS_BASE}/${name}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      apikey: SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => "");
-    throw new Error(text || `Edge function ${name} failed with status ${resp.status}`);
-  }
-
-  const ct = resp.headers.get("content-type") || "";
-  if (ct.includes("application/json")) {
-    return (await resp.json()) as T;
-  }
-
-  const text = await resp.text();
   try {
-    return JSON.parse(text) as T;
-  } catch {
-    return text as unknown as T;
+    const resp = await fetch(`${SUPABASE_FUNCTIONS_BASE}/${name}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      console.error(`Supabase Edge Function ${name} failed: Status ${resp.status}, Response: ${text}`);
+      throw new Error(text || `Edge function ${name} failed with status ${resp.status}`);
+    }
+
+    const ct = resp.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      return (await resp.json()) as T;
+    }
+
+    const text = await resp.text();
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return text as unknown as T;
+    }
+  } catch (error) {
+    console.error(`Error calling Supabase Edge Function ${name}:`, error);
+    throw error; // Re-throw the error after logging
   }
 }
-
-const invokeWaha = async (action: "messages" | "status" | "qrcode" | "start" | "stop" | "logout", payload?: unknown): Promise<any> => {
-  const cfg = getWahaConfig();
-  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
-
-  return await callSupabaseFunction(FUNCTION_NAME, {
-    baseUrl: cfg.baseUrl,
-    apiKey: cfg.apiKey,
-    sessionName: cfg.sessionName,
-    action,
-    payload,
-  });
-};
 
 export type WahaSendTextPayload = {
   to: string;
@@ -169,4 +162,17 @@ export const sendExternalBroadcast = async (
   );
 
   return data;
+};
+
+const invokeWaha = async (action: "messages" | "status" | "qrcode" | "start" | "stop" | "logout", payload?: unknown): Promise<any> => {
+  const cfg = getWahaConfig();
+  if (!cfg) throw new Error("WAHA is not configured. Set it in Settings.");
+
+  return await callSupabaseFunction(FUNCTION_NAME, {
+    baseUrl: cfg.baseUrl,
+    apiKey: cfg.apiKey,
+    sessionName: cfg.sessionName,
+    action,
+    payload,
+  });
 };
