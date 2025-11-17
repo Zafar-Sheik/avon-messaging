@@ -32,8 +32,7 @@ import PoweredBy from "@/components/PoweredBy";
 import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
 import { initialStockItems, type StockItem } from "@/components/pos/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Printer, Phone, Mail, Save } from "lucide-react";
-import { isWahaConfigured, sendTextMessage } from "@/utils/wahaClient";
+import { Printer, Save } from "lucide-react";
 import { formatWhatsAppLink } from "@/utils/groupStore";
 import { recordSale } from "@/utils/saleStore";
 import { getCompanyProfile } from "@/utils/companyStore";
@@ -49,7 +48,7 @@ type CartLine = {
 };
 
 // NEW: post-sale actions
-type PostSaleAction = "print" | "whatsapp" | "email" | "download";
+type PostSaleAction = "print" | "download"; // Removed "whatsapp" and "email"
 
 const SalesPage: React.FC = () => {
   const { toast } = useToast();
@@ -75,8 +74,6 @@ const SalesPage: React.FC = () => {
   // NEW: dialog and action state
   const [isFinalizeOpen, setIsFinalizeOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] = React.useState<PostSaleAction>("print");
-  const [whatsAppPhone, setWhatsAppPhone] = React.useState("");
-  const [emailAddress, setEmailAddress] = React.useState("");
   const [pendingSaleNo, setPendingSaleNo] = React.useState<string | null>(null);
 
   // NEW: company + settings
@@ -415,38 +412,7 @@ const SalesPage: React.FC = () => {
       return;
     }
 
-    if (selectedAction === "whatsapp") {
-      const phone = (whatsAppPhone || "").trim();
-      if (!phone) {
-        toast({ title: "Phone required", description: "Enter a WhatsApp phone number." });
-        return;
-      }
-      if (isWahaConfigured()) {
-        await sendTextMessage(phone, receiptText);
-        toast({ title: "WhatsApp sent", description: `Receipt sent to ${phone}.` });
-      } else {
-        const url = formatWhatsAppLink(phone, receiptText);
-        window.open(url, "_blank", "noopener,noreferrer");
-        toast({ title: "WhatsApp link opened", description: `Use WhatsApp to send the message.` });
-      }
-      finalizeSale(saleNo);
-      return;
-    }
-
-    if (selectedAction === "email") {
-      const email = (emailAddress || "").trim();
-      if (!email) {
-        toast({ title: "Email required", description: "Enter a recipient email address." });
-        return;
-      }
-      const subject = encodeURIComponent(`Sale Receipt ${saleNo}`);
-      const body = encodeURIComponent(receiptText);
-      const mailto = `mailto:${email}?subject=${subject}&body=${body}`;
-      window.location.href = mailto;
-      toast({ title: "Email composed", description: `Opening your email client for ${email}.` });
-      finalizeSale(saleNo);
-      return;
-    }
+    // Removed WhatsApp and Email actions
   };
 
   return (
@@ -782,12 +748,6 @@ const SalesPage: React.FC = () => {
                         <SelectItem value="print">
                           <div className="flex items-center gap-2"><Printer className="h-4 w-4" /> Print Slip</div>
                         </SelectItem>
-                        <SelectItem value="whatsapp">
-                          <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> Send WhatsApp</div>
-                        </SelectItem>
-                        <SelectItem value="email">
-                          <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> Send Email</div>
-                        </SelectItem>
                         <SelectItem value="download">
                           <div className="flex items-center gap-2"><Save className="h-4 w-4" /> Store on PC</div>
                         </SelectItem>
@@ -795,34 +755,6 @@ const SalesPage: React.FC = () => {
                     </Select>
                   </div>
                 </div>
-
-                {selectedAction === "whatsapp" && (
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">WhatsApp Phone</Label>
-                    <Input
-                      placeholder="e.g. 27821234567"
-                      value={whatsAppPhone}
-                      onChange={(e) => setWhatsAppPhone(e.target.value)}
-                      className="h-9 text-sm"
-                    />
-                    <div className="text-[11px] text-muted-foreground">
-                      Use international format numbers (digits only).
-                    </div>
-                  </div>
-                )}
-
-                {selectedAction === "email" && (
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">Email</Label>
-                    <Input
-                      type="email"
-                      placeholder="customer@example.com"
-                      value={emailAddress}
-                      onChange={(e) => setEmailAddress(e.target.value)}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                )}
 
                 <div className="rounded-md border p-3 bg-muted/30">
                   <div className="text-xs font-medium mb-1">Receipt Preview</div>
