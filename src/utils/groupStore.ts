@@ -28,11 +28,19 @@ export const getGroupById = (groupId: string): Group | undefined => {
   return loadGroups().find((g) => g.id === groupId);
 };
 
-export const createGroup = (name: string): Group => {
+export const createGroup = (name: string): Group | undefined => {
+  const trimmedName = name.trim();
+  if (!trimmedName) return undefined;
+
   const groups = loadGroups();
+  if (groups.some(g => g.name.toLowerCase() === trimmedName.toLowerCase())) {
+    // Group with this name already exists
+    return undefined;
+  }
+
   const newGroup: Group = {
     id: uuid(),
-    name: name.trim(),
+    name: trimmedName,
     contacts: [],
     sentHistory: [],
   };
@@ -43,8 +51,22 @@ export const createGroup = (name: string): Group => {
 
 const normalizePhone = (phone: string): string => {
   // WhatsApp expects international format without plus and only digits.
-  // We strip non-digits. If a leading '+' existed, it's removed.
-  return (phone || "").replace(/\D+/g, "");
+  // We strip non-digits.
+  let digits = (phone || "").replace(/\D+/g, "");
+
+  // If it starts with '0' and is a typical SA mobile length (9-10 digits after stripping '0'),
+  // assume it's a local SA number and prepend '27'.
+  // Example: "0821234567" -> "821234567" -> "27821234567"
+  // Example: "821234567" -> "27821234567"
+  // If it already starts with '27', leave it.
+  if (digits.startsWith("0") && digits.length >= 9 && digits.length <= 10) {
+    digits = digits.substring(1); // Remove leading '0'
+  }
+  if (digits.length >= 9 && digits.length <= 10 && !digits.startsWith("27")) {
+    digits = `27${digits}`;
+  }
+  
+  return digits;
 };
 
 export const addContactsToGroup = (
@@ -172,6 +194,11 @@ export const updateGroupName = (groupId: string, name: string): Group | undefine
   if (!nextName) return undefined;
 
   const groups = loadGroups();
+  // Check for duplicate names, excluding the current group
+  if (groups.some(g => g.id !== groupId && g.name.toLowerCase() === nextName.toLowerCase())) {
+    return undefined; // Duplicate name found
+  }
+
   const group = groups.find((g) => g.id === groupId);
   if (!group) return undefined;
 

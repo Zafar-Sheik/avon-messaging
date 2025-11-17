@@ -30,6 +30,10 @@ const GroupManager: React.FC = () => {
       return;
     }
     const g = createGroup(name);
+    if (!g) {
+      showError("A group with this name already exists.");
+      return;
+    }
     setNewName("");
     refresh();
     showSuccess(`Created group "${g.name}".`);

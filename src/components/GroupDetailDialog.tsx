@@ -40,6 +40,7 @@ import {
   Download,
   Phone,
   Calendar,
+  Pencil,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -47,6 +48,8 @@ import {
   sendTextMessage,
   sendFileMessage,
 } from "@/utils/wahaClient";
+import EditGroupDialog from "@/components/EditGroupDialog";
+import DeleteGroupAlert from "@/components/DeleteGroupAlert";
 
 type Props = {
   groupId: string;
@@ -67,6 +70,9 @@ const GroupDetailDialog: React.FC<Props> = ({
   const [message, setMessage] = React.useState("");
   const [attachments, setAttachments] = React.useState<File[]>([]);
   const tabsRef = React.useRef<HTMLButtonElement>(null);
+
+  const [isEditGroupOpen, setIsEditGroupOpen] = React.useState(false);
+  const [isDeleteGroupAlertOpen, setIsDeleteGroupAlertOpen] = React.useState(false);
 
   React.useEffect(() => {
     setGroup(getGroupById(groupId));
@@ -203,6 +209,16 @@ const GroupDetailDialog: React.FC<Props> = ({
                   {new Date(group.createdAt || group.id).toLocaleDateString()}
                 </span>
               </DialogDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsEditGroupOpen(true)}>
+                <Pencil className="size-4 mr-2" />
+                Edit
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => setIsDeleteGroupAlertOpen(true)}>
+                <Trash2 className="size-4 mr-2" />
+                Delete
+              </Button>
             </div>
           </div>
         </DialogHeader>
@@ -397,6 +413,22 @@ const GroupDetailDialog: React.FC<Props> = ({
                   )}
                 </div>
 
+                <div className="rounded-lg border border-gray-200 p-4 space-y-2">
+                  <div className="text-sm font-medium">
+                    WhatsApp Group Chat IDs (via WAHA)
+                  </div>
+                  <Input
+                    value={chatIds}
+                    onChange={(e) => setChatIds(e.target.value)}
+                    placeholder="e.g., 12345-67890@g.us, 22222-33333@g.us"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Paste WhatsApp group chat IDs ending with{" "}
+                    <span className="font-mono">@g.us</span>, separated by commas or
+                    spaces.
+                  </p>
+                </div>
+
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <Button
                     onClick={handleSend}
@@ -518,6 +550,31 @@ const GroupDetailDialog: React.FC<Props> = ({
             </TabsContent>
           </div>
         </Tabs>
+
+        {group && (
+          <>
+            <EditGroupDialog
+              groupId={group.id}
+              initialName={group.name}
+              open={isEditGroupOpen}
+              onOpenChange={setIsEditGroupOpen}
+              onUpdated={(newName) => {
+                setGroup((prev) => prev ? { ...prev, name: newName } : undefined);
+                onRefresh();
+              }}
+            />
+            <DeleteGroupAlert
+              groupId={group.id}
+              groupName={group.name}
+              open={isDeleteGroupAlertOpen}
+              onOpenChange={setIsDeleteGroupAlertOpen}
+              onDeleted={() => {
+                onOpenChange(false); // Close the detail dialog
+                onRefresh(); // Refresh the groups list
+              }}
+            />
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
