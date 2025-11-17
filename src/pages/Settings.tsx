@@ -24,12 +24,6 @@ import {
   clearCompanyProfile,
 } from "@/utils/companyStore";
 import {
-  getWahaConfig,
-  saveWahaConfig,
-  clearWahaConfig,
-} from "@/utils/wahaStore";
-import WahaConnect from "@/components/WahaConnect";
-import {
   Settings2,
   Trash2,
   Database,
@@ -38,10 +32,6 @@ import {
 } from "lucide-react";
 
 const SettingsPage = () => {
-  const [wahaApiKey, setWahaApiKey] = React.useState("");
-  const [wahaBaseUrl, setWahaBaseUrl] = React.useState("");
-  const [wahaSessionName, setWahaSessionName] = React.useState("");
-
   // NEW: Company profile state
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -52,15 +42,6 @@ const SettingsPage = () => {
   const [vatNumber, setVatNumber] = React.useState("");
   const [regNumber, setRegNumber] = React.useState("");
   const [logoDataUrl, setLogoDataUrl] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    const waha = getWahaConfig();
-    if (waha) {
-      setWahaApiKey(waha.apiKey || "");
-      setWahaBaseUrl(waha.baseUrl || "");
-      setWahaSessionName(waha.sessionName || "");
-    }
-  }, []);
 
   // NEW: Initialize company profile
   React.useEffect(() => {
@@ -117,25 +98,6 @@ const SettingsPage = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleSaveWaha = () => {
-    saveWahaConfig({
-      apiKey: wahaApiKey.trim(),
-      baseUrl: wahaBaseUrl.trim(),
-      sessionName: wahaSessionName.trim(),
-    });
-    // Notify other components (like WahaConnect) that the config changed
-    window.dispatchEvent(new CustomEvent("waha-config-changed"));
-    showSuccess("WAHA settings saved successfully");
-  };
-
-  const handleClearWaha = () => {
-    clearWahaConfig();
-    setWahaApiKey("");
-    setWahaBaseUrl("");
-    setWahaSessionName("");
-    showSuccess("WAHA settings cleared");
-  };
-
   const clearGroups = () => {
     clearAllGroups();
     showSuccess("All groups cleared successfully");
@@ -148,7 +110,6 @@ const SettingsPage = () => {
 
   const hasCompanyData = !!getCompanyProfile();
   const canSaveCompanyExtras = !!name.trim() && !!email.trim();
-  const hasWahaData = wahaApiKey || wahaBaseUrl || wahaSessionName;
 
   return (
     <div className="min-h-screen bg-white">
@@ -255,7 +216,7 @@ const SettingsPage = () => {
                       className="border-gray-300 focus:border-blue-500"
                     />
                   </div>
-                  <div className="space-y-3 md:col-span-2">
+                  <div className="md:col-span-2 space-y-3">
                     <Label htmlFor="license-number" className="text-sm font-medium text-gray-700">
                       License Number
                     </Label>
@@ -387,102 +348,6 @@ const SettingsPage = () => {
               </CardFooter>
             </Card>
 
-            {/* WAHA Settings Card */}
-            <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
-              <CardHeader className="p-0 pb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Shield className="size-5 text-green-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl font-semibold text-gray-900">
-                      WAHA Configuration
-                    </CardTitle>
-                    <CardDescription>
-                      Connect to your WhatsApp HTTP API instance
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0 space-y-6">
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="space-y-3">
-                    <Label
-                      htmlFor="waha-base-url"
-                      className="text-sm font-medium text-gray-700">
-                      Base URL *
-                    </Label>
-                    <Input
-                      id="waha-base-url"
-                      type="url"
-                      placeholder="https://your-waha-host:3000"
-                      value={wahaBaseUrl}
-                      onChange={(e) => setWahaBaseUrl(e.target.value)}
-                      className="border-gray-300 focus:border-blue-500"
-                    />
-                    <p className="text-xs text-gray-500">
-                      The full URL of your WAHA instance including port (usually
-                      3000)
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="waha-api-key"
-                        className="text-sm font-medium text-gray-700">
-                        API Key *
-                      </Label>
-                      <Input
-                        id="waha-api-key"
-                        type="password"
-                        placeholder="Enter your WAHA API key"
-                        value={wahaApiKey}
-                        onChange={(e) => setWahaApiKey(e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="waha-session-name"
-                        className="text-sm font-medium text-gray-700">
-                        Session Name
-                      </Label>
-                      <Input
-                        id="waha-session-name"
-                        placeholder="default"
-                        value={wahaSessionName}
-                        onChange={(e) => setWahaSessionName(e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
-                      />
-                      <p className="text-xs text-gray-500">
-                        Leave as "default" if unsure
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex gap-3 justify-end pt-6 px-0">
-                <Button
-                  variant="outline"
-                  onClick={handleClearWaha}
-                  disabled={!hasWahaData}
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50">
-                  <Trash2 className="size-4 mr-2" />
-                  Clear
-                </Button>
-                <Button
-                  onClick={handleSaveWaha}
-                  disabled={!wahaBaseUrl.trim() || !wahaApiKey.trim()}
-                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
-                  <Save className="size-4" />
-                  Save WAHA Settings
-                </Button>
-              </CardFooter>
-            </Card>
-
-            {/* WAHA Connection Status */}
-            <WahaConnect />
-
             {/* Data Management Card */}
             <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
               <CardHeader className="p-0 pb-6">
@@ -552,15 +417,6 @@ const SettingsPage = () => {
                     {hasCompanyData ? "Configured" : "Not Set"}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">WAHA Settings</span>
-                  <Badge
-                    variant={hasWahaData ? "default" : "secondary"}
-                    className={hasWahaData ? "bg-green-100 text-green-800" : ""}
-                  >
-                    {hasWahaData ? "Configured" : "Not Set"}
-                  </Badge>
-                </div>
                 <div className="pt-4 border-t border-gray-200">
                   <p className="text-xs text-gray-500">
                     Required fields are marked with *
@@ -573,14 +429,6 @@ const SettingsPage = () => {
             <Card className="p-6 bg-blue-50 border border-blue-200 rounded-xl">
               <h3 className="font-semibold text-blue-900 mb-3">Need Help?</h3>
               <div className="space-y-3 text-sm text-blue-700">
-                <p>
-                  <strong>WAHA Setup:</strong> Ensure your WAHA instance is
-                  running and accessible.
-                </p>
-                <p>
-                  <strong>API Key:</strong> Find this in your WAHA dashboard
-                  under API settings.
-                </p>
                 <p>
                   <strong>Data Safety:</strong> Your data is stored locally in
                   browser storage.
