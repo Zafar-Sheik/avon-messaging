@@ -155,16 +155,18 @@ export const formatWhatsAppLink = (phone: string, message: string): string => {
   return `https://wa.me/${normalized}?text=${text}`;
 };
 
-export const sendGroupMessage = (
+// Renamed and modified to only record history, not clear contacts
+export const recordGroupMessageSent = (
   groupId: string,
-  message: string
-): { links: string[]; updated?: Group } => {
+  message: string,
+  contactsSent: Array<{ name: string; phone: string }>
+): { updated?: Group } => {
   const groups = loadGroups();
   const group = groups.find((g) => g.id === groupId);
-  if (!group) return { links: [] };
+  if (!group) return {};
 
   const now = new Date().toISOString();
-  const historyItems: SentHistoryItem[] = group.contacts.map((c) => ({
+  const historyItems: SentHistoryItem[] = contactsSent.map((c) => ({
     id: uuid(),
     name: c.name,
     phone: normalizePhone(c.phone),
@@ -172,15 +174,10 @@ export const sendGroupMessage = (
     message: message || "",
   }));
 
-  const links = group.contacts.map((c) => formatWhatsAppLink(c.phone, message));
-
-  // Move contacts to sentHistory and clear current contacts
   group.sentHistory = [...historyItems, ...group.sentHistory];
-  group.contacts = [];
-
   saveGroups(groups);
 
-  return { links, updated: group };
+  return { updated: group };
 };
 
 export const deleteGroup = (groupId: string) => {

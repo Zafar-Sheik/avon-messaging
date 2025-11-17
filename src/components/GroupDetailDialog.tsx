@@ -25,7 +25,7 @@ import ContactImport from "@/components/ContactImport";
 import {
   getGroupById,
   addContactsToGroup,
-  sendGroupMessage,
+  recordGroupMessageSent, // Renamed from sendGroupMessage
   formatWhatsAppLink,
 } from "@/utils/groupStore";
 import type { Group } from "@/types/group";
@@ -45,6 +45,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import EditGroupDialog from "@/components/EditGroupDialog";
 import DeleteGroupAlert from "@/components/DeleteGroupAlert";
+import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast"; // New import
 
 type Props = {
   groupId: string;
@@ -68,6 +69,7 @@ const GroupDetailDialog: React.FC<Props> = ({
 
   const [isEditGroupOpen, setIsEditGroupOpen] = React.useState(false);
   const [isDeleteGroupAlertOpen, setIsDeleteGroupAlertOpen] = React.useState(false);
+  const [isSendingBroadcast, setIsSendingBroadcast] = React.useState(false); // New state for broadcast loading
 
   React.useEffect(() => {
     setGroup(getGroupById(groupId));
@@ -86,31 +88,30 @@ const GroupDetailDialog: React.FC<Props> = ({
     }
   };
 
-  const openWhatsAppWindows = (links: string[]) => {
-    let opened = 0;
-    for (const url of links) {
-      const win = window.open(url, "_blank");
-      if (win) opened++;
-    }
-    return opened;
-  };
-
-  const handleSend = () => {
+  const handleSendBroadcast = async () => {
     if (!group) return;
     if (!message.trim()) {
       showError("Please enter a message.");
       return;
     }
-    const { links, updated } = sendGroupMessage(groupId, message);
-    const opened = openWhatsAppWindows(links);
-    showSuccess(
-      `Prepared ${links.length} WhatsApp chats. Opened ${opened} tab(s).`
-    );
-    if (updated) {
-      setGroup(updated);
-      setMessage("");
-      setAttachments([]); // Clear attachments as well
-      onRefresh();
+    if (group.contacts.length === 0) {
+      showError("No contacts in this group to send a broadcast to.");
+      return;
+    }
+
+    setIsSendingBroadcast(true);
+    const result = await sendWhatsAppBroadcast(message, group.contacts);
+    setIsSendingBroadcast(false);
+
+    if (result.success) {
+      // Record the message in local history after successful (simulated) broadcast
+      const { updated } = recordGroupMessageSent(group.id, message, group.contacts);
+      if (updated) {
+        setGroup(updated);
+        setMessage("");
+        setAttachments([]); // Clear attachments as well
+        onRefresh();
+      }
     }
   };
 
@@ -355,16 +356,16 @@ const GroupDetailDialog: React.FC<Props> = ({
 
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <Button
-                    onClick={handleSend}
-                    disabled={!message.trim() || group.contacts.length === 0}
+                    onClick={handleSendBroadcast}
+                    disabled={isSendingBroadcast || !message.trim() || group.contacts.length === 0}
                     className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
                     <Send className="size-4" />
-                    Send to {group.contacts.length} Contacts
+                    {isSendingBroadcast ? "Sending..." : `Send to ${group.contacts.length} Contacts`}
                   </Button>
 
                   <Button
                     variant="outline"
-                    disabled={group.contacts.length === 0 || !message.trim()}
+                    disabled={group.contacts.length === 0 || !message.trim() || isSendingBroadcast}
                     onClick={() => {
                       const preview = group.contacts.map((c) =>
                         formatWhatsAppLink(c.phone, message)
@@ -383,9 +384,7 @@ const GroupDetailDialog: React.FC<Props> = ({
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-700">
-                    <strong>Note:</strong> "Send to Contacts" opens WhatsApp chats
-                    in browser. Preview links to test before sending to all
-                    contacts.
+                    <strong>Note:</strong> "Send to Contacts" now uses a server-side broadcast. Preview links to test individual messages.
                   </p>
                 </div>
               </div>
