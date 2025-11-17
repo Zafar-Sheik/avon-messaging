@@ -4,8 +4,8 @@ import { getWahaConfig } from "@/utils/wahaStore";
 
 const FUNCTION_NAME = "waha-proxy";
 
-const SUPABASE_FUNCTIONS_BASE = "https://diuezeewlgegnwgcdpmr.supabase.co/functions/v1";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpdWV6ZWV3bGdlZ253Z2NkcG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NzgyNzEsImV4cCI6MjA3ODQ1NDI3MX0.0JbeX6VILTrYWorwShVkQqajZbAMeUYv0jtlnqpF5Vs";
+const SUPABASE_FUNCTIONS_BASE = "https://nilnprhcyrsgdalguojh.supabase.co/functions/v1";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pbG5wcmhjeXJzZ2RhbGd1b2poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNzMxNTEsImV4cCI6MjA3ODg0OTE1MX0.gXmzY9fEigCG_21dWlN3xIEgpgS-V23-ktxb3naKHgk";
 
 // Replace invoke with a single robust direct fetch
 async function callSupabaseFunction<T = any>(name: string, body: any): Promise<T> {
