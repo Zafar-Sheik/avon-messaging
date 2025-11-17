@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import * as XLSX from "xlsx";
+import ColumnMappingDialog, { type Mapping } from "@/components/ColumnMappingDialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { FileUp, CheckCircle } from "lucide-react";
+import { showError } from "@/utils/toast";
 
 export type ImportedContact = {
   id: string;
@@ -13,66 +19,83 @@ type Props = {
   onImported: (contacts: ImportedContact[]) => void;
 };
 
+const parseValue = (v: any): string => {
+  if (v === null || v === undefined) return "";
+  return String(v).trim();
+};
+
+const normalizePhone = (phone: string): string => {
+  return (phone || "").replace(/[^0-9+]/g, "");
+};
+
 export default function ContactImport({ onImported }: Props) {
   const [loading, setLoading] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const parseValue = (v: any): string => {
-    if (!v) return "";
-    return String(v).trim();
-  };
+  // State for mapping dialog
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [rows, setRows] = useState<any[]>([]);
+  const [isMappingOpen, setIsMappingOpen] = useState(false);
+  const [initialMapping, setInitialMapping] = useState<Mapping>({ name: "", phone: "" });
 
-  const normalizeHeaders = (headers: string[]) => {
-    return headers.map((h) => h.toLowerCase().replace(/\s+/g, ""));
-  };
-
-  const fileToJson = async (file: File): Promise<any[]> => {
+  const fileToJson = async (file: File): Promise<{ rows: any[]; headers: string[] }> => {
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    return XLSX.utils.sheet_to_json(sheet, { raw: false });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const jsonRows = XLSX.utils.sheet_to_json(sheet, { raw: false, defval: "" });
+    const sheetHeaders = (XLSX.utils.sheet_to_json(sheet, { header: 1 })[0] as string[]) || [];
+    return { rows: jsonRows, headers: sheetHeaders.filter(Boolean) };
+  };
+
+  const guessMapping = (headers: string[]): Mapping => {
+    const lowerHeaders = headers.map(h => (h || "").toLowerCase().replace(/\s+/g, ""));
+    const headerMap = new Map(lowerHeaders.map((lh, i) => [lh, headers[i]]));
+
+    const nameKey = ["name", "fullname", "contactname"].find(k => headerMap.has(k));
+    const phoneKey = ["phone", "phonenumber", "mobile", "cell"].find(k => headerMap.has(k));
+
+    return {
+      name: nameKey ? headerMap.get(nameKey) || "" : "",
+      phone: phoneKey ? headerMap.get(phoneKey) || "" : "",
+    };
   };
 
   const handleFile = async (file: File) => {
     try {
       setLoading(true);
-      const rows = await fileToJson(file);
+      setFileName(file.name);
+      const { rows: jsonRows, headers: sheetHeaders } = await fileToJson(file);
 
-      if (!rows || rows.length === 0) {
-        alert("No rows found in file.");
+      if (!jsonRows || jsonRows.length === 0) {
+        showError("No data rows found in the file.");
+        reset();
         return;
       }
 
-      // Normalize keys
-      const headers = normalizeHeaders(Object.keys(rows[0]));
+      setHeaders(sheetHeaders);
+      setRows(jsonRows);
+      setInitialMapping(guessMapping(sheetHeaders));
+      setIsMappingOpen(true);
+    } catch (err) {
+      console.error(err);
+      showError("Failed to read the file. Please ensure it's a valid Excel or CSV file.");
+      reset();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      const nameKey =
-        headers.find((h) => ["name", "fullname", "contactname"].includes(h)) ||
-        null;
+  const handleConfirmMapping = (mapping: Mapping) => {
+    setIsMappingOpen(false);
+    setLoading(true);
 
-      const phoneKey =
-        headers.find((h) =>
-          ["phone", "phonenumber", "mobile", "cell"].includes(h)
-        ) || null;
-
-      if (!phoneKey) {
-        alert("No phone column found. Accepted: phone, mobile, cell.");
-        return;
-      }
-
-      // parse contacts safely
+    try {
       const contacts: ImportedContact[] = rows
         .map((row) => {
-          const keys = Object.keys(row).map((k) =>
-            k.toLowerCase().replace(/\s+/g, "")
-          );
-          const mapped: any = {};
-
-          keys.forEach((key, i) => {
-            mapped[key] = row[Object.keys(row)[i]];
-          });
-
-          const name = nameKey ? parseValue(mapped[nameKey]) : "";
-          const phone = parseValue(mapped[phoneKey]).replace(/[^0-9+]/g, "");
+          const name = mapping.name ? parseValue(row[mapping.name]) : "";
+          const phone = normalizePhone(parseValue(row[mapping.phone]));
 
           if (!phone) return null;
 
@@ -82,17 +105,17 @@ export default function ContactImport({ onImported }: Props) {
             phone,
           };
         })
-        .filter(Boolean) as ImportedContact[];
+        .filter((c): c is ImportedContact => c !== null);
 
       if (contacts.length === 0) {
-        alert("No valid contacts found.");
+        showError("No valid contacts found with the selected mapping.");
         return;
       }
 
       onImported(contacts);
     } catch (err) {
       console.error(err);
-      alert("Failed to import file.");
+      showError("An error occurred while processing the contacts.");
     } finally {
       setLoading(false);
     }
@@ -104,21 +127,68 @@ export default function ContactImport({ onImported }: Props) {
     handleFile(file);
   };
 
+  const reset = () => {
+    setFileName(null);
+    setHeaders([]);
+    setRows([]);
+    setIsMappingOpen(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="p-4 rounded border bg-white shadow-sm w-full">
-      <label className="font-medium mb-2 block">
-        Import Contacts (CSV/XLSX)
-      </label>
+      <div className="flex items-center justify-between mb-2">
+        <Label className="font-medium">Import Contacts (CSV/XLSX)</Label>
+        {fileName && (
+          <Button variant="link" size="sm" onClick={reset} className="text-xs">
+            Clear file
+          </Button>
+        )}
+      </div>
 
-      <input
-        type="file"
-        accept=".csv, .xlsx, .xls"
-        onChange={onSelectFile}
-        disabled={loading}
-        className="border rounded p-2 w-full cursor-pointer"
+      {fileName ? (
+        <div className="flex items-center gap-3 p-3 rounded-md border bg-green-50 text-green-800">
+          <CheckCircle className="size-5" />
+          <div className="flex-1">
+            <div className="font-medium">{fileName}</div>
+            <div className="text-xs">Ready to map columns.</div>
+          </div>
+          <Button size="sm" onClick={() => setIsMappingOpen(true)}>
+            Map Columns
+          </Button>
+        </div>
+      ) : (
+        <div>
+          <Input
+            ref={fileInputRef}
+            id="contact-import-file"
+            type="file"
+            accept=".csv, .xlsx, .xls"
+            onChange={onSelectFile}
+            disabled={loading}
+            className="hidden"
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
+            className="w-full"
+          >
+            <FileUp className="mr-2 size-4" />
+            {loading ? "Processing..." : "Choose File to Upload"}
+          </Button>
+        </div>
+      )}
+
+      <ColumnMappingDialog
+        open={isMappingOpen}
+        onOpenChange={setIsMappingOpen}
+        headers={headers}
+        initialMapping={initialMapping}
+        onConfirm={handleConfirmMapping}
       />
-
-      {loading && <p className="text-sm mt-2">Processing…</p>}
     </div>
   );
 }
