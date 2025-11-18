@@ -3,6 +3,7 @@
 import React from "react";
 import DashboardStats from "@/components/DashboardStats";
 import Reminders from "@/components/Reminders";
+import QuickLinks from "@/components/QuickLinks";
 
 const DashboardPage = () => {
   return (
