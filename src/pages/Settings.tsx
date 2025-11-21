@@ -29,10 +29,11 @@ import {
   Database,
   Save,
   Shield,
+  MessageCircle,
 } from "lucide-react";
 
 const SettingsPage = () => {
-  // NEW: Company profile state
+  // Company profile state
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
@@ -43,7 +44,21 @@ const SettingsPage = () => {
   const [regNumber, setRegNumber] = React.useState("");
   const [logoDataUrl, setLogoDataUrl] = React.useState<string | null>(null);
 
-  // NEW: Initialize company profile
+  // App settings state
+  const [allowStockBelowCost, setAllowStockBelowCost] = React.useState<boolean>(true);
+  const [dontSellBelowCost, setDontSellBelowCost] = React.useState<boolean>(false);
+  const [slipMessage1, setSlipMessage1] = React.useState<string>("");
+  const [slipMessage2, setSlipMessage2] = React.useState<string>("");
+  const [slipMessage3, setSlipMessage3] = React.useState<string>("");
+
+  // NEW: WhatsApp API settings state
+  const [wahaBaseUrl, setWahaBaseUrl] = React.useState<string>("");
+  const [wahaApiKey, setWahaApiKey] = React.useState<string>("");
+  const [wahaSessionName, setWahaSessionName] = React.useState<string>("");
+  const [wahaPhoneNumber, setWahaPhoneNumber] = React.useState<string>("");
+
+
+  // Initialize company profile and app settings
   React.useEffect(() => {
     const c = getCompanyProfile();
     if (c) {
@@ -57,9 +72,21 @@ const SettingsPage = () => {
       setRegNumber(c.regNumber || "");
       setLogoDataUrl(c.logoDataUrl || null);
     }
+
+    const s = getAppSettings();
+    setAllowStockBelowCost(s.allowStockBelowCost);
+    setDontSellBelowCost(s.dontSellBelowCost);
+    setSlipMessage1(s.slipMessage1 || "");
+    setSlipMessage2(s.slipMessage2 || "");
+    setSlipMessage3(s.slipMessage3 || "");
+    // NEW: Initialize WhatsApp API settings
+    setWahaBaseUrl(s.wahaBaseUrl || "");
+    setWahaApiKey(s.wahaApiKey || "");
+    setWahaSessionName(s.wahaSessionName || "");
+    setWahaPhoneNumber(s.wahaPhoneNumber || "");
   }, []);
 
-  // NEW: handlers
+  // Handlers for Company Profile
   const handleSaveCompany = () => {
     const payload = {
       name: name.trim(),
@@ -96,6 +123,38 @@ const SettingsPage = () => {
     const reader = new FileReader();
     reader.onload = () => setLogoDataUrl(reader.result as string);
     reader.readAsDataURL(file);
+  };
+
+  // Handlers for App Settings (including new WhatsApp API settings)
+  const handleSaveAppSettings = () => {
+    saveAppSettings({
+      allowStockBelowCost,
+      dontSellBelowCost,
+      slipMessage1: slipMessage1.trim(),
+      slipMessage2: slipMessage2.trim(),
+      slipMessage3: slipMessage3.trim(),
+      // NEW: Save WhatsApp API settings
+      wahaBaseUrl: wahaBaseUrl.trim(),
+      wahaApiKey: wahaApiKey.trim(),
+      wahaSessionName: wahaSessionName.trim(),
+      wahaPhoneNumber: wahaPhoneNumber.trim(),
+    });
+    showSuccess("App settings saved successfully");
+  };
+
+  const handleClearAppSettings = () => {
+    clearAppSettings();
+    setAllowStockBelowCost(true);
+    setDontSellBelowCost(false);
+    setSlipMessage1("");
+    setSlipMessage2("");
+    setSlipMessage3("");
+    // NEW: Clear WhatsApp API settings
+    setWahaBaseUrl("");
+    setWahaApiKey("");
+    setWahaSessionName("");
+    setWahaPhoneNumber("");
+    showSuccess("App settings cleared");
   };
 
   const clearGroups = () => {
@@ -135,7 +194,7 @@ const SettingsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* NEW: Company Profile Card */}
+            {/* Company Profile Card */}
             <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
               <CardHeader className="p-0 pb-6">
                 <div className="flex items-center gap-3">
@@ -253,7 +312,7 @@ const SettingsPage = () => {
               </CardFooter>
             </Card>
 
-            {/* NEW: Company Compliance Card */}
+            {/* Company Compliance Card */}
             <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
               <CardHeader className="p-0 pb-6">
                 <div className="flex items-center gap-3">
@@ -344,6 +403,95 @@ const SettingsPage = () => {
                 >
                   <Save className="size-4" />
                   Save Company Details
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* NEW: WhatsApp API Settings Card */}
+            <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+              <CardHeader className="p-0 pb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <MessageCircle className="size-5 text-green-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold text-gray-900">
+                      WhatsApp API Settings
+                    </CardTitle>
+                    <CardDescription>
+                      Configure your WhatsApp API integration details
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="waha-base-url" className="text-sm font-medium text-gray-700">
+                      Base URL
+                    </Label>
+                    <Input
+                      id="waha-base-url"
+                      placeholder="e.g., https://api.waha.dev"
+                      value={wahaBaseUrl}
+                      onChange={(e) => setWahaBaseUrl(e.target.value)}
+                      className="border-gray-300 focus:border-green-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="waha-api-key" className="text-sm font-medium text-gray-700">
+                      API Key
+                    </Label>
+                    <Input
+                      id="waha-api-key"
+                      type="password"
+                      placeholder="Your WhatsApp API Key"
+                      value={wahaApiKey}
+                      onChange={(e) => setWahaApiKey(e.target.value)}
+                      className="border-gray-300 focus:border-green-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="waha-session-name" className="text-sm font-medium text-gray-700">
+                      Session Name
+                    </Label>
+                    <Input
+                      id="waha-session-name"
+                      placeholder="e.g., default"
+                      value={wahaSessionName}
+                      onChange={(e) => setWahaSessionName(e.target.value)}
+                      className="border-gray-300 focus:border-green-500"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label htmlFor="waha-phone-number" className="text-sm font-medium text-gray-700">
+                      Phone Number (with country code)
+                    </Label>
+                    <Input
+                      id="waha-phone-number"
+                      placeholder="e.g., 27821234567"
+                      value={wahaPhoneNumber}
+                      onChange={(e) => setWahaPhoneNumber(e.target.value)}
+                      className="border-gray-300 focus:border-green-500"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex gap-3 justify-end pt-6 px-0">
+                <Button
+                  variant="outline"
+                  onClick={handleClearAppSettings} // Reusing clear app settings for now
+                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  <Trash2 className="size-4 mr-2" />
+                  Clear
+                </Button>
+                <Button
+                  onClick={handleSaveAppSettings} // Reusing save app settings for now
+                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                >
+                  <Save className="size-4" />
+                  Save WhatsApp Settings
                 </Button>
               </CardFooter>
             </Card>

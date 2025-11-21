@@ -4,6 +4,10 @@ export type AppSettings = {
   slipMessage1?: string;
   slipMessage2?: string;
   slipMessage3?: string;
+  wahaBaseUrl?: string; // NEW: WhatsApp API Base URL
+  wahaApiKey?: string; // NEW: WhatsApp API Key
+  wahaSessionName?: string; // NEW: WhatsApp Session Name
+  wahaPhoneNumber?: string; // NEW: WhatsApp Phone Number
 };
 
 const STORAGE_KEY = "appSettings";
@@ -14,6 +18,10 @@ const defaultSettings: AppSettings = {
   slipMessage1: "",
   slipMessage2: "",
   slipMessage3: "",
+  wahaBaseUrl: "", // Default empty
+  wahaApiKey: "", // Default empty
+  wahaSessionName: "", // Default empty
+  wahaPhoneNumber: "", // Default empty
 };
 
 export const getAppSettings = (): AppSettings => {
