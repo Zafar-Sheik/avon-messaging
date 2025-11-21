@@ -27,6 +27,8 @@ import {
   addContactsToGroup,
   recordGroupMessageSent,
   formatWhatsAppLink,
+  updateContactInGroup, // Import for updating contacts
+  deleteContactFromGroup, // Import for deleting contacts
 } from "@/utils/groupStore";
 import type { Group, Contact } from "@/types/group";
 import {
@@ -47,6 +49,12 @@ import { Textarea } from "@/components/ui/textarea";
 import EditGroupDialog from "@/components/EditGroupDialog";
 import DeleteGroupAlert from "@/components/DeleteGroupAlert";
 import MessageSender from "@/components/MessageSender"; // Import the new component
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable"; // Import Resizable components
+import { Label } from "@/components/ui/label"; // Import Label for form fields
 
 type Props = {
   groupId: string;
@@ -64,8 +72,6 @@ const GroupDetailDialog: React.FC<Props> = ({
   const [group, setGroup] = React.useState<Group | undefined>(
     getGroupById(groupId)
   );
-  const [message, setMessage] = React.useState(""); // Keep for now if needed for other parts, but MessageSender manages its own.
-  const [attachments, setAttachments] = React.useState<File[]>([]); // Keep for now if needed for other parts, but MessageSender manages its own.
   const tabsRef = React.useRef<HTMLButtonElement>(null);
   const [activeTab, setActiveTab] = React.useState("contacts");
 
@@ -74,9 +80,38 @@ const GroupDetailDialog: React.FC<Props> = ({
     React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
+  // State for adding new contact
+  const [newContactName, setNewContactName] = React.useState("");
+  const [newContactPhone, setNewContactPhone] = React.useState("");
+
+  // State for selected contact details (for editing)
+  const [selectedContactId, setSelectedContactId] = React.useState<string | null>(null);
+  const [editContactName, setEditContactName] = React.useState("");
+  const [editContactPhone, setEditContactPhone] = React.useState("");
+
   React.useEffect(() => {
-    setGroup(getGroupById(groupId));
-  }, [groupId, open]);
+    const currentGroup = getGroupById(groupId);
+    setGroup(currentGroup);
+    // Set initial selected contact if none is selected or if the group changed
+    if (currentGroup && !selectedContactId && currentGroup.contacts.length > 0) {
+      setSelectedContactId(currentGroup.contacts[0].id);
+    } else if (!currentGroup || currentGroup.contacts.length === 0) {
+      setSelectedContactId(null);
+    }
+  }, [groupId, open, selectedContactId]); // Re-fetch group and update selectedContactId if group changes or dialog opens/closes
+
+  React.useEffect(() => {
+    if (group && selectedContactId) {
+      const selected = group.contacts.find((c) => c.id === selectedContactId);
+      if (selected) {
+        setEditContactName(selected.name);
+        setEditContactPhone(selected.phone);
+      }
+    } else {
+      setEditContactName("");
+      setEditContactPhone("");
+    }
+  }, [selectedContactId, group]);
 
   const handleImport = (contacts: Array<{ name: string; phone: string }>) => {
     const updated = addContactsToGroup(groupId, contacts);
@@ -103,6 +138,60 @@ const GroupDetailDialog: React.FC<Props> = ({
     setActiveTab("import");
     if (tabsRef.current) {
       tabsRef.current.click();
+    }
+  };
+
+  // Handle adding a new contact
+  const handleAddNewContact = () => {
+    if (!group) return;
+    const name = newContactName.trim();
+    const phone = newContactPhone.trim();
+    if (!phone) {
+      showError("Phone number is required.");
+      return;
+    }
+    const updatedGroup = addContactsToGroup(group.id, [{ name, phone }]);
+    if (updatedGroup) {
+      setGroup(updatedGroup);
+      onRefresh();
+      setNewContactName("");
+      setNewContactPhone("");
+      showSuccess("Contact added successfully.");
+      // Select the newly added contact
+      setSelectedContactId(updatedGroup.contacts[updatedGroup.contacts.length - 1].id);
+    } else {
+      showError("Failed to add contact. Phone number might be a duplicate.");
+    }
+  };
+
+  // Handle updating an existing contact
+  const handleUpdateSelectedContact = () => {
+    if (!group || !selectedContactId) return;
+    const updatedGroup = updateContactInGroup(group.id, selectedContactId, {
+      name: editContactName,
+      phone: editContactPhone,
+    });
+    if (updatedGroup) {
+      setGroup(updatedGroup);
+      onRefresh();
+      showSuccess("Contact updated successfully.");
+    } else {
+      showError("Failed to update contact. Check phone number or duplicates.");
+    }
+  };
+
+  // Handle deleting an existing contact
+  const handleDeleteSelectedContact = () => {
+    if (!group || !selectedContactId) return;
+    const updatedGroup = deleteContactFromGroup(group.id, selectedContactId);
+    if (updatedGroup) {
+      setGroup(updatedGroup);
+      onRefresh();
+      showSuccess("Contact deleted successfully.");
+      // Select the first contact if available, otherwise clear selection
+      setSelectedContactId(updatedGroup.contacts.length > 0 ? updatedGroup.contacts[0].id : null);
+    } else {
+      showError("Failed to delete contact.");
     }
   };
 
@@ -290,6 +379,35 @@ const GroupDetailDialog: React.FC<Props> = ({
 
           <div className="flex-1 overflow-auto pt-4 px-4 sm:px-0">
             <TabsContent value="contacts" className="space-y-4 m-0 h-full">
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="text-sm font-medium">Add New Contact</div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="new-contact-name">Name</Label>
+                    <Input
+                      id="new-contact-name"
+                      value={newContactName}
+                      onChange={(e) => setNewContactName(e.target.value)}
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <Label htmlFor="new-contact-phone">Phone (Required)</Label>
+                    <Input
+                      id="new-contact-phone"
+                      value={newContactPhone}
+                      onChange={(e) => setNewContactPhone(e.target.value)}
+                      placeholder="e.g., 27821234567"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={handleAddNewContact} disabled={!newContactPhone.trim()}>
+                    Add Contact
+                  </Button>
+                </div>
+              </div>
+
               {group.contacts.length === 0 ? (
                 <div className="text-center py-8 sm:py-12 bg-gray-50 rounded-lg border border-gray-200">
                   <Users className="size-8 sm:size-12 text-gray-300 mx-auto mb-3" />
@@ -297,7 +415,7 @@ const GroupDetailDialog: React.FC<Props> = ({
                     No contacts yet
                   </h3>
                   <p className="text-gray-600 text-xs sm:text-sm mb-4">
-                    Import contacts from Excel to get started
+                    Import contacts from Excel or add them manually.
                   </p>
                   <Button
                     onClick={handleImportContactsClick}
@@ -306,59 +424,122 @@ const GroupDetailDialog: React.FC<Props> = ({
                   </Button>
                 </div>
               ) : (
-                <>
-                  {/* Mobile view */}
-                  <div className="sm:hidden">
-                    <MobileContactList />
-                  </div>
+                <div className="rounded-md border bg-card">
+                  <ResizablePanelGroup
+                    direction="horizontal"
+                    className="min-h-[300px] overflow-hidden">
+                    <ResizablePanel
+                      defaultSize={40}
+                      minSize={25}
+                      className="border-r min-w-0">
+                      <div className="overflow-auto min-w-0">
+                        <Table className="table-fixed w-full">
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="w-12 px-2 py-1 text-xs">
+                                #
+                              </TableHead>
+                              <TableHead className="px-2 py-1 text-xs">
+                                Name
+                              </TableHead>
+                              <TableHead className="px-2 py-1 text-xs">
+                                Phone
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {group.contacts.map((c, idx) => (
+                              <TableRow
+                                key={c.id}
+                                onClick={() => setSelectedContactId(c.id)}
+                                className={`cursor-pointer ${
+                                  c.id === selectedContactId
+                                    ? "bg-muted/50"
+                                    : "hover:bg-muted/30"
+                                }`}>
+                                <TableCell className="px-2 py-1.5 text-xs text-muted-foreground">
+                                  {idx + 1}
+                                </TableCell>
+                                <TableCell className="px-2 py-1.5 text-xs truncate">
+                                  {c.name || "Unnamed"}
+                                </TableCell>
+                                <TableCell className="px-2 py-1.5 text-xs font-mono whitespace-nowrap">
+                                  {c.phone}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </ResizablePanel>
 
-                  {/* Desktop view */}
-                  <div className="hidden sm:block rounded-lg border border-gray-200 overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-gray-50 hover:bg-gray-50">
-                          <TableHead className="font-semibold text-gray-700">
-                            Name
-                          </TableHead>
-                          <TableHead className="font-semibold text-gray-700">
-                            Phone Number
-                          </TableHead>
-                          <TableHead className="font-semibold text-gray-700 w-20">
-                            Actions
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {group.contacts.map((c) => (
-                          <TableRow
-                            key={c.id}
-                            className="hover:bg-gray-50 transition-colors">
-                            <TableCell className="font-medium text-gray-900">
-                              {c.name}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm text-gray-600">
-                              {c.phone}
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  window.open(
-                                    formatWhatsAppLink(c.phone, ""),
-                                    "_blank"
-                                  )
-                                }
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                                <Phone className="size-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </>
+                    <ResizableHandle withHandle />
+
+                    <ResizablePanel
+                      defaultSize={60}
+                      minSize={35}
+                      className="p-3 min-w-0 overflow-auto">
+                      {(() => {
+                        const selected = group.contacts.find(
+                          (c) => c.id === selectedContactId
+                        );
+                        if (!selected) {
+                          return (
+                            <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+                              Select a contact from the list to view/edit details.
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="min-w-0">
+                                <div className="truncate text-base font-semibold">
+                                  {selected.name || "Unnamed contact"}
+                                </div>
+                                <div className="font-mono text-sm text-muted-foreground whitespace-nowrap">
+                                  {selected.phone}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="rounded-md border p-3 space-y-3">
+                              <div className="space-y-1">
+                                <Label htmlFor="edit-contact-name">Name</Label>
+                                <Input
+                                  id="edit-contact-name"
+                                  value={editContactName}
+                                  onChange={(e) => setEditContactName(e.target.value)}
+                                  placeholder="Optional"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label htmlFor="edit-contact-phone">
+                                  Phone (Required)
+                                </Label>
+                                <Input
+                                  id="edit-contact-phone"
+                                  value={editContactPhone}
+                                  onChange={(e) => setEditContactPhone(e.target.value)}
+                                  placeholder="e.g., 27821234567"
+                                />
+                              </div>
+                              <div className="flex flex-wrap gap-2 pt-2">
+                                <Button onClick={handleUpdateSelectedContact} disabled={!editContactPhone.trim()}>
+                                  Save Changes
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={handleDeleteSelectedContact}>
+                                  Delete Contact
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+                </div>
               )}
             </TabsContent>
 
