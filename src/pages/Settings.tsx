@@ -169,7 +169,7 @@ const SettingsPage = () => {
   };
 
   const hasCompanyData = !!getCompanyProfile();
-  const canSaveCompanyExtras = !!name.trim() && !!email.trim();
+  // const canSaveCompanyExtras = !!name.trim() && !!email.trim(); // Original condition
 
   return (
     <div className="min-h-screen bg-white">
@@ -304,7 +304,7 @@ const SettingsPage = () => {
                 </Button>
                 <Button
                   onClick={handleSaveCompany}
-                  disabled={!name.trim() || !email.trim()}
+                  // disabled={!name.trim() || !email.trim()} // Removed disabled prop
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   <Save className="size-4" />
@@ -388,18 +388,18 @@ const SettingsPage = () => {
                         </p>
                       )}
                     </div>
-                    {!canSaveCompanyExtras && (
-                      <p className="text-xs text-gray-500">
-                        Company name and email must be set to save these details.
-                      </p>
-                    )}
+                    {/* {!canSaveCompanyExtras && ( // Original condition */}
+                    {/*   <p className="text-xs text-gray-500"> */}
+                    {/*     Company name and email must be set to save these details. */}
+                    {/*   </p> */}
+                    {/* )} */}
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex gap-3 justify-end pt-6 px-0">
                 <Button
                   onClick={handleSaveCompany}
-                  disabled={!canSaveCompanyExtras}
+                  // disabled={!canSaveCompanyExtras} // Removed disabled prop
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   <Save className="size-4" />
