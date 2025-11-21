@@ -57,10 +57,11 @@ serve(async (req) => {
 
     for (const contact of contacts) {
       try {
-        const wahaApiUrl = `${wahaSettings.baseUrl}/api/sendText?session=${wahaSettings.sessionName}`;
+        const wahaApiUrl = `${wahaSettings.baseUrl}/api/sendText`; // Session is now in the payload
         const payload = {
-          phone: contact.phone,
-          message: message,
+          session: wahaSettings.sessionName, // Add session to payload
+          chatId: `${contact.phone}@c.us`, // Use chatId format
+          text: message, // Use text instead of message
         };
 
         const response = await fetch(wahaApiUrl, {
