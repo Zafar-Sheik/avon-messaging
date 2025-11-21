@@ -30,7 +30,8 @@ import {
   Save,
   Shield,
   MessageCircle,
-} from "lucide-react";
+}
+from "lucide-react";
 
 const SettingsPage = () => {
   // Company profile state
@@ -407,7 +408,7 @@ const SettingsPage = () => {
               </CardFooter>
             </Card>
 
-            {/* NEW: WhatsApp API Settings Card */}
+            {/* NEW: WAHA API Settings Card */}
             <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
               <CardHeader className="p-0 pb-6">
                 <div className="flex items-center gap-3">
@@ -416,10 +417,10 @@ const SettingsPage = () => {
                   </div>
                   <div>
                     <CardTitle className="text-xl font-semibold text-gray-900">
-                      WhatsApp API Settings
+                      WAHA API Settings
                     </CardTitle>
                     <CardDescription>
-                      Configure your WhatsApp API integration details
+                      Configure your WAHA API integration details
                     </CardDescription>
                   </div>
                 </div>
@@ -445,7 +446,7 @@ const SettingsPage = () => {
                     <Input
                       id="waha-api-key"
                       type="password"
-                      placeholder="Your WhatsApp API Key"
+                      placeholder="Your WAHA API Key"
                       value={wahaApiKey}
                       onChange={(e) => setWahaApiKey(e.target.value)}
                       className="border-gray-300 focus:border-green-500"
@@ -491,7 +492,7 @@ const SettingsPage = () => {
                   className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
                 >
                   <Save className="size-4" />
-                  Save WhatsApp Settings
+                  Save WAHA Settings
                 </Button>
               </CardFooter>
             </Card>
