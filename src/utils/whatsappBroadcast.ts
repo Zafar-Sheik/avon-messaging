@@ -18,6 +18,7 @@ export const sendWhatsAppBroadcast = async (message: string, contacts: Contact[]
       return { success: false, error: "WAHA API settings incomplete." };
     }
 
+    console.log("Attempting to invoke broadcast-whatsapp Edge Function...");
     const { data, error } = await supabase.functions.invoke('broadcast-whatsapp', {
       body: {
         message,
@@ -32,12 +33,24 @@ export const sendWhatsAppBroadcast = async (message: string, contacts: Contact[]
     });
 
     if (error) {
-      throw new Error(error.message);
+      console.error("Error object from supabase.functions.invoke:", error);
+      dismissToast(toastId.toString());
+      showError(`Failed to invoke broadcast function: ${error.message || "Unknown error"}`);
+      return { success: false, error: error.message };
+    }
+
+    // If we reach here, 'error' was null, meaning the invocation itself was successful (HTTP 2xx).
+    // Now we check the *content* of the response from the Edge Function.
+    console.log("Data received from broadcast-whatsapp Edge Function:", data);
+
+    if (!data || typeof data.successfulSends === 'undefined' || typeof data.failedSends === 'undefined') {
+      dismissToast(toastId.toString());
+      showError("Invalid response from broadcast function. Please check Edge Function logs.");
+      return { success: false, error: "Invalid response structure." };
     }
 
     dismissToast(toastId.toString());
 
-    // Improved feedback based on successfulSends and failedSends
     if (data.successfulSends === 0 && data.failedSends > 0) {
       showError(`Broadcast failed for all contacts. Failed: ${data.failedSends}. Please check your WAHA API settings and contact numbers.`);
       return { success: false, error: `Broadcast failed for all contacts. Failed: ${data.failedSends}.` };
@@ -50,7 +63,8 @@ export const sendWhatsAppBroadcast = async (message: string, contacts: Contact[]
     return { success: true, data };
   } catch (err: any) {
     dismissToast(toastId.toString());
-    showError(err.message || "Failed to send broadcast.");
+    console.error("Caught unexpected error in sendWhatsAppBroadcast:", err);
+    showError(err.message || "An unexpected error occurred while sending the broadcast.");
     return { success: false, error: err.message };
   }
 };

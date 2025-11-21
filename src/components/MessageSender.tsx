@@ -70,6 +70,9 @@ const MessageSender: React.FC<MessageSenderProps> = ({
     const result = await sendWhatsAppBroadcast(finalMessage, group.contacts);
     setIsSendingBroadcast(false);
 
+    // NEW: Log the result of the broadcast for debugging
+    console.log("WhatsApp Broadcast Result:", result);
+
     if (result.success) {
       // Record the message in local history after successful (simulated) broadcast
       const { updated } = await recordGroupMessageSent( // Await the async function
