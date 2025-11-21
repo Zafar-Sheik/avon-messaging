@@ -14,14 +14,36 @@ import { Badge } from "@/components/ui/badge";
 import { getGroups } from "@/utils/groupStore";
 import { getWhatsAppStats } from "@/utils/stats";
 import { MessageSquare, Send, Clock, Users, BarChart3 } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import MessageSender from "@/components/MessageSender"; // Import the new component
+import type { Contact } from "@/types/group";
 
 const MessagesPage = () => {
-  const groups = getGroups();
-  const stats = getWhatsAppStats();
+  const [groups, setGroups] = React.useState(getGroups());
+  const [stats, setStats] = React.useState(getWhatsAppStats());
+  const [selectedGroupId, setSelectedGroupId] = React.useState<string>("");
+
+  React.useEffect(() => {
+    setGroups(getGroups());
+    setStats(getWhatsAppStats());
+  }, []);
 
   const history = groups.flatMap((g) =>
     g.sentHistory.map((h) => ({ ...h, groupName: g.name }))
   );
+
+  const handleMessageSent = (message: string, contacts: Contact[]) => {
+    // Refresh groups and stats after a message is sent
+    setGroups(getGroups());
+    setStats(getWhatsAppStats());
+  };
 
   const StatCard = ({
     icon,
@@ -60,10 +82,10 @@ const MessagesPage = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <MessageSquare className="size-8 text-blue-600" />
-              Message History
+              Message History & Send
             </h1>
             <p className="text-gray-600 text-lg mt-2">
-              Track all your WhatsApp messages and campaign performance
+              Track all your WhatsApp messages and send new broadcasts
             </p>
           </div>
         </div>
@@ -95,6 +117,62 @@ const MessagesPage = () => {
             description="Across all groups"
           />
         </div>
+
+        {/* Send Broadcast Section */}
+        <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Send className="size-5 text-green-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Send New Broadcast
+              </h2>
+              <p className="text-gray-600 text-sm">
+                Select a group and send a WhatsApp message to all its contacts.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="select-group-to-send">Select Group</Label>
+              <Select
+                value={selectedGroupId}
+                onValueChange={setSelectedGroupId}
+              >
+                <SelectTrigger id="select-group-to-send" className="w-full md:w-96">
+                  <SelectValue placeholder="Choose a group to send to" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groups.length === 0 ? (
+                    <SelectItem value="__none" disabled>
+                      No groups found
+                    </SelectItem>
+                  ) : (
+                    groups.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        <div className="flex items-center gap-2">
+                          {g.name}
+                          <span className="text-xs text-muted-foreground">
+                            ({g.contacts.length} contacts)
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedGroupId && (
+              <MessageSender
+                groupId={selectedGroupId}
+                onMessageSent={handleMessageSent}
+              />
+            )}
+          </div>
+        </Card>
 
         {/* Message History Table */}
         <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
