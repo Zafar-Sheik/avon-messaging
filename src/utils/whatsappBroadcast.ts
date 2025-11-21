@@ -14,8 +14,8 @@ export const sendWhatsAppBroadcast = async (message: string, contacts: Contact[]
 
     if (!wahaBaseUrl || !wahaApiKey || !wahaSessionName || !wahaPhoneNumber) {
       dismissToast(toastId.toString());
-      showError("WhatsApp API settings are incomplete. Please configure them in Settings.");
-      return { success: false, error: "WhatsApp API settings incomplete." };
+      showError("WAHA API settings are incomplete. Please configure them in Settings.");
+      return { success: false, error: "WAHA API settings incomplete." };
     }
 
     const { data, error } = await supabase.functions.invoke('broadcast-whatsapp', {
@@ -36,7 +36,17 @@ export const sendWhatsAppBroadcast = async (message: string, contacts: Contact[]
     }
 
     dismissToast(toastId.toString());
-    showSuccess(`Broadcast sent! Successful: ${data.successfulSends}, Failed: ${data.failedSends}.`);
+
+    // Improved feedback based on successfulSends and failedSends
+    if (data.successfulSends === 0 && data.failedSends > 0) {
+      showError(`Broadcast failed for all contacts. Failed: ${data.failedSends}. Please check your WAHA API settings and contact numbers.`);
+      return { success: false, error: `Broadcast failed for all contacts. Failed: ${data.failedSends}.` };
+    } else if (data.successfulSends > 0 && data.failedSends > 0) {
+      showSuccess(`Broadcast partially successful. Successful: ${data.successfulSends}, Failed: ${data.failedSends}. Some messages could not be sent.`);
+    } else {
+      showSuccess(`Broadcast sent! Successful: ${data.successfulSends}, Failed: ${data.failedSends}.`);
+    }
+    
     return { success: true, data };
   } catch (err: any) {
     dismissToast(toastId.toString());
