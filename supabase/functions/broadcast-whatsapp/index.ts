@@ -57,11 +57,11 @@ serve(async (req) => {
 
     for (const contact of contacts) {
       try {
-        const wahaApiUrl = `${wahaSettings.baseUrl}/api/sendText`; // Session is now in the payload
+        const wahaApiUrl = `${wahaSettings.baseUrl}/api/sendText`;
         const payload = {
-          session: wahaSettings.sessionName, // Add session to payload
-          chatId: `${contact.phone}@c.us`, // Use chatId format
-          text: message, // Use text instead of message
+          session: wahaSettings.sessionName,
+          chatId: `${contact.phone}@c.us`,
+          text: message,
         };
 
         const response = await fetch(wahaApiUrl, {
@@ -78,8 +78,10 @@ serve(async (req) => {
         if (response.ok && responseData.result === 'success') {
           successfulSends.push(contact.phone);
         } else {
-          failedSends.push({ phone: contact.phone, error: responseData.message || 'WAHA API error' });
-          console.error(`Failed to send to ${contact.phone}: ${responseData.message || 'Unknown error'}`);
+          // Capture more specific error message from WAHA API response
+          const errorMessage = responseData.message || responseData.error || 'WAHA API error';
+          failedSends.push({ phone: contact.phone, error: errorMessage });
+          console.error(`Failed to send to ${contact.phone}: ${errorMessage}`);
         }
       } catch (apiError: any) {
         failedSends.push({ phone: contact.phone, error: apiError.message || 'Network or API call failed' });
