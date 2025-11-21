@@ -33,7 +33,7 @@ serve(async (req) => {
       });
     }
 
-    const { message, contacts } = await req.json();
+    const { message, contacts, wahaSettings } = await req.json();
 
     if (!message || !Array.isArray(contacts) || contacts.length === 0) {
       return new Response(JSON.stringify({ error: 'Message and contacts array are required.' }), {
@@ -42,37 +42,54 @@ serve(async (req) => {
       });
     }
 
-    console.log(`User ${user.id} initiating broadcast to ${contacts.length} contacts.`);
-    console.log(`Message: ${message}`);
+    if (!wahaSettings || !wahaSettings.baseUrl || !wahaSettings.apiKey || !wahaSettings.sessionName || !wahaSettings.phoneNumber) {
+      return new Response(JSON.stringify({ error: 'WhatsApp API settings (baseUrl, apiKey, sessionName, phoneNumber) are required.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
 
-    // --- Placeholder for actual WhatsApp API integration ---
-    // In a real application, you would integrate with a WhatsApp API provider here.
-    // This might involve:
-    // 1. Fetching an API key from Supabase secrets (e.g., Deno.env.get('WHATSAPP_API_KEY')).
-    // 2. Iterating through contacts and making API calls to send messages.
-    // 3. Handling rate limits, delivery reports, and errors from the WhatsApp API.
-    //
-    // For demonstration, we'll simulate a delay and success.
+    console.log(`User ${user.id} initiating broadcast to ${contacts.length} contacts using WAHA API.`);
+    console.log(`Message: ${message}`);
 
     const successfulSends: string[] = [];
     const failedSends: { phone: string; error: string }[] = [];
 
     for (const contact of contacts) {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 100)); // Simulate network delay
-      const success = Math.random() > 0.1; // 90% success rate for demo
+      try {
+        const wahaApiUrl = `${wahaSettings.baseUrl}/api/sendText?session=${wahaSettings.sessionName}`;
+        const payload = {
+          phone: contact.phone,
+          message: message,
+        };
 
-      if (success) {
-        successfulSends.push(contact.phone);
-      } else {
-        failedSends.push({ phone: contact.phone, error: 'Simulated API error' });
+        const response = await fetch(wahaApiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Api-Key': wahaSettings.apiKey,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const responseData = await response.json();
+
+        if (response.ok && responseData.result === 'success') {
+          successfulSends.push(contact.phone);
+        } else {
+          failedSends.push({ phone: contact.phone, error: responseData.message || 'WAHA API error' });
+          console.error(`Failed to send to ${contact.phone}: ${responseData.message || 'Unknown error'}`);
+        }
+      } catch (apiError: any) {
+        failedSends.push({ phone: contact.phone, error: apiError.message || 'Network or API call failed' });
+        console.error(`Error sending to ${contact.phone}: ${apiError.message}`);
       }
     }
 
     console.log(`Broadcast completed. Successful: ${successfulSends.length}, Failed: ${failedSends.length}`);
 
     return new Response(JSON.stringify({
-      message: 'Broadcast initiated successfully (simulated).',
+      message: 'Broadcast initiated successfully.',
       successfulSends: successfulSends.length,
       failedSends: failedSends.length,
       details: { successfulSends, failedSends },

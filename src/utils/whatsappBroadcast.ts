@@ -3,13 +3,32 @@
 import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError, showLoading, dismissToast } from "@/utils/toast";
 import type { Contact } from "@/types/group";
+import { getAppSettings } from "@/utils/appSettingsStore"; // Import to get WAHA settings
 
 export const sendWhatsAppBroadcast = async (message: string, contacts: Contact[]) => {
   const toastId = showLoading("Sending broadcast...");
 
   try {
+    const appSettings = getAppSettings(); // Get WAHA settings
+    const { wahaBaseUrl, wahaApiKey, wahaSessionName, wahaPhoneNumber } = appSettings;
+
+    if (!wahaBaseUrl || !wahaApiKey || !wahaSessionName || !wahaPhoneNumber) {
+      dismissToast(toastId.toString());
+      showError("WhatsApp API settings are incomplete. Please configure them in Settings.");
+      return { success: false, error: "WhatsApp API settings incomplete." };
+    }
+
     const { data, error } = await supabase.functions.invoke('broadcast-whatsapp', {
-      body: { message, contacts },
+      body: {
+        message,
+        contacts,
+        wahaSettings: {
+          baseUrl: wahaBaseUrl,
+          apiKey: wahaApiKey,
+          sessionName: wahaSessionName,
+          phoneNumber: wahaPhoneNumber,
+        },
+      },
     });
 
     if (error) {
