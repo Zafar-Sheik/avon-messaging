@@ -166,7 +166,7 @@ const GroupDetailPage: React.FC = () => {
 
     if (result.success) {
       // Record the message in local history after successful (simulated) broadcast
-      const { updated } = recordGroupMessageSent(group.id, finalMessage, group.contacts);
+      const { updated } = await recordGroupMessageSent(group.id, finalMessage, group.contacts); // Await the async function
       if (updated) {
         setGroup(updated);
         setMessage("");

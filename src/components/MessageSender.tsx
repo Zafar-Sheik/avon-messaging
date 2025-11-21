@@ -72,7 +72,7 @@ const MessageSender: React.FC<MessageSenderProps> = ({
 
     if (result.success) {
       // Record the message in local history after successful (simulated) broadcast
-      const { updated } = recordGroupMessageSent(
+      const { updated } = await recordGroupMessageSent( // Await the async function
         group.id,
         finalMessage,
         group.contacts

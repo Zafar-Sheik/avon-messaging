@@ -1,4 +1,5 @@
 import { Group, Contact, SentHistoryItem } from "@/types/group";
+import { supabase } from "@/integrations/supabase/client"; // Import Supabase client
 
 const STORAGE_KEY = "dyad_groups";
 
@@ -58,7 +59,6 @@ const normalizePhone = (phone: string): string => {
   // assume it's a local SA number and prepend '27'.
   // Example: "0821234567" -> "821234567" -> "27821234567"
   // Example: "821234567" -> "27821234567"
-  // If it already starts with '27', leave it.
   if (digits.startsWith("0") && digits.length >= 9 && digits.length <= 10) {
     digits = digits.substring(1); // Remove leading '0'
   }
@@ -156,11 +156,18 @@ export const formatWhatsAppLink = (phone: string, message: string): string => {
 };
 
 // Renamed and modified to only record history, not clear contacts
-export const recordGroupMessageSent = (
+export const recordGroupMessageSent = async ( // Made async
   groupId: string,
   message: string,
   contactsSent: Array<{ name: string; phone: string }>
-): { updated?: Group } => {
+): Promise<{ updated?: Group }> => { // Return a Promise
+  const { data: userRes } = await supabase.auth.getUser();
+  const user = userRes.user;
+  if (!user) {
+    console.error("User not authenticated. Cannot save sent history to Supabase.");
+    // Continue to save to local storage even if Supabase fails due to auth
+  }
+
   const groups = loadGroups();
   const group = groups.find((g) => g.id === groupId);
   if (!group) return {};
@@ -176,6 +183,58 @@ export const recordGroupMessageSent = (
 
   group.sentHistory = [...historyItems, ...group.sentHistory];
   saveGroups(groups);
+
+  // --- NEW: Save to Supabase ---
+  if (user) {
+    try {
+      // Find or create the group in Supabase
+      let supabaseGroupId: string | undefined;
+      const { data: existingGroup, error: existingGroupErr } = await supabase
+        .from("avon_work_groups")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("name", group.name)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingGroupErr) throw existingGroupErr;
+
+      if (existingGroup) {
+        supabaseGroupId = existingGroup.id;
+      } else {
+        // If group doesn't exist in Supabase, create it
+        const { data: newSupabaseGroup, error: newGroupErr } = await supabase
+          .from("avon_work_groups")
+          .insert({ user_id: user.id, name: group.name })
+          .select("id")
+          .single();
+        if (newGroupErr) throw newGroupErr;
+        supabaseGroupId = newSupabaseGroup.id;
+      }
+
+      if (supabaseGroupId) {
+        const supabaseHistoryInserts = historyItems.map((item) => ({
+          user_id: user.id,
+          avon_work_group_id: supabaseGroupId,
+          contact_name: item.name,
+          phone_number: item.phone,
+          sent_at: item.sentAt,
+          message: item.message,
+        }));
+
+        const { error: insertHistoryErr } = await supabase
+          .from("avon_work_sent_history")
+          .insert(supabaseHistoryInserts);
+
+        if (insertHistoryErr) throw insertHistoryErr;
+        console.log(`Saved ${supabaseHistoryInserts.length} history items to Supabase.`);
+      }
+    } catch (dbError: any) {
+      console.error("Failed to save sent history to Supabase:", dbError.message);
+      // Optionally, show an error toast here if you want to notify the user about the DB save failure
+    }
+  }
+  // --- END NEW ---
 
   return { updated: group };
 };
