@@ -15,12 +15,11 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Import RadioGroup
 import { showError, showSuccess } from "@/utils/toast";
 import {
-  formatWhatsAppLink,
   recordGroupMessageSent,
   getOrCreateDirectMessagesGroup,
-} from "@/utils/groupStore";
+} from "@/utils/groupStore"; // Removed formatWhatsAppLink
 import type { Contact } from "@/types/group";
-import { Send, Paperclip, Trash2, ExternalLink } from "lucide-react";
+import { Send, Paperclip, Trash2 } from "lucide-react"; // Removed ExternalLink
 import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast";
 
 interface DirectMessageSenderProps {
@@ -271,7 +270,8 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
           {isSending ? "Sending..." : "Send Direct Message"}
         </Button>
 
-        <Button
+        {/* Removed Preview Link button */}
+        {/* <Button
           variant="outline"
           disabled={
             !targetContact ||
@@ -289,13 +289,12 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
         >
           <ExternalLink className="size-4" />
           Preview Link
-        </Button>
+        </Button> */}
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
         <p className="text-xs sm:text-sm text-blue-700">
-          <strong>Note:</strong> Direct messages are sent one-by-one. Preview
-          link to test the message before sending.
+          <strong>Note:</strong> Direct messages are sent one-by-one via the WAHA API.
         </p>
       </div>
     </div>

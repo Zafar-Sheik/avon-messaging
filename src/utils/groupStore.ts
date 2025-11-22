@@ -187,11 +187,12 @@ export const deleteContactFromGroup = (
   return group;
 };
 
-export const formatWhatsAppLink = (phone: string, message: string): string => {
-  const normalized = normalizePhone(phone);
-  const text = encodeURIComponent(message || "");
-  return `https://wa.me/${normalized}?text=${text}`;
-};
+// Removed formatWhatsAppLink as it's no longer used for direct API sending.
+// export const formatWhatsAppLink = (phone: string, message: string): string => {
+//   const normalized = normalizePhone(phone);
+//   const text = encodeURIComponent(message || "");
+//   return `https://wa.me/${normalized}?text=${text}`;
+// };
 
 // Renamed and modified to only record history, not clear contacts
 export const recordGroupMessageSent = async ( // Made async

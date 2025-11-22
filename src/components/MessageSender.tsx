@@ -15,12 +15,11 @@ import {
 } from "@/components/ui/table";
 import { showError, showSuccess } from "@/utils/toast";
 import {
-  formatWhatsAppLink,
   getGroupById,
   recordGroupMessageSent,
 } from "@/utils/groupStore";
 import type { Contact, Group } from "@/types/group";
-import { Send, Paperclip, Trash2, ExternalLink } from "lucide-react";
+import { Send, Paperclip, Trash2 } from "lucide-react"; // Removed ExternalLink
 import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast";
 
 interface MessageSenderProps {
@@ -28,16 +27,10 @@ interface MessageSenderProps {
   onMessageSent: (message: string, contacts: Contact[]) => void;
 }
 
-// Helper to build message with a hardcoded reply link (if needed)
-// For now, we'll keep it simple and just use the original message.
-// If a reply link is needed, it should be configured in app settings.
-const buildMessageWithReply = (original: string): string => {
-  // const trimmed = (original || "").trim();
-  // const link = getReplyNowLink(); // Assuming getReplyNowLink exists and is imported
-  // if (!link) return trimmed;
-  // return `${trimmed}\n\nReply now: ${link}`;
-  return (original || "").trim();
-};
+// Removed buildMessageWithReply as it's no longer needed.
+// const buildMessageWithReply = (original: string): string => {
+//   return (original || "").trim();
+// };
 
 const MessageSender: React.FC<MessageSenderProps> = ({
   groupId,
@@ -66,7 +59,7 @@ const MessageSender: React.FC<MessageSenderProps> = ({
     }
 
     setIsSendingBroadcast(true);
-    const finalMessage = buildMessageWithReply(message);
+    const finalMessage = message.trim(); // Use message directly
     const result = await sendWhatsAppBroadcast(finalMessage, group.contacts, attachments); // Pass attachments
     setIsSendingBroadcast(false);
 
@@ -202,11 +195,12 @@ const MessageSender: React.FC<MessageSenderProps> = ({
                 }`}
           </Button>
 
-          <Button
+          {/* Removed Preview Links button */}
+          {/* <Button
             variant="outline"
             disabled={
               group.contacts.length === 0 ||
-              (!message.trim() && attachments.length === 0) || // Disable if no message and no attachments
+              (!message.trim() && attachments.length === 0) ||
               isSendingBroadcast
             }
             onClick={() => {
@@ -223,13 +217,12 @@ const MessageSender: React.FC<MessageSenderProps> = ({
           >
             <ExternalLink className="size-4" />
             Preview Links
-          </Button>
+          </Button> */}
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-xs sm:text-sm text-blue-700">
-            <strong>Note:</strong> "Send to Contacts" now uses a server-side
-            broadcast. Preview links to test individual messages.
+            <strong>Note:</strong> Messages are sent via the WAHA API.
           </p>
         </div>
       </div>

@@ -26,13 +26,11 @@ import {
   getGroupById,
   addContactsToGroup,
   recordGroupMessageSent,
-  formatWhatsAppLink,
   updateContactInGroup, // Import for updating contacts
   deleteContactFromGroup, // Import for deleting contacts
-} from "@/utils/groupStore";
+} from "@/utils/groupStore"; // Removed formatWhatsAppLink
 import type { Group, Contact } from "@/types/group";
 import {
-  ExternalLink,
   Send,
   Paperclip,
   Trash2,
@@ -44,7 +42,7 @@ import {
   Calendar,
   Pencil,
   MoreVertical,
-} from "lucide-react";
+} from "lucide-react"; // Removed ExternalLink
 import { Textarea } from "@/components/ui/textarea";
 import EditGroupDialog from "@/components/EditGroupDialog";
 import DeleteGroupAlert from "@/components/DeleteGroupAlert";
@@ -212,7 +210,8 @@ const GroupDetailDialog: React.FC<Props> = ({
               {contact.phone}
             </div>
           </div>
-          <Button
+          {/* Removed direct WhatsApp link button */}
+          {/* <Button
             variant="ghost"
             size="sm"
             onClick={() =>
@@ -220,7 +219,7 @@ const GroupDetailDialog: React.FC<Props> = ({
             }
             className="flex-shrink-0 ml-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
             <Phone className="size-4" />
-          </Button>
+          </Button> */}
         </div>
       ))}
     </div>
