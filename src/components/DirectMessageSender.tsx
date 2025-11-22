@@ -12,6 +12,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Import RadioGroup
 import { showError, showSuccess } from "@/utils/toast";
 import {
   formatWhatsAppLink,
@@ -31,35 +32,53 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
   allContacts,
   onMessageSent,
 }) => {
+  const [inputMode, setInputMode] = React.useState<"select" | "manual">(
+    "select"
+  ); // New state for input mode
   const [selectedContactId, setSelectedContactId] = React.useState<string>("");
+  const [manualPhoneNumber, setManualPhoneNumber] = React.useState<string>(""); // New state for manual input
   const [message, setMessage] = React.useState("");
   const [attachments, setAttachments] = React.useState<File[]>([]);
   const [isSending, setIsSending] = React.useState(false);
 
-  const selectedContact = React.useMemo(
-    () => allContacts.find((c) => c.id === selectedContactId),
-    [allContacts, selectedContactId]
-  );
+  const targetContact = React.useMemo(() => {
+    if (inputMode === "manual") {
+      const normalizedPhone = manualPhoneNumber.trim().replace(/\D+/g, "");
+      if (normalizedPhone) {
+        return {
+          id: "manual-entry", // A dummy ID for manual entry
+          name: "Manual Entry",
+          phone: normalizedPhone,
+        };
+      }
+      return undefined;
+    } else {
+      return allContacts.find((c) => c.id === selectedContactId);
+    }
+  }, [allContacts, selectedContactId, inputMode, manualPhoneNumber]);
 
   const handleSendDirectMessage = async () => {
-    if (!selectedContact) {
-      showError("Please select a contact to send the message to.");
+    if (!targetContact) {
+      showError("Please select or enter a contact to send the message to.");
       return;
     }
-    if (!message.trim() && attachments.length === 0) { // Message OR attachments are required
+    if (!message.trim() && attachments.length === 0) {
       showError("Please enter a message or attach at least one file.");
       return;
     }
 
     setIsSending(true);
     const finalMessage = message.trim();
-    const contactsToSend = [selectedContact];
+    const contactsToSend = [targetContact];
 
-    const result = await sendWhatsAppBroadcast(finalMessage, contactsToSend, attachments); // Pass attachments
+    const result = await sendWhatsAppBroadcast(
+      finalMessage,
+      contactsToSend,
+      attachments
+    );
     setIsSending(false);
 
     if (result.success) {
-      // Record the message in local history against the "Direct Messages" group
       const directMessagesGroup = getOrCreateDirectMessagesGroup();
       const { updated } = await recordGroupMessageSent(
         directMessagesGroup.id,
@@ -69,6 +88,7 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
       if (updated) {
         setMessage("");
         setAttachments([]);
+        setManualPhoneNumber(""); // Clear manual input after sending
         onMessageSent(finalMessage, contactsToSend);
       }
     }
@@ -77,33 +97,83 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
   return (
     <div className="space-y-4 m-0 h-full">
       <div className="space-y-2">
-        <Label htmlFor="select-contact-to-send" className="text-sm font-medium text-gray-700">
-          Select Contact
+        <Label className="text-sm font-medium text-gray-700">
+          Choose Contact Method
         </Label>
-        <Select value={selectedContactId} onValueChange={setSelectedContactId}>
-          <SelectTrigger id="select-contact-to-send" className="w-full md:w-96">
-            <SelectValue placeholder="Choose a contact" />
-          </SelectTrigger>
-          <SelectContent>
-            {allContacts.length === 0 ? (
-              <SelectItem value="__none" disabled>
-                No contacts found
-              </SelectItem>
-            ) : (
-              allContacts.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  <div className="flex items-center gap-2">
-                    {c.name || "Unnamed"}
-                    <span className="text-xs text-muted-foreground">
-                      ({c.phone})
-                    </span>
-                  </div>
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
+        <RadioGroup
+          value={inputMode}
+          onValueChange={(value: "select" | "manual") => setInputMode(value)}
+          className="flex gap-4"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="select" id="select-contact" />
+            <Label htmlFor="select-contact">Select Existing Contact</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="manual" id="manual-input" />
+            <Label htmlFor="manual-input">Enter New Number</Label>
+          </div>
+        </RadioGroup>
       </div>
+
+      {inputMode === "select" && (
+        <div className="space-y-2">
+          <Label
+            htmlFor="select-contact-to-send"
+            className="text-sm font-medium text-gray-700"
+          >
+            Select Contact
+          </Label>
+          <Select
+            value={selectedContactId}
+            onValueChange={setSelectedContactId}
+            disabled={allContacts.length === 0}
+          >
+            <SelectTrigger id="select-contact-to-send" className="w-full md:w-96">
+              <SelectValue placeholder="Choose a contact" />
+            </SelectTrigger>
+            <SelectContent>
+              {allContacts.length === 0 ? (
+                <SelectItem value="__none" disabled>
+                  No contacts found
+                </SelectItem>
+              ) : (
+                allContacts.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    <div className="flex items-center gap-2">
+                      {c.name || "Unnamed"}
+                      <span className="text-xs text-muted-foreground">
+                        ({c.phone})
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {inputMode === "manual" && (
+        <div className="space-y-2">
+          <Label
+            htmlFor="manual-phone-number"
+            className="text-sm font-medium text-gray-700"
+          >
+            Phone Number (with country code, digits only)
+          </Label>
+          <Input
+            id="manual-phone-number"
+            placeholder="e.g., 27821234567"
+            value={manualPhoneNumber}
+            onChange={(e) => setManualPhoneNumber(e.target.value)}
+            className="w-full md:w-96"
+          />
+          <p className="text-xs text-muted-foreground">
+            Enter the phone number in international format (e.g., 27821234567 for South Africa).
+          </p>
+        </div>
+      )}
 
       <div>
         <Label className="text-sm font-medium text-gray-700 mb-2 block">
@@ -190,7 +260,11 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
       <div className="flex flex-col sm:flex-row gap-2 pt-2">
         <Button
           onClick={handleSendDirectMessage}
-          disabled={isSending || (!message.trim() && attachments.length === 0) || !selectedContact}
+          disabled={
+            isSending ||
+            (!message.trim() && attachments.length === 0) ||
+            !targetContact
+          }
           className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 flex-1 justify-center text-sm sm:text-base"
         >
           <Send className="size-4" />
@@ -199,10 +273,14 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
 
         <Button
           variant="outline"
-          disabled={!selectedContact || (!message.trim() && attachments.length === 0) || isSending}
+          disabled={
+            !targetContact ||
+            (!message.trim() && attachments.length === 0) ||
+            isSending
+          }
           onClick={() => {
-            if (selectedContact) {
-              const url = formatWhatsAppLink(selectedContact.phone, message);
+            if (targetContact) {
+              const url = formatWhatsAppLink(targetContact.phone, message);
               window.open(url, "_blank");
               showSuccess("Opening WhatsApp chat for preview.");
             }
