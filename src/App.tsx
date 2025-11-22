@@ -53,6 +53,9 @@ import BackofficePage from "./pages/store-pos/Backoffice";
 import ReportsPage from "./pages/store-pos/Reports";
 import PosSettingsPage from "./pages/store-pos/PosSettings";
 
+// NEW: Session Context
+import { SessionContextProvider } from "./contexts/SessionContext";
+
 /* =========================================================================
     SIDEBAR NAVIGATION
 ========================================================================= */
@@ -331,7 +334,9 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <SidebarProvider defaultCollapsed={false}>
-              <RoutedApp />
+              <SessionContextProvider> {/* NEW: SessionContextProvider */}
+                <RoutedApp />
+              </SessionContextProvider>
             </SidebarProvider>
           </BrowserRouter>
         </TooltipProvider>
