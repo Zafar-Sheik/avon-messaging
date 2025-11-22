@@ -15,12 +15,12 @@ import {
 } from "@/components/ui/table";
 import { showError, showSuccess } from "@/utils/toast";
 import {
-  formatWhatsAppLink,
+  formatWhatsAppLink, // Keep this import for now, though not directly used for sending
   getGroupById,
   recordGroupMessageSent,
 } from "@/utils/groupStore";
 import type { Contact, Group } from "@/types/group";
-import { Send, Paperclip, Trash2, ExternalLink } from "lucide-react";
+import { Send, Paperclip, Trash2, ExternalLink } from "lucide-react"; // ExternalLink is no longer needed for sending
 import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast";
 
 interface MessageSenderProps {
@@ -201,35 +201,11 @@ const MessageSender: React.FC<MessageSenderProps> = ({
                   group.contacts.length !== 1 ? "s" : ""
                 }`}
           </Button>
-
-          <Button
-            variant="outline"
-            disabled={
-              group.contacts.length === 0 ||
-              (!message.trim() && attachments.length === 0) || // Disable if no message and no attachments
-              isSendingBroadcast
-            }
-            onClick={() => {
-              const preview = group.contacts.map((c) =>
-                formatWhatsAppLink(c.phone, message)
-              );
-              const sample = preview.slice(0, 3);
-              showSuccess(
-                `Previewing ${preview.length} links. Opening 3 samples.`
-              );
-              for (const url of sample) window.open(url, "_blank");
-            }}
-            className="border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center gap-2 flex-1 justify-center text-sm sm:text-base"
-          >
-            <ExternalLink className="size-4" />
-            Preview Links
-          </Button>
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-xs sm:text-sm text-blue-700">
-            <strong>Note:</strong> "Send to Contacts" now uses a server-side
-            broadcast. Preview links to test individual messages.
+            <strong>Note:</strong> Messages are sent via the WAHA API. Ensure your WAHA API settings are configured in the Settings page.
           </p>
         </div>
       </div>
