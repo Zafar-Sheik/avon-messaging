@@ -167,24 +167,24 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
                         {(f.size / 1024).toFixed(1)} KB
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() =>
-                        setAttachments((prev) =>
-                          prev.filter((_, i) => i !== idx)
-                        )
-                      }
-                      className="text-gray-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0 h-7 w-7 sm:h-9 sm:w-9"
-                    >
-                      <Trash2 className="size-3 sm:size-4" />
-                    </Button>
                   </div>
-                ))}
-              </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      setAttachments((prev) =>
+                        prev.filter((_, i) => i !== idx)
+                      )
+                    }
+                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0 h-7 w-7 sm:h-9 sm:w-9"
+                  >
+                    <Trash2 className="size-3 sm:size-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2 pt-2">
