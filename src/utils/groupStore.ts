@@ -2,6 +2,7 @@ import { Group, Contact, SentHistoryItem } from "@/types/group";
 import { supabase } from "@/integrations/supabase/client"; // Import Supabase client
 
 const STORAGE_KEY = "dyad_groups";
+const DIRECT_MESSAGES_GROUP_NAME = "Direct Messages"; // Special group name
 
 const uuid = () => {
   if ("crypto" in window && "randomUUID" in crypto) return crypto.randomUUID();
@@ -49,6 +50,43 @@ export const createGroup = (name: string): Group | undefined => {
   saveGroups(groups);
   return newGroup;
 };
+
+// NEW: Function to get or create the special "Direct Messages" group
+export const getOrCreateDirectMessagesGroup = (): Group => {
+  const groups = loadGroups();
+  let directMessagesGroup = groups.find(g => g.name === DIRECT_MESSAGES_GROUP_NAME);
+
+  if (!directMessagesGroup) {
+    directMessagesGroup = {
+      id: uuid(),
+      name: DIRECT_MESSAGES_GROUP_NAME,
+      contacts: [],
+      sentHistory: [],
+    };
+    groups.push(directMessagesGroup);
+    saveGroups(groups);
+  }
+  return directMessagesGroup;
+};
+
+// NEW: Function to get all contacts from all groups
+export const getAllContacts = (): Contact[] => {
+  const groups = loadGroups();
+  const allContacts: Contact[] = [];
+  const seenPhones = new Set<string>(); // To avoid duplicate contacts by phone number
+
+  for (const group of groups) {
+    for (const contact of group.contacts) {
+      const normalizedPhone = normalizePhone(contact.phone);
+      if (normalizedPhone && !seenPhones.has(normalizedPhone)) {
+        allContacts.push(contact);
+        seenPhones.add(normalizedPhone);
+      }
+    }
+  }
+  return allContacts;
+};
+
 
 const normalizePhone = (phone: string): string => {
   // WhatsApp expects international format without plus and only digits.

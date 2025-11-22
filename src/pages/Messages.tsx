@@ -11,9 +11,9 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { getGroups } from "@/utils/groupStore";
+import { getGroups, getAllContacts, getOrCreateDirectMessagesGroup } from "@/utils/groupStore"; // NEW: Import getAllContacts and getOrCreateDirectMessagesGroup
 import { getWhatsAppStats } from "@/utils/stats";
-import { MessageSquare, Send, Clock, Users, BarChart3 } from "lucide-react";
+import { MessageSquare, Send, Clock, Users, BarChart3, User } from "lucide-react"; // NEW: Import User icon
 import {
   Select,
   SelectTrigger,
@@ -22,17 +22,28 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import MessageSender from "@/components/MessageSender"; // Import the new component
+import MessageSender from "@/components/MessageSender";
+import DirectMessageSender from "@/components/DirectMessageSender"; // NEW: Import DirectMessageSender
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // NEW: Import Tabs components
 import type { Contact } from "@/types/group";
 
 const MessagesPage = () => {
   const [groups, setGroups] = React.useState(getGroups());
   const [stats, setStats] = React.useState(getWhatsAppStats());
   const [selectedGroupId, setSelectedGroupId] = React.useState<string>("");
+  const [allContacts, setAllContacts] = React.useState<Contact[]>([]); // NEW: State for all contacts
 
   React.useEffect(() => {
-    setGroups(getGroups());
-    setStats(getWhatsAppStats());
+    const refreshData = () => {
+      setGroups(getGroups());
+      setStats(getWhatsAppStats());
+      setAllContacts(getAllContacts()); // NEW: Load all contacts
+      getOrCreateDirectMessagesGroup(); // Ensure the "Direct Messages" group exists
+    };
+    refreshData(); // Initial load
+
+    // You might want to set up an interval or event listener to refresh data if it changes elsewhere
+    // For now, a simple refresh on mount is sufficient.
   }, []);
 
   const history = groups.flatMap((g) =>
@@ -43,6 +54,7 @@ const MessagesPage = () => {
     // Refresh groups and stats after a message is sent
     setGroups(getGroups());
     setStats(getWhatsAppStats());
+    setAllContacts(getAllContacts()); // Refresh all contacts as well
   };
 
   const StatCard = ({
@@ -85,7 +97,7 @@ const MessagesPage = () => {
               Message History & Send
             </h1>
             <p className="text-gray-600 text-lg mt-2">
-              Track all your WhatsApp messages and send new broadcasts
+              Track all your WhatsApp messages and send new broadcasts or direct messages
             </p>
           </div>
         </div>
@@ -114,11 +126,11 @@ const MessagesPage = () => {
             icon={<BarChart3 className="size-5" />}
             label="Total Messages"
             value={history.length.toLocaleString()}
-            description="Across all groups"
+            description="Across all groups and direct messages"
           />
         </div>
 
-        {/* Send Broadcast Section */}
+        {/* Send Message Section (Tabs for Broadcast vs Direct) */}
         <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -126,52 +138,72 @@ const MessagesPage = () => {
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900">
-                Send New Broadcast
+                Send Messages
               </h2>
               <p className="text-gray-600 text-sm">
-                Select a group and send a WhatsApp message to all its contacts.
+                Choose to send a broadcast to a group or a direct message to an individual contact.
               </p>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="select-group-to-send">Select Group</Label>
-              <Select
-                value={selectedGroupId}
-                onValueChange={setSelectedGroupId}
-              >
-                <SelectTrigger id="select-group-to-send" className="w-full md:w-96">
-                  <SelectValue placeholder="Choose a group to send to" />
-                </SelectTrigger>
-                <SelectContent>
-                  {groups.length === 0 ? (
-                    <SelectItem value="__none" disabled>
-                      No groups found
-                    </SelectItem>
-                  ) : (
-                    groups.map((g) => (
-                      <SelectItem key={g.id} value={g.id}>
-                        <div className="flex items-center gap-2">
-                          {g.name}
-                          <span className="text-xs text-muted-foreground">
-                            ({g.contacts.length} contacts)
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+          <Tabs defaultValue="broadcast" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="broadcast" className="flex items-center gap-2">
+                <Users className="size-4" />
+                Group Broadcast
+              </TabsTrigger>
+              <TabsTrigger value="direct" className="flex items-center gap-2">
+                <User className="size-4" />
+                Direct Message
+              </TabsTrigger>
+            </TabsList>
 
-            {selectedGroupId && (
-              <MessageSender
-                groupId={selectedGroupId}
+            <TabsContent value="broadcast" className="pt-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="select-group-to-send">Select Group</Label>
+                <Select
+                  value={selectedGroupId}
+                  onValueChange={setSelectedGroupId}
+                >
+                  <SelectTrigger id="select-group-to-send" className="w-full md:w-96">
+                    <SelectValue placeholder="Choose a group to send to" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groups.length === 0 ? (
+                      <SelectItem value="__none" disabled>
+                        No groups found
+                      </SelectItem>
+                    ) : (
+                      groups.map((g) => (
+                        <SelectItem key={g.id} value={g.id}>
+                          <div className="flex items-center gap-2">
+                            {g.name}
+                            <span className="text-xs text-muted-foreground">
+                              ({g.contacts.length} contacts)
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {selectedGroupId && (
+                <MessageSender
+                  groupId={selectedGroupId}
+                  onMessageSent={handleMessageSent}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="direct" className="pt-4 space-y-4">
+              <DirectMessageSender
+                allContacts={allContacts}
                 onMessageSent={handleMessageSent}
               />
-            )}
-          </div>
+            </TabsContent>
+          </Tabs>
         </Card>
 
         {/* Message History Table */}
@@ -182,7 +214,7 @@ const MessagesPage = () => {
                 Message History
               </h2>
               <p className="text-gray-600 text-sm mt-1">
-                All sent messages across your groups
+                All sent messages across your groups and direct messages
               </p>
             </div>
             <Badge variant="secondary" className="text-sm font-medium">
@@ -197,7 +229,7 @@ const MessagesPage = () => {
                 No messages sent yet
               </h3>
               <p className="text-gray-600 max-w-md mx-auto">
-                Start sending WhatsApp messages to your groups to see the
+                Start sending WhatsApp messages to your groups or directly to contacts to see the
                 history here.
               </p>
             </div>
