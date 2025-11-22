@@ -33,10 +33,17 @@ serve(async (req) => {
       });
     }
 
-    const { message, contacts, wahaSettings } = await req.json();
+    const { message, contacts, attachments, wahaSettings } = await req.json(); // Receive attachments
 
-    if (!message || !Array.isArray(contacts) || contacts.length === 0) {
-      return new Response(JSON.stringify({ error: 'Message and contacts array are required.' }), {
+    if (!message && (!attachments || attachments.length === 0)) { // Message or attachments are required
+      return new Response(JSON.stringify({ error: 'Message or attachments are required.' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
+    if (!Array.isArray(contacts) || contacts.length === 0) {
+      return new Response(JSON.stringify({ error: 'Contacts array is required.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       });
@@ -51,38 +58,104 @@ serve(async (req) => {
 
     console.log(`User ${user.id} initiating broadcast to ${contacts.length} contacts using WAHA API.`);
     console.log(`Message: ${message}`);
+    console.log(`Attachments count: ${attachments ? attachments.length : 0}`);
 
     const successfulSends: string[] = [];
     const failedSends: { phone: string; error: string }[] = [];
 
     for (const contact of contacts) {
       try {
-        const wahaApiUrl = `${wahaSettings.baseUrl}/api/sendText`;
-        const payload = {
-          session: wahaSettings.sessionName,
-          chatId: `${contact.phone}@c.us`,
-          text: message,
-        };
+        const chatId = `${contact.phone}@c.us`;
+        let currentMessage = message; // Message to be used as caption or standalone text
 
-        const response = await fetch(wahaApiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Api-Key': wahaSettings.apiKey,
-          },
-          body: JSON.stringify(payload),
-        });
+        // Send attachments first, if any
+        if (attachments && attachments.length > 0) {
+          for (let i = 0; i < attachments.length; i++) {
+            const attachment = attachments[i];
+            const isImage = attachment.type.startsWith('image/');
+            const isVideo = attachment.type.startsWith('video/');
+            
+            let wahaApiUrl = `${wahaSettings.baseUrl}/api/sendFile`; // Default to sendFile
+            let payload: any = {
+              session: wahaSettings.sessionName,
+              chatId: chatId,
+              filename: attachment.name,
+              contentType: attachment.type,
+              content: attachment.data, // Base64 content
+            };
 
-        const responseData = await response.json();
+            if (isImage) {
+              wahaApiUrl = `${wahaSettings.baseUrl}/api/sendImage`;
+              payload = {
+                session: wahaSettings.sessionName,
+                chatId: chatId,
+                image: attachment.data, // Base64 image
+                caption: i === 0 ? currentMessage : undefined, // Only first attachment gets the message as caption
+              };
+            } else if (isVideo) {
+              wahaApiUrl = `${wahaSettings.baseUrl}/api/sendVideo`;
+              payload = {
+                session: wahaSettings.sessionName,
+                chatId: chatId,
+                video: attachment.data, // Base64 video
+                caption: i === 0 ? currentMessage : undefined, // Only first attachment gets the message as caption
+              };
+            } else {
+              // For other files, use sendFile. WAHA's sendFile usually supports caption.
+              payload.caption = i === 0 ? currentMessage : undefined;
+            }
 
-        if (response.ok && responseData.result === 'success') {
-          successfulSends.push(contact.phone);
-        } else {
-          // Capture more specific error message from WAHA API response
-          const errorMessage = responseData.message || responseData.error || 'WAHA API error';
-          failedSends.push({ phone: contact.phone, error: errorMessage });
-          console.error(`Failed to send to ${contact.phone}: ${errorMessage}`);
+            const response = await fetch(wahaApiUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Api-Key': wahaSettings.apiKey,
+              },
+              body: JSON.stringify(payload),
+            });
+
+            const responseData = await response.json();
+
+            if (!response.ok || responseData.result !== 'success') {
+              const errorMessage = responseData.message || responseData.error || `WAHA API error sending ${attachment.name}`;
+              throw new Error(errorMessage); // Propagate error to catch block
+            }
+            
+            // Clear message if it was used as a caption for the first attachment
+            if (i === 0 && currentMessage) {
+              currentMessage = ''; 
+            }
+          }
         }
+
+        // Send remaining text message if not already sent as a caption
+        if (currentMessage) {
+          const wahaApiUrl = `${wahaSettings.baseUrl}/api/sendText`;
+          const payload = {
+            session: wahaSettings.sessionName,
+            chatId: chatId,
+            text: currentMessage,
+          };
+
+          const response = await fetch(wahaApiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Api-Key': wahaSettings.apiKey,
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const responseData = await response.json();
+
+          if (!response.ok || responseData.result !== 'success') {
+            const errorMessage = responseData.message || responseData.error || 'WAHA API error sending text message';
+            throw new Error(errorMessage);
+          }
+        }
+        
+        successfulSends.push(contact.phone);
+
       } catch (apiError: any) {
         failedSends.push({ phone: contact.phone, error: apiError.message || 'Network or API call failed' });
         console.error(`Error sending to ${contact.phone}: ${apiError.message}`);

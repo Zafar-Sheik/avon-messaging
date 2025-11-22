@@ -46,8 +46,8 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
       showError("Please select a contact to send the message to.");
       return;
     }
-    if (!message.trim()) {
-      showError("Please enter a message.");
+    if (!message.trim() && attachments.length === 0) { // Message OR attachments are required
+      showError("Please enter a message or attach at least one file.");
       return;
     }
 
@@ -55,7 +55,7 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
     const finalMessage = message.trim();
     const contactsToSend = [selectedContact];
 
-    const result = await sendWhatsAppBroadcast(finalMessage, contactsToSend);
+    const result = await sendWhatsAppBroadcast(finalMessage, contactsToSend, attachments); // Pass attachments
     setIsSending(false);
 
     if (result.success) {
@@ -190,7 +190,7 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
       <div className="flex flex-col sm:flex-row gap-2 pt-2">
         <Button
           onClick={handleSendDirectMessage}
-          disabled={isSending || !message.trim() || !selectedContact}
+          disabled={isSending || (!message.trim() && attachments.length === 0) || !selectedContact}
           className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 flex-1 justify-center text-sm sm:text-base"
         >
           <Send className="size-4" />
@@ -199,7 +199,7 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
 
         <Button
           variant="outline"
-          disabled={!selectedContact || !message.trim() || isSending}
+          disabled={!selectedContact || (!message.trim() && attachments.length === 0) || isSending}
           onClick={() => {
             if (selectedContact) {
               const url = formatWhatsAppLink(selectedContact.phone, message);

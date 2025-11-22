@@ -56,8 +56,8 @@ const MessageSender: React.FC<MessageSenderProps> = ({
 
   const handleSendBroadcast = async () => {
     if (!group) return;
-    if (!message.trim()) {
-      showError("Please enter a message.");
+    if (!message.trim() && attachments.length === 0) { // Message OR attachments are required
+      showError("Please enter a message or attach at least one file.");
       return;
     }
     if (group.contacts.length === 0) {
@@ -67,7 +67,7 @@ const MessageSender: React.FC<MessageSenderProps> = ({
 
     setIsSendingBroadcast(true);
     const finalMessage = buildMessageWithReply(message);
-    const result = await sendWhatsAppBroadcast(finalMessage, group.contacts);
+    const result = await sendWhatsAppBroadcast(finalMessage, group.contacts, attachments); // Pass attachments
     setIsSendingBroadcast(false);
 
     // NEW: Log the result of the broadcast for debugging
@@ -189,7 +189,7 @@ const MessageSender: React.FC<MessageSenderProps> = ({
             onClick={handleSendBroadcast}
             disabled={
               isSendingBroadcast ||
-              !message.trim() ||
+              (!message.trim() && attachments.length === 0) || // Disable if no message and no attachments
               group.contacts.length === 0
             }
             className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 flex-1 justify-center text-sm sm:text-base"
@@ -206,7 +206,7 @@ const MessageSender: React.FC<MessageSenderProps> = ({
             variant="outline"
             disabled={
               group.contacts.length === 0 ||
-              !message.trim() ||
+              (!message.trim() && attachments.length === 0) || // Disable if no message and no attachments
               isSendingBroadcast
             }
             onClick={() => {
