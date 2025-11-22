@@ -27,15 +27,18 @@ serve(async (req) => {
     // Get the user from the JWT
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
+      console.error('Edge Function: Unauthorized - No user found in JWT.');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 401,
       });
     }
+    console.log(`Edge Function: User ${user.id} authenticated.`);
 
-    const { message, contacts, attachments, wahaSettings } = await req.json(); // Receive attachments
+    const { message, contacts, attachments, wahaSettings } = await req.json();
 
-    if (!message && (!attachments || attachments.length === 0)) { // Message or attachments are required
+    if (!message && (!attachments || attachments.length === 0)) {
+      console.error('Edge Function: Validation failed - Message or attachments are required.');
       return new Response(JSON.stringify({ error: 'Message or attachments are required.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
@@ -43,6 +46,7 @@ serve(async (req) => {
     }
 
     if (!Array.isArray(contacts) || contacts.length === 0) {
+      console.error('Edge Function: Validation failed - Contacts array is required and cannot be empty.');
       return new Response(JSON.stringify({ error: 'Contacts array is required.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
@@ -50,15 +54,20 @@ serve(async (req) => {
     }
 
     if (!wahaSettings || !wahaSettings.baseUrl || !wahaSettings.apiKey || !wahaSettings.sessionName || !wahaSettings.phoneNumber) {
+      console.error('Edge Function: Validation failed - WhatsApp API settings (baseUrl, apiKey, sessionName, phoneNumber) are required.');
       return new Response(JSON.stringify({ error: 'WhatsApp API settings (baseUrl, apiKey, sessionName, phoneNumber) are required.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       });
     }
 
-    console.log(`User ${user.id} initiating broadcast to ${contacts.length} contacts using WAHA API.`);
-    console.log(`Message: ${message}`);
-    console.log(`Attachments count: ${attachments ? attachments.length : 0}`);
+    console.log(`Edge Function: User ${user.id} initiating broadcast to ${contacts.length} contacts using WAHA API.`);
+    console.log(`Edge Function: Message: ${message ? message.substring(0, 50) + '...' : '[No message]'}`);
+    console.log(`Edge Function: Attachments count: ${attachments ? attachments.length : 0}`);
+    console.log(`Edge Function: WAHA Base URL: ${wahaSettings.baseUrl}`);
+    console.log(`Edge Function: WAHA Session Name: ${wahaSettings.sessionName}`);
+    console.log(`Edge Function: WAHA Phone Number: ${wahaSettings.phoneNumber}`);
+
 
     const successfulSends: string[] = [];
     const failedSends: { phone: string; error: string }[] = [];
@@ -105,6 +114,7 @@ serve(async (req) => {
               payload.caption = i === 0 ? currentMessage : undefined;
             }
 
+            console.log(`Edge Function: Sending attachment ${attachment.name} to ${contact.phone} via ${wahaApiUrl}`);
             const response = await fetch(wahaApiUrl, {
               method: 'POST',
               headers: {
@@ -115,6 +125,7 @@ serve(async (req) => {
             });
 
             const responseData = await response.json();
+            console.log(`Edge Function: WAHA API response for attachment to ${contact.phone}:`, responseData);
 
             if (!response.ok || responseData.result !== 'success') {
               const errorMessage = responseData.message || responseData.error || `WAHA API error sending ${attachment.name}`;
@@ -137,6 +148,7 @@ serve(async (req) => {
             text: currentMessage,
           };
 
+          console.log(`Edge Function: Sending text message to ${contact.phone} via ${wahaApiUrl}`);
           const response = await fetch(wahaApiUrl, {
             method: 'POST',
             headers: {
@@ -147,6 +159,7 @@ serve(async (req) => {
           });
 
           const responseData = await response.json();
+          console.log(`Edge Function: WAHA API response for text to ${contact.phone}:`, responseData);
 
           if (!response.ok || responseData.result !== 'success') {
             const errorMessage = responseData.message || responseData.error || 'WAHA API error sending text message';
@@ -158,24 +171,24 @@ serve(async (req) => {
 
       } catch (apiError: any) {
         failedSends.push({ phone: contact.phone, error: apiError.message || 'Network or API call failed' });
-        console.error(`Error sending to ${contact.phone}: ${apiError.message}`);
+        console.error(`Edge Function: Error sending to ${contact.phone}: ${apiError.message}`);
       }
     }
 
-    console.log(`Broadcast completed. Successful: ${successfulSends.length}, Failed: ${failedSends.length}`);
+    console.log(`Edge Function: Broadcast completed. Successful: ${successfulSends.length}, Failed: ${failedSends.length}`);
 
     return new Response(JSON.stringify({
       message: 'Broadcast initiated successfully.',
       successfulSends: successfulSends.length,
-      failedSends: failedSends.length,
+      failedSends: failed.length,
       details: { successfulSends, failedSends },
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
 
-  } catch (error) {
-    console.error('Error in broadcast-whatsapp function:', error.message);
+  } catch (error: any) {
+    console.error('Edge Function: Uncaught error in broadcast-whatsapp function:', error.message, error.stack);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,

@@ -42,6 +42,16 @@ export const sendWhatsAppBroadcast = async (
   const toastId = showLoading("Sending broadcast...");
 
   try {
+    // NEW: Client-side authentication check
+    const { data: userRes } = await supabase.auth.getUser();
+    if (!userRes.user) {
+      dismissToast(toastId.toString());
+      const errorMessage = "You must be signed in to send messages.";
+      showError(errorMessage);
+      logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', details: 'User not authenticated' });
+      return { success: false, error: errorMessage };
+    }
+
     const appSettings = getAppSettings();
     const { wahaBaseUrl, wahaApiKey, wahaSessionName, wahaPhoneNumber } = appSettings;
 
@@ -76,7 +86,12 @@ export const sendWhatsAppBroadcast = async (
     if (error) {
       console.error("Error object from supabase.functions.invoke:", error);
       dismissToast(toastId.toString());
-      const errorMessage = `Failed to invoke broadcast function: ${error.message || "Unknown error"}`;
+      let errorMessage = `Failed to invoke broadcast function: ${error.message || "Unknown error"}`;
+      if (error.status === 401) {
+        errorMessage = "Authentication failed for the broadcast function. Please ensure you are signed in.";
+      } else if (error.status === 400) {
+        errorMessage = `Invalid request to broadcast function: ${error.message || "Check message content or contacts."}`;
+      }
       showError(errorMessage);
       logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', supabaseError: error });
       return { success: false, error: error.message };
