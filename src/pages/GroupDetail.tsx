@@ -28,15 +28,14 @@ import {
   recordGroupMessageSent,
   updateContactInGroup,
   deleteContactFromGroup,
-  formatWhatsAppLink, // Keep this import for now, though not directly used for sending
+  formatWhatsAppLink,
 } from "@/utils/groupStore";
 import type { Group } from "@/types/group";
-import { Send, Paperclip, Trash2, ArrowLeft, ExternalLink, Phone, Calendar, Pencil, History, MoreVertical } from "lucide-react"; // ExternalLink is no longer needed for sending
+import { Send, Paperclip, Trash2, ArrowLeft, ExternalLink, Phone, Calendar, Pencil, History } from "lucide-react";
 import EditGroupDialog from "@/components/EditGroupDialog";
 import DeleteGroupAlert from "@/components/DeleteGroupAlert";
 import { getReplyNowLink } from "@/utils/replyLink";
 import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast";
-import MessageSender from "@/components/MessageSender"; // Import the new component
 
 // Helper to build message with a hardcoded reply link
 const buildMessageWithReply = (original: string): string => {
@@ -65,7 +64,6 @@ const GroupDetailPage: React.FC = () => {
   const [isEditGroupOpen, setIsEditGroupOpen] = React.useState(false);
   const [isDeleteGroupAlertOpen, setIsDeleteGroupAlertOpen] = React.useState(false);
   const [isSendingBroadcast, setIsSendingBroadcast] = React.useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false); // State for mobile menu
 
   React.useEffect(() => {
     if (!id) return;
@@ -150,10 +148,32 @@ const GroupDetailPage: React.FC = () => {
     }
   };
 
-  // Callback for MessageSender when a message is successfully sent
-  const handleMessageSent = () => {
-    // Refresh the group state in this dialog
-    refresh();
+  const handleSendBroadcast = async () => {
+    if (!group) return;
+    if (!message.trim()) {
+      showError("Please enter a message.");
+      return;
+    }
+    if (group.contacts.length === 0) {
+      showError("No contacts in this group to send a broadcast to.");
+      return;
+    }
+
+    setIsSendingBroadcast(true);
+    const finalMessage = buildMessageWithReply(message);
+    const result = await sendWhatsAppBroadcast(finalMessage, group.contacts);
+    setIsSendingBroadcast(false);
+
+    if (result.success) {
+      // Record the message in local history after successful (simulated) broadcast
+      const { updated } = await recordGroupMessageSent(group.id, finalMessage, group.contacts); // Await the async function
+      if (updated) {
+        setGroup(updated);
+        setMessage("");
+        setAttachments([]); // Clear attachments as well
+        refresh();
+      }
+    }
   };
 
   if (!group) {
@@ -367,7 +387,102 @@ const GroupDetailPage: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="send" className="space-y-3 pt-3">
-            <MessageSender groupId={group.id} onMessageSent={handleMessageSent} />
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type the WhatsApp message to send to all contacts in this group..."
+              className="min-h-24"
+            />
+            <div className="rounded-md border p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Paperclip className="h-4 w-4" />
+                  <span>Attachments (optional)</span>
+                </div>
+                {attachments.length > 0 && (
+                  <button
+                    className="text-sm text-muted-foreground hover:text-foreground"
+                    onClick={() => setAttachments([])}>
+                    Clear all
+                  </button>
+                )}
+              </div>
+              <Input
+                type="file"
+                multiple
+                accept="image/*,application/*"
+                onChange={(e) =>
+                  setAttachments(
+                    e.target.files ? Array.from(e.target.files) : []
+                  )
+                }
+              />
+              {attachments.length > 0 && (
+                <div className="rounded-md border">
+                  <div className="max-h-40 overflow-auto divide-y">
+                    {attachments.map((f, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2">
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium">
+                            {f.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {f.type || "Unknown"} • {(f.size / 1024).toFixed(1)}{" "}
+                            KB
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            setAttachments((prev) =>
+                              prev.filter((_, i) => i !== idx)
+                            )
+                          }
+                          title="Remove">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                onClick={handleSendBroadcast}
+                disabled={isSendingBroadcast || !message.trim() || group.contacts.length === 0}
+                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
+                <Send className="size-4" />
+                {isSendingBroadcast ? "Sending..." : `Send to ${group.contacts.length} Contacts`}
+              </Button>
+
+              <Button
+                variant="outline"
+                disabled={group.contacts.length === 0 || !message.trim() || isSendingBroadcast}
+                onClick={() => {
+                  const preview = group.contacts.map((c) =>
+                    formatWhatsAppLink(c.phone, message)
+                  );
+                  const sample = preview.slice(0, 3);
+                  showSuccess(
+                    `Previewing ${preview.length} links. Opening 3 samples.`
+                  );
+                  for (const url of sample) window.open(url, "_blank");
+                }}
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                <ExternalLink className="size-4" />
+                Preview Links
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Use "Send to Contacts" to open WhatsApp chats in your browser. Preview links to test before sending to all
+              contacts.
+            </p>
           </TabsContent>
 
           <TabsContent value="history" className="space-y-3 pt-3">
