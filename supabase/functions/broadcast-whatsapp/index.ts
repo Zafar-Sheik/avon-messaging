@@ -24,16 +24,23 @@ serve(async (req) => {
       }
     );
 
-    // Get the user from the JWT
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) {
-      console.error('Edge Function: Unauthorized - No user found in JWT.');
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 401,
-      });
-    }
-    console.log(`Edge Function: User ${user.id} authenticated.`);
+    // ⚠️ TEMPORARY BYPASS FOR TESTING:
+    // In a production environment, ensure user authentication is enforced.
+    // The following lines are commented out to bypass the user check as requested.
+    // const { data: { user } } = await supabaseClient.auth.getUser();
+    // if (!user) {
+    //   console.error('Edge Function: Unauthorized - No user found in JWT.');
+    //   return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    //     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    //     status: 401,
+    //   });
+    // }
+    // console.log(`Edge Function: User ${user.id} authenticated.`);
+    
+    // Mock user for testing purposes when authentication is bypassed
+    const user = { id: 'anonymous_test_user' }; 
+    console.warn('Edge Function: User authentication bypassed for testing purposes. DO NOT USE IN PRODUCTION.');
+    // ⚠️ END TEMPORARY BYPASS
 
     const { message, contacts, attachments, wahaSettings } = await req.json();
 
@@ -180,7 +187,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       message: 'Broadcast initiated successfully.',
       successfulSends: successfulSends.length,
-      failedSends: failed.length,
+      failedSends: failedSends.length,
       details: { successfulSends, failedSends },
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
