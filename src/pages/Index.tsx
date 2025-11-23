@@ -1,10 +1,17 @@
 "use client";
+import DashboardStats from "@/components/DashboardStats";
+import QuickLinks from "@/components/QuickLinks";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   return (
     <div className="min-h-screen p-4 bg-background">
-      <h1 className="text-2xl font-bold">Welcome! You are logged in.</h1>
-      <p className="text-muted-foreground mt-2">If you see this, the login and routing are working correctly.</p>
+      <div className="p-4">
+        <DashboardStats />
+      </div>
+      <div className="p-4">
+        <QuickLinks />
+      </div>
     </div>
   );
 };

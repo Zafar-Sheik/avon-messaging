@@ -53,10 +53,6 @@ import BackofficePage from "./pages/store-pos/Backoffice";
 import ReportsPage from "./pages/store-pos/Reports";
 import PosSettingsPage from "./pages/store-pos/PosSettings";
 
-// Contexts
-import { SessionContextProvider } from "./contexts/SessionContext";
-import AuthGuard from "./components/AuthGuard"; // NEW: Import AuthGuard
-
 /* =========================================================================
     SIDEBAR NAVIGATION
 ========================================================================= */
@@ -297,33 +293,28 @@ const RoutedApp = () => {
       <SidebarInset>
         <main className="flex-1 overflow-auto p-6 lg:p-6 pt-16 lg:pt-6">
           <Routes>
-            {/* Public routes */}
+            <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="*" element={<NotFound />} /> {/* Catch-all for non-existent routes */}
-
-            {/* Protected routes */}
-            <Route element={<AuthGuard />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/groups" element={<GroupsPage />} />
-              <Route path="/groups/:id" element={<GroupDetailPage />} />
-              <Route path="/messages" element={<MessagesPage />} />
-              <Route path="/uploads" element={<UploadsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/scheduler" element={<SchedulerPage />} />
-              <Route path="/reminders" element={<RemindersPage />} />
-              <Route path="/store-pos" element={<StorePosPage />} />
-              <Route path="/store-pos/sales" element={<SalesPage />} />
-              <Route
-                path="/store-pos/stock-control"
-                element={<StockControlPage />}
-              />
-              <Route path="/store-pos/supplier" element={<SupplierPage />} />
-              <Route path="/store-pos/customer" element={<CustomerPage />} />
-              <Route path="/store-pos/backoffice" element={<BackofficePage />} />
-              <Route path="/store-pos/reports" element={<ReportsPage />} />
-              <Route path="/store-pos/settings" element={<PosSettingsPage />} />
-            </Route>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/groups" element={<GroupsPage />} />
+            <Route path="/groups/:id" element={<GroupDetailPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/uploads" element={<UploadsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/scheduler" element={<SchedulerPage />} />
+            <Route path="/reminders" element={<RemindersPage />} />
+            <Route path="/store-pos" element={<StorePosPage />} />
+            <Route path="/store-pos/sales" element={<SalesPage />} />
+            <Route
+              path="/store-pos/stock-control"
+              element={<StockControlPage />}
+            />
+            <Route path="/store-pos/supplier" element={<SupplierPage />} />
+            <Route path="/store-pos/customer" element={<CustomerPage />} />
+            <Route path="/store-pos/backoffice" element={<BackofficePage />} />
+            <Route path="/store-pos/reports" element={<ReportsPage />} />
+            <Route path="/store-pos/settings" element={<PosSettingsPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
       </SidebarInset>
@@ -340,9 +331,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <SidebarProvider defaultCollapsed={false}>
-              <SessionContextProvider>
-                <RoutedApp />
-              </SessionContextProvider>
+              <RoutedApp />
             </SidebarProvider>
           </BrowserRouter>
         </TooltipProvider>

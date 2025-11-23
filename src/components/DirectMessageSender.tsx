@@ -21,7 +21,6 @@ import {
 import type { Contact } from "@/types/group";
 import { Send, Paperclip, Trash2 } from "lucide-react"; // Removed ExternalLink
 import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast";
-import { useSession } from "@/contexts/SessionContext"; // NEW: Import useSession
 
 interface DirectMessageSenderProps {
   allContacts: Contact[];
@@ -32,7 +31,6 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
   allContacts,
   onMessageSent,
 }) => {
-  const { user, isLoading } = useSession(); // NEW: Get user and isLoading from session context
   const [inputMode, setInputMode] = React.useState<"select" | "manual">(
     "select"
   ); // New state for input mode
@@ -95,8 +93,6 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
     }
   };
 
-  const isSendDisabled = isLoading || !user || isSending || (!message.trim() && attachments.length === 0) || !targetContact;
-
   return (
     <div className="space-y-4 m-0 h-full">
       <div className="space-y-2">
@@ -107,7 +103,6 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
           value={inputMode}
           onValueChange={(value: "select" | "manual") => setInputMode(value)}
           className="flex gap-4"
-          disabled={isLoading || !user} // Disable radio group if not authenticated
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="select" id="select-contact" />
@@ -131,7 +126,7 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
           <Select
             value={selectedContactId}
             onValueChange={setSelectedContactId}
-            disabled={allContacts.length === 0 || isLoading || !user} // Disable select if not authenticated
+            disabled={allContacts.length === 0}
           >
             <SelectTrigger id="select-contact-to-send" className="w-full md:w-96">
               <SelectValue placeholder="Choose a contact" />
@@ -172,7 +167,6 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
             value={manualPhoneNumber}
             onChange={(e) => setManualPhoneNumber(e.target.value)}
             className="w-full md:w-96"
-            disabled={isLoading || !user} // Disable input if not authenticated
           />
           <p className="text-xs text-muted-foreground">
             Enter the phone number in international format (e.g., 27821234567 for South Africa).
@@ -189,7 +183,6 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type your WhatsApp message here..."
           className="min-h-32 resize-none border-gray-300 focus:border-blue-500 text-sm"
-          disabled={isLoading || !user} // Disable input if not authenticated
         />
       </div>
 
@@ -207,7 +200,6 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
               size="sm"
               onClick={() => setAttachments([])}
               className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs"
-              disabled={isLoading || !user} // Disable clear button if not authenticated
             >
               <Trash2 className="size-3 sm:size-4 mr-1" />
               Clear All
@@ -223,7 +215,6 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
             setAttachments(e.target.files ? Array.from(e.target.files) : [])
           }
           className="border-gray-300 text-sm"
-          disabled={isLoading || !user} // Disable input if not authenticated
         />
 
         {attachments.length > 0 && (
@@ -255,7 +246,6 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
                       )
                     }
                     className="text-gray-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0 h-7 w-7 sm:h-9 sm:w-9"
-                    disabled={isLoading || !user} // Disable delete button if not authenticated
                   >
                     <Trash2 className="size-3 sm:size-4" />
                   </Button>
@@ -269,11 +259,15 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
       <div className="flex flex-col sm:flex-row gap-2 pt-2">
         <Button
           onClick={handleSendDirectMessage}
-          disabled={isSendDisabled} // NEW: Use isSendDisabled
+          disabled={
+            isSending ||
+            (!message.trim() && attachments.length === 0) ||
+            !targetContact
+          }
           className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 flex-1 justify-center text-sm sm:text-base"
         >
           <Send className="size-4" />
-          {isLoading ? "Loading..." : !user ? "Sign in to Send" : isSending ? "Sending..." : "Send Direct Message"}
+          {isSending ? "Sending..." : "Send Direct Message"}
         </Button>
 
         {/* Removed Preview Link button */}

@@ -21,7 +21,6 @@ import {
 import type { Contact, Group } from "@/types/group";
 import { Send, Paperclip, Trash2 } from "lucide-react"; // Removed ExternalLink
 import { sendWhatsAppBroadcast } from "@/utils/whatsappBroadcast";
-import { useSession } from "@/contexts/SessionContext"; // NEW: Import useSession
 
 interface MessageSenderProps {
   groupId: string;
@@ -37,7 +36,6 @@ const MessageSender: React.FC<MessageSenderProps> = ({
   groupId,
   onMessageSent,
 }) => {
-  const { user, isLoading } = useSession(); // NEW: Get user and isLoading from session context
   const [group, setGroup] = React.useState<Group | undefined>(
     getGroupById(groupId)
   );
@@ -94,8 +92,6 @@ const MessageSender: React.FC<MessageSenderProps> = ({
     );
   }
 
-  const isSendDisabled = isLoading || !user || isSendingBroadcast || (!message.trim() && attachments.length === 0) || group.contacts.length === 0;
-
   return (
     <div className="space-y-4 m-0 h-full">
       <div className="space-y-4">
@@ -108,7 +104,6 @@ const MessageSender: React.FC<MessageSenderProps> = ({
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your WhatsApp message here... This message will be sent to all contacts in this group."
             className="min-h-32 resize-none border-gray-300 focus:border-blue-500 text-sm"
-            disabled={isLoading || !user} // Disable input if not authenticated
           />
         </div>
 
@@ -126,7 +121,6 @@ const MessageSender: React.FC<MessageSenderProps> = ({
                 size="sm"
                 onClick={() => setAttachments([])}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs"
-                disabled={isLoading || !user} // Disable clear button if not authenticated
               >
                 <Trash2 className="size-3 sm:size-4 mr-1" />
                 Clear All
@@ -142,7 +136,6 @@ const MessageSender: React.FC<MessageSenderProps> = ({
               setAttachments(e.target.files ? Array.from(e.target.files) : [])
             }
             className="border-gray-300 text-sm"
-            disabled={isLoading || !user} // Disable input if not authenticated
           />
 
           {attachments.length > 0 && (
@@ -174,7 +167,6 @@ const MessageSender: React.FC<MessageSenderProps> = ({
                         )
                       }
                       className="text-gray-400 hover:text-red-600 hover:bg-red-50 flex-shrink-0 h-7 w-7 sm:h-9 sm:w-9"
-                      disabled={isLoading || !user} // Disable delete button if not authenticated
                     >
                       <Trash2 className="size-3 sm:size-4" />
                     </Button>
@@ -188,11 +180,15 @@ const MessageSender: React.FC<MessageSenderProps> = ({
         <div className="flex flex-col sm:flex-row gap-2 pt-2">
           <Button
             onClick={handleSendBroadcast}
-            disabled={isSendDisabled} // NEW: Use isSendDisabled
+            disabled={
+              isSendingBroadcast ||
+              (!message.trim() && attachments.length === 0) || // Disable if no message and no attachments
+              group.contacts.length === 0
+            }
             className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 flex-1 justify-center text-sm sm:text-base"
           >
             <Send className="size-4" />
-            {isLoading ? "Loading..." : !user ? "Sign in to Send" : isSendingBroadcast
+            {isSendingBroadcast
               ? "Sending..."
               : `Send to ${group.contacts.length} Contact${
                   group.contacts.length !== 1 ? "s" : ""

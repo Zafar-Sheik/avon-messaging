@@ -3,7 +3,7 @@
 import React from "react";
 import DashboardStats from "@/components/DashboardStats";
 import Reminders from "@/components/Reminders";
-import PosDashboardStats from "@/components/PosDashboardStats";
+import QuickLinks from "@/components/QuickLinks";
 
 const DashboardPage = () => {
   return (
@@ -11,7 +11,6 @@ const DashboardPage = () => {
       <div className="max-w-full mx-auto p-6 space-y-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <DashboardStats />
-        <PosDashboardStats />
         <Reminders />
       </div>
     </div>
