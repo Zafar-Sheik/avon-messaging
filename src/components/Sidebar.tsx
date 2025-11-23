@@ -188,8 +188,7 @@ export const SidebarInset = ({
 }) => (
   <div
     className={cn(
-      "flex-1 flex flex-col bg-white relative",
-      "lg:ml-0 transition-all",
+      "flex-1 flex flex-col bg-white relative", // Removed "lg:ml-0 transition-all"
       className
     )}>
     {children}
