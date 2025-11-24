@@ -41,15 +41,7 @@ const GroupManager: React.FC = () => {
 
   return (
     <div className="max-w-full mx-auto w-full p-6 space-y-8">
-      {/* Header Section */}
-      <div className="text-center md:text-left">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Group Management
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl">
-          Create and manage contact groups for your WhatsApp campaigns
-        </p>
-      </div>
+   
 
       {/* Create Group Card */}
       <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
