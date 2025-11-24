@@ -12,17 +12,12 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = React.useState(true);
 
-  // Removed the useEffect for session checking here.
-  // Relying on ProtectedRoute for initial session check and redirection.
   React.useEffect(() => {
-    // Still need to set loading to false so the Auth component renders.
-    // This useEffect will only run once on mount.
     setLoading(false);
   }, []);
 
   const handleAuthError = (error: Error) => {
-    console.error("Supabase Auth UI Error:", error.message);
-    // You might want to display a toast or alert here
+    console.error("Supabase Auth UI Error:", error); // Log the full error object
   };
 
   if (loading) {
@@ -47,8 +42,8 @@ const Login: React.FC = () => {
             magicLink={true}
             appearance={{ theme: ThemeSupa }}
             theme="light"
-            redirectTo={window.location.origin + '/'} // Explicitly set redirect URL
-            onError={handleAuthError} // Log errors from the Auth component
+            redirectTo={window.location.origin + '/'}
+            onError={handleAuthError}
           />
         </CardContent>
       </Card>
