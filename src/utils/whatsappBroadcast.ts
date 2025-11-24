@@ -42,15 +42,16 @@ export const sendWhatsAppBroadcast = async (
   const toastId = showLoading("Sending broadcast...");
 
   try {
-    // NEW: Client-side authentication check
-    const { data: userRes } = await supabase.auth.getUser();
-    if (!userRes.user) {
-      dismissToast(toastId.toString());
-      const errorMessage = "You must be signed in to send messages.";
-      showError(errorMessage);
-      logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', details: 'User not authenticated' });
-      return { success: false, error: errorMessage };
-    }
+    // Removed client-side authentication check as requested.
+    // ⚠️ Security Warning: Messages can now be sent without a user being signed in.
+    // const { data: userRes } = await supabase.auth.getUser();
+    // if (!userRes.user) {
+    //   dismissToast(toastId.toString());
+    //   const errorMessage = "You must be signed in to send messages.";
+    //   showError(errorMessage);
+    //   logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', details: 'User not authenticated' });
+    //   return { success: false, error: errorMessage };
+    // }
 
     const appSettings = getAppSettings();
     const { wahaBaseUrl, wahaApiKey, wahaSessionName, wahaPhoneNumber } = appSettings;
