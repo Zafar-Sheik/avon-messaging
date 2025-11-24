@@ -1,1 +1,1 @@
-export const POS_EXIT_PASSWORD = "1234";
+export const POS_EXIT_PASSWORD = "786#";
