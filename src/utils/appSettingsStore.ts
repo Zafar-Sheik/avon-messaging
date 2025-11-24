@@ -39,7 +39,7 @@ export const getAppSettings = async (): Promise<AppSettings> => {
   try {
     const { data, error } = await supabase
       .from('app_config')
-      .select('allow_stock_below_cost, dont_sell_below_cost, slip_message1, slip_message2, slip_message3, base_url, api_token, session_name, phone_number')
+      .select('allow_stock_below_cost, dont_sell_below_cost, slip_message1, slip_message2, slip_message3, waha_base_url, waha_api_key, waha_session_name, waha_phone_number')
       .eq('user_id', user.id)
       .single();
 
@@ -55,10 +55,10 @@ export const getAppSettings = async (): Promise<AppSettings> => {
         slipMessage1: data.slip_message1 ?? defaultSettings.slipMessage1,
         slipMessage2: data.slip_message2 ?? defaultSettings.slipMessage2,
         slipMessage3: data.slip_message3 ?? defaultSettings.slipMessage3,
-        wahaBaseUrl: data.base_url ?? defaultSettings.wahaBaseUrl,
-        wahaApiKey: data.api_token ?? defaultSettings.wahaApiKey,
-        wahaSessionName: data.session_name ?? defaultSettings.wahaSessionName,
-        wahaPhoneNumber: data.phone_number ?? defaultSettings.wahaPhoneNumber,
+        wahaBaseUrl: data.waha_base_url ?? defaultSettings.wahaBaseUrl,
+        wahaApiKey: data.waha_api_key ?? defaultSettings.wahaApiKey,
+        wahaSessionName: data.waha_session_name ?? defaultSettings.wahaSessionName,
+        wahaPhoneNumber: data.waha_phone_number ?? defaultSettings.wahaPhoneNumber,
       };
     }
   } catch (err: any) {
@@ -83,10 +83,10 @@ export const saveAppSettings = async (settings: AppSettings): Promise<void> => {
       slip_message1: settings.slipMessage1,
       slip_message2: settings.slipMessage2,
       slip_message3: settings.slipMessage3,
-      base_url: settings.wahaBaseUrl,
-      api_token: settings.wahaApiKey,
-      session_name: settings.wahaSessionName,
-      phone_number: settings.wahaPhoneNumber,
+      waha_base_url: settings.wahaBaseUrl,
+      waha_api_key: settings.wahaApiKey,
+      waha_session_name: settings.wahaSessionName,
+      waha_phone_number: settings.wahaPhoneNumber,
       updated_at: new Date().toISOString(),
     };
 
