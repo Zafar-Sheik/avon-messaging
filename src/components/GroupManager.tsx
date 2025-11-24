@@ -49,14 +49,7 @@ const GroupManager: React.FC = () => {
           <div className="p-2 bg-blue-100 rounded-lg">
             <Users className="size-5 text-blue-600" />
           </div>
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">
-              Create New Group
-            </h2>
-            <p className="text-gray-600 text-sm">
-              Add a new group to organize your contacts
-            </p>
-          </div>
+          
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 items-end">
