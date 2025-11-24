@@ -45,7 +45,7 @@ export const sendWhatsAppBroadcast = async (
   const toastId = loadingToastId ? String(loadingToastId) : undefined; // Ensure toastId is a string
 
   try {
-    const appSettings = getAppSettings();
+    const appSettings = await getAppSettings(); // ADDED AWAIT HERE
     const { wahaBaseUrl, wahaApiKey, wahaSessionName, wahaPhoneNumber } = appSettings;
 
     if (!wahaBaseUrl || !wahaApiKey || !wahaSessionName || !wahaPhoneNumber) {

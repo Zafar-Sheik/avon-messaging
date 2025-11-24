@@ -67,29 +67,32 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
     }
 
     setIsSending(true);
-    const finalMessage = message.trim();
-    const contactsToSend = [targetContact];
+    try { // ADDED TRY BLOCK
+      const finalMessage = message.trim();
+      const contactsToSend = [targetContact];
 
-    const result = await sendWhatsAppBroadcast(
-      finalMessage,
-      contactsToSend,
-      attachments
-    );
-    setIsSending(false);
-
-    if (result.success) {
-      const directMessagesGroup = getOrCreateDirectMessagesGroup();
-      const { updated } = await recordGroupMessageSent(
-        directMessagesGroup.id,
+      const result = await sendWhatsAppBroadcast(
         finalMessage,
-        contactsToSend
+        contactsToSend,
+        attachments
       );
-      if (updated) {
-        setMessage("");
-        setAttachments([]);
-        setManualPhoneNumber(""); // Clear manual input after sending
-        onMessageSent(finalMessage, contactsToSend);
+      
+      if (result.success) {
+        const directMessagesGroup = getOrCreateDirectMessagesGroup();
+        const { updated } = await recordGroupMessageSent(
+          directMessagesGroup.id,
+          finalMessage,
+          contactsToSend
+        );
+        if (updated) {
+          setMessage("");
+          setAttachments([]);
+          setManualPhoneNumber(""); // Clear manual input after sending
+          onMessageSent(finalMessage, contactsToSend);
+        }
       }
+    } finally { // ADDED FINALLY BLOCK
+      setIsSending(false);
     }
   };
 

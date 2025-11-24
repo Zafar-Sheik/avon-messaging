@@ -59,26 +59,29 @@ const MessageSender: React.FC<MessageSenderProps> = ({
     }
 
     setIsSendingBroadcast(true);
-    const finalMessage = message.trim(); // Use message directly
-    const result = await sendWhatsAppBroadcast(finalMessage, group.contacts, attachments); // Pass attachments
-    setIsSendingBroadcast(false);
+    try { // ADDED TRY BLOCK
+      const finalMessage = message.trim(); // Use message directly
+      const result = await sendWhatsAppBroadcast(finalMessage, group.contacts, attachments); // Pass attachments
 
-    // NEW: Log the result of the broadcast for debugging
-    console.log("WhatsApp Broadcast Result:", result);
+      // NEW: Log the result of the broadcast for debugging
+      console.log("WhatsApp Broadcast Result:", result);
 
-    if (result.success) {
-      // Record the message in local history after successful (simulated) broadcast
-      const { updated } = await recordGroupMessageSent( // Await the async function
-        group.id,
-        finalMessage,
-        group.contacts
-      );
-      if (updated) {
-        setGroup(updated); // Update local group state
-        setMessage("");
-        setAttachments([]); // Clear attachments as well
-        onMessageSent(finalMessage, group.contacts); // Notify parent
+      if (result.success) {
+        // Record the message in local history after successful (simulated) broadcast
+        const { updated } = await recordGroupMessageSent( // Await the async function
+          group.id,
+          finalMessage,
+          group.contacts
+        );
+        if (updated) {
+          setGroup(updated); // Update local group state
+          setMessage("");
+          setAttachments([]); // Clear attachments as well
+          onMessageSent(finalMessage, group.contacts); // Notify parent
+        }
       }
+    } finally { // ADDED FINALLY BLOCK
+      setIsSendingBroadcast(false);
     }
   };
 
