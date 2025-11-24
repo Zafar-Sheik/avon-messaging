@@ -4,6 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// --- START DEBUG LOGS ---
+console.log("Supabase URL from env:", SUPABASE_URL);
+console.log("Supabase Publishable Key from env:", SUPABASE_PUBLISHABLE_KEY);
+// --- END DEBUG LOGS ---
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
