@@ -24,9 +24,9 @@ serve(async (req) => {
       }
     );
 
-    // ⚠️ TEMPORARY BYPASS FOR TESTING:
+    // User authentication is bypassed as requested.
     // In a production environment, ensure user authentication is enforced.
-    // The following lines are commented out to bypass the user check as requested.
+    // For now, we'll proceed without a user object.
     // const { data: { user } } = await supabaseClient.auth.getUser();
     // if (!user) {
     //   console.error('Edge Function: Unauthorized - No user found in JWT.');
@@ -37,10 +37,8 @@ serve(async (req) => {
     // }
     // console.log(`Edge Function: User ${user.id} authenticated.`);
     
-    // Mock user for testing purposes when authentication is bypassed
-    const user = { id: 'anonymous_test_user' }; 
-    console.warn('Edge Function: User authentication bypassed for testing purposes. DO NOT USE IN PRODUCTION.');
-    // ⚠️ END TEMPORARY BYPASS
+    // Since authentication is bypassed, we don't have a user object here.
+    // Any user-specific logic in the Edge Function would need to be adjusted or removed.
 
     const { message, contacts, attachments, wahaSettings } = await req.json();
 
@@ -68,7 +66,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Edge Function: User ${user.id} initiating broadcast to ${contacts.length} contacts using WAHA API.`);
+    console.log(`Edge Function: Initiating broadcast to ${contacts.length} contacts using WAHA API.`);
     console.log(`Edge Function: Message: ${message ? message.substring(0, 50) + '...' : '[No message]'}`);
     console.log(`Edge Function: Attachments count: ${attachments ? attachments.length : 0}`);
     console.log(`Edge Function: WAHA Base URL: ${wahaSettings.baseUrl}`);
