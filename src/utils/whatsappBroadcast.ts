@@ -34,47 +34,39 @@ const fileToBase64 = (file: File): Promise<ProcessedAttachment> => {
   });
 };
 
+const EDGE_FUNCTION_TIMEOUT_MS = 30000; // 30 seconds timeout
+
 export const sendWhatsAppBroadcast = async (
   message: string,
   contacts: Contact[],
   attachments: File[] = [] // Accept File objects
 ) => {
-  const toastId = showLoading("Sending broadcast...");
+  const loadingToastId = showLoading("Sending broadcast...");
+  const toastId = loadingToastId ? String(loadingToastId) : undefined; // Ensure toastId is a string
 
   try {
-    // Removed client-side authentication check as requested.
-    // ⚠️ Security Warning: Messages can now be sent without a user being signed in.
-    // const { data: userRes } = await supabase.auth.getUser();
-    // if (!userRes.user) {
-    //   dismissToast(toastId.toString());
-    //   const errorMessage = "You must be signed in to send messages.";
-    //   showError(errorMessage);
-    //   logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', details: 'User not authenticated' });
-    //   return { success: false, error: errorMessage };
-    // }
-
     const appSettings = getAppSettings();
     const { wahaBaseUrl, wahaApiKey, wahaSessionName, wahaPhoneNumber } = appSettings;
 
     if (!wahaBaseUrl || !wahaApiKey || !wahaSessionName || !wahaPhoneNumber) {
-      dismissToast(toastId.toString());
+      if (toastId) dismissToast(toastId);
       const errorMessage = "WAHA API settings are incomplete. Please configure them in Settings.";
       showError(errorMessage);
       logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', details: 'Missing WAHA settings' });
       return { success: false, error: errorMessage };
     }
 
-    // Convert attachments to base64
     const processedAttachments: ProcessedAttachment[] = await Promise.all(
       attachments.map(fileToBase64)
     );
 
     console.log("Attempting to invoke broadcast-whatsapp Edge Function...");
-    const { data, error } = await supabase.functions.invoke('broadcast-whatsapp', {
+
+    const invokePromise = supabase.functions.invoke('broadcast-whatsapp', {
       body: {
         message,
         contacts,
-        attachments: processedAttachments, // Pass processed attachments
+        attachments: processedAttachments,
         wahaSettings: {
           baseUrl: wahaBaseUrl,
           apiKey: wahaApiKey,
@@ -84,9 +76,15 @@ export const sendWhatsAppBroadcast = async (
       },
     });
 
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Edge Function timed out.")), EDGE_FUNCTION_TIMEOUT_MS)
+    );
+
+    const { data, error } = await Promise.race([invokePromise, timeoutPromise]) as { data: any, error: any };
+
     if (error) {
-      console.error("Error object from supabase.functions.invoke:", error);
-      dismissToast(toastId.toString());
+      console.error("Supabase function invocation error:", error);
+      if (toastId) dismissToast(toastId);
       let errorMessage = `Failed to invoke broadcast function: ${error.message || "Unknown error"}`;
       if (error.status === 401) {
         errorMessage = "Authentication failed for the broadcast function. Please ensure you are signed in.";
@@ -101,14 +99,14 @@ export const sendWhatsAppBroadcast = async (
     console.log("Data received from broadcast-whatsapp Edge Function:", data);
 
     if (!data || typeof data.successfulSends === 'undefined' || typeof data.failedSends === 'undefined') {
-      dismissToast(toastId.toString());
+      if (toastId) dismissToast(toastId);
       const errorMessage = "Invalid response from broadcast function. Please check Edge Function logs.";
       showError(errorMessage);
       logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', responseData: data });
       return { success: false, error: "Invalid response structure." };
     }
 
-    dismissToast(toastId.toString());
+    if (toastId) dismissToast(toastId);
 
     if (data.successfulSends === 0 && data.failedSends > 0) {
       const errorMessage = `Broadcast failed for all contacts. Failed: ${data.failedSends}. Please check your WAHA API settings and contact numbers.`;
@@ -124,7 +122,7 @@ export const sendWhatsAppBroadcast = async (
     
     return { success: true, data };
   } catch (err: any) {
-    dismissToast(toastId.toString());
+    if (toastId) dismissToast(toastId); // Ensure toast is dismissed on any caught error
     console.error("Caught unexpected error in sendWhatsAppBroadcast:", err);
     const errorMessage = err.message || "An unexpected error occurred while sending the broadcast.";
     showError(errorMessage);

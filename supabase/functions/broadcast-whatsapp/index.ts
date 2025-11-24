@@ -7,8 +7,10 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Edge Function: Request received.'); // Log start of request
   // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
+    console.log('Edge Function: Handling OPTIONS request.');
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -24,23 +26,10 @@ serve(async (req) => {
       }
     );
 
-    // User authentication is bypassed as requested.
-    // In a production environment, ensure user authentication is enforced.
-    // For now, we'll proceed without a user object.
-    // const { data: { user } } = await supabaseClient.auth.getUser();
-    // if (!user) {
-    //   console.error('Edge Function: Unauthorized - No user found in JWT.');
-    //   return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-    //     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    //     status: 401,
-    //   });
-    // }
-    // console.log(`Edge Function: User ${user.id} authenticated.`);
-    
-    // Since authentication is bypassed, we don't have a user object here.
-    // Any user-specific logic in the Edge Function would need to be adjusted or removed.
+    console.log('Edge Function: Supabase client created.');
 
     const { message, contacts, attachments, wahaSettings } = await req.json();
+    console.log('Edge Function: Request body parsed.');
 
     if (!message && (!attachments || attachments.length === 0)) {
       console.error('Edge Function: Validation failed - Message or attachments are required.');
