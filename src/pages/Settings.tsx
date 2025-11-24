@@ -29,7 +29,6 @@ import {
   Database,
   Save,
   Shield,
-  MessageCircle,
   Loader2,
 }
 from "lucide-react";
@@ -46,18 +45,12 @@ const SettingsPage = () => {
   const [regNumber, setRegNumber] = React.useState("");
   const [logoDataUrl, setLogoDataUrl] = React.useState<string | null>(null);
 
-  // App settings state
+  // App settings state (non-WAHA)
   const [allowStockBelowCost, setAllowStockBelowCost] = React.useState<boolean>(true);
   const [dontSellBelowCost, setDontSellBelowCost] = React.useState<boolean>(false);
   const [slipMessage1, setSlipMessage1] = React.useState<string>("");
   const [slipMessage2, setSlipMessage2] = React.useState<string>("");
   const [slipMessage3, setSlipMessage3] = React.useState<string>("");
-
-  // WhatsApp API settings state
-  const [wahaBaseUrl, setWahaBaseUrl] = React.useState<string>("");
-  const [wahaApiKey, setWahaApiKey] = React.useState<string>("");
-  const [wahaSessionName, setWahaSessionName] = React.useState<string>("");
-  const [wahaPhoneNumber, setWahaPhoneNumber] = React.useState<string>("");
 
   const [loadingAppSettings, setLoadingAppSettings] = React.useState(true);
   const [savingAppSettings, setSavingAppSettings] = React.useState(false);
@@ -85,10 +78,6 @@ const SettingsPage = () => {
     setSlipMessage1(s.slipMessage1 || "");
     setSlipMessage2(s.slipMessage2 || "");
     setSlipMessage3(s.slipMessage3 || "");
-    setWahaBaseUrl(s.wahaBaseUrl || "");
-    setWahaApiKey(s.wahaApiKey || "");
-    setWahaSessionName(s.wahaSessionName || "");
-    setWahaPhoneNumber(s.wahaPhoneNumber || "");
     setLoadingAppSettings(false);
   }, []);
 
@@ -135,20 +124,18 @@ const SettingsPage = () => {
     reader.readAsDataURL(file);
   };
 
-  // Handlers for App Settings (including new WhatsApp API settings)
+  // Handlers for App Settings (non-WAHA)
   const handleSaveAppSettings = async () => {
     setSavingAppSettings(true);
     try {
+      const currentSettings = await getAppSettings(); // Get all current settings
       await saveAppSettings({
+        ...currentSettings, // Spread existing settings to preserve WAHA fields
         allowStockBelowCost,
         dontSellBelowCost,
         slipMessage1: slipMessage1.trim(),
         slipMessage2: slipMessage2.trim(),
         slipMessage3: slipMessage3.trim(),
-        wahaBaseUrl: wahaBaseUrl.trim(),
-        wahaApiKey: wahaApiKey.trim(),
-        wahaSessionName: wahaSessionName.trim(),
-        wahaPhoneNumber: wahaPhoneNumber.trim(),
       });
       showSuccess("App settings saved successfully");
       await loadSettings(); // Re-fetch settings after successful save
@@ -163,7 +150,15 @@ const SettingsPage = () => {
   const handleClearAppSettings = async () => {
     setClearingAppSettings(true);
     try {
-      await clearAppSettings();
+      const currentSettings = await getAppSettings(); // Get all current settings
+      await saveAppSettings({
+        ...currentSettings, // Preserve WAHA settings
+        allowStockBelowCost: defaultSettings.allowStockBelowCost,
+        dontSellBelowCost: defaultSettings.dontSellBelowCost,
+        slipMessage1: defaultSettings.slipMessage1,
+        slipMessage2: defaultSettings.slipMessage2,
+        slipMessage3: defaultSettings.slipMessage3,
+      });
       showSuccess("App settings cleared");
       await loadSettings(); // Re-fetch settings after successful clear
     } catch (error) {
@@ -425,76 +420,78 @@ const SettingsPage = () => {
               </CardFooter>
             </Card>
 
-            {/* WAHA API Settings Card */}
+            {/* App Settings (non-WAHA) Card */}
             <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
               <CardHeader className="p-0 pb-6">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <MessageCircle className="size-5 text-green-600" />
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Settings2 className="size-5 text-purple-600" />
                   </div>
                   <div>
                     <CardTitle className="text-xl font-semibold text-gray-900">
-                      WAHA API Settings
+                      Slip & App Settings
                     </CardTitle>
                     <CardDescription>
-                      Configure your WAHA API integration details
+                      Configure slip messages and cost control switches for Store POS
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
+
               <CardContent className="p-0 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <Label htmlFor="waha-base-url" className="text-sm font-medium text-gray-700">
-                      Base URL
-                    </Label>
+                    <Label className="text-sm font-medium text-gray-700">Slip Message 1</Label>
                     <Input
-                      id="waha-base-url"
-                      placeholder="e.g., https://api.waha.dev"
-                      value={wahaBaseUrl}
-                      onChange={(e) => setWahaBaseUrl(e.target.value)}
-                      className="border-gray-300 focus:border-green-500"
+                      placeholder="Thank you for shopping with us!"
+                      value={slipMessage1}
+                      onChange={(e) => setSlipMessage1(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
                     />
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="waha-api-key" className="text-sm font-medium text-gray-700">
-                      API Key
-                    </Label>
+                    <Label className="text-sm font-medium text-gray-700">Slip Message 2</Label>
                     <Input
-                      id="waha-api-key"
-                      type="password"
-                      placeholder="Your WAHA API Key"
-                      value={wahaApiKey}
-                      onChange={(e) => setWahaApiKey(e.target.value)}
-                      className="border-gray-300 focus:border-green-500"
+                      placeholder="Keep your receipt for returns."
+                      value={slipMessage2}
+                      onChange={(e) => setSlipMessage2(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
                     />
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="waha-session-name" className="text-sm font-medium text-gray-700">
-                      Session Name
-                    </Label>
+                    <Label className="text-sm font-medium text-gray-700">Slip Message 3</Label>
                     <Input
-                      id="waha-session-name"
-                      placeholder="e.g., default"
-                      value={wahaSessionName}
-                      onChange={(e) => setWahaSessionName(e.target.value)}
-                      className="border-gray-300 focus:border-green-500"
+                      placeholder="Visit us again soon."
+                      value={slipMessage3}
+                      onChange={(e) => setSlipMessage3(e.target.value)}
+                      className="border-gray-300 focus:border-blue-500"
                     />
                   </div>
+
                   <div className="space-y-3">
-                    <Label htmlFor="waha-phone-number" className="text-sm font-medium text-gray-700">
-                      Phone Number (with country code)
-                    </Label>
-                    <Input
-                      id="waha-phone-number"
-                      placeholder="e.g., 27821234567"
-                      value={wahaPhoneNumber}
-                      onChange={(e) => setWahaPhoneNumber(e.target.value)}
-                      className="border-gray-300 focus:border-green-500"
-                    />
+                    <Label className="text-sm font-medium text-gray-700">Select Stock Below Cost</Label>
+                    <div className="flex items-center justify-between rounded-md border p-3">
+                      <span className="text-sm text-gray-600">Allow selecting items priced below cost</span>
+                      <Switch
+                        checked={allowStockBelowCost}
+                        onCheckedChange={setAllowStockBelowCost}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">Don't Sell Below Cost</Label>
+                    <div className="flex items-center justify-between rounded-md border p-3">
+                      <span className="text-sm text-gray-600">Block sales if any item price is below its cost</span>
+                      <Switch
+                        checked={dontSellBelowCost}
+                        onCheckedChange={setDontSellBelowCost}
+                      />
+                    </div>
                   </div>
                 </div>
               </CardContent>
+
               <CardFooter className="flex gap-3 justify-end pt-6 px-0">
                 <Button
                   variant="outline"
@@ -508,10 +505,10 @@ const SettingsPage = () => {
                 <Button
                   onClick={handleSaveAppSettings}
                   disabled={savingAppSettings || clearingAppSettings}
-                  className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                  className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
                 >
                   {savingAppSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="size-4" />}
-                  Save WAHA Settings
+                  Save POS Settings
                 </Button>
               </CardFooter>
             </Card>
