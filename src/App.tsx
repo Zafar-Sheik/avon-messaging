@@ -15,7 +15,7 @@ import {
   useSidebar,
 } from "@/components/Sidebar";
 
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom"; // Import Link
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import {
@@ -86,9 +86,9 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
         const active = isActive(item.path, item.exact);
 
         return (
-          <a
+          <Link // Changed from <a> to <Link>
             key={item.path}
-            href={item.path}
+            to={item.path} // Use 'to' prop for Link
             onClick={handleClick}
             className={cn(
               "flex items-center rounded-xl text-sm font-medium transition-all border border-transparent",
@@ -109,7 +109,7 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
             {!isCollapsed && (
               <span className="truncate text-base">{item.label}</span>
             )}
-          </a>
+          </Link>
         );
       })}
     </nav>
