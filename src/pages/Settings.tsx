@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { getAppSettings, saveAppSettings, clearAppSettings } from "@/utils/appSettingsStore";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 import { clearAllReminders } from "@/utils/reminderStore";
 import { clearAllGroups } from "@/utils/groupStore";
 import {
@@ -30,6 +30,7 @@ import {
   Save,
   Shield,
   MessageCircle,
+  Loader2,
 }
 from "lucide-react";
 
@@ -52,39 +53,47 @@ const SettingsPage = () => {
   const [slipMessage2, setSlipMessage2] = React.useState<string>("");
   const [slipMessage3, setSlipMessage3] = React.useState<string>("");
 
-  // NEW: WhatsApp API settings state
+  // WhatsApp API settings state
   const [wahaBaseUrl, setWahaBaseUrl] = React.useState<string>("");
   const [wahaApiKey, setWahaApiKey] = React.useState<string>("");
   const [wahaSessionName, setWahaSessionName] = React.useState<string>("");
   const [wahaPhoneNumber, setWahaPhoneNumber] = React.useState<string>("");
 
+  const [loadingAppSettings, setLoadingAppSettings] = React.useState(true);
+  const [savingAppSettings, setSavingAppSettings] = React.useState(false);
+  const [clearingAppSettings, setClearingAppSettings] = React.useState(false);
 
   // Initialize company profile and app settings
   React.useEffect(() => {
-    const c = getCompanyProfile();
-    if (c) {
-      setName(c.name || "");
-      setEmail(c.email || "");
-      setPhone(c.phone || "");
-      setWebsite(c.website || "");
-      setAddress(c.address || "");
-      setLicenseNumber(c.licenseNumber || "");
-      setVatNumber(c.vatNumber || "");
-      setRegNumber(c.regNumber || "");
-      setLogoDataUrl(c.logoDataUrl || null);
-    }
+    const loadSettings = async () => {
+      setLoadingAppSettings(true);
+      const c = getCompanyProfile();
+      if (c) {
+        setName(c.name || "");
+        setEmail(c.email || "");
+        setPhone(c.phone || "");
+        setWebsite(c.website || "");
+        setAddress(c.address || "");
+        setLicenseNumber(c.licenseNumber || "");
+        setVatNumber(c.vatNumber || "");
+        setRegNumber(c.regNumber || "");
+        setLogoDataUrl(c.logoDataUrl || null);
+      }
 
-    const s = getAppSettings();
-    setAllowStockBelowCost(s.allowStockBelowCost);
-    setDontSellBelowCost(s.dontSellBelowCost);
-    setSlipMessage1(s.slipMessage1 || "");
-    setSlipMessage2(s.slipMessage2 || "");
-    setSlipMessage3(s.slipMessage3 || "");
-    // NEW: Initialize WhatsApp API settings
-    setWahaBaseUrl(s.wahaBaseUrl || "");
-    setWahaApiKey(s.wahaApiKey || "");
-    setWahaSessionName(s.wahaSessionName || "");
-    setWahaPhoneNumber(s.wahaPhoneNumber || "");
+      const s = await getAppSettings(); // Await the async function
+      setAllowStockBelowCost(s.allowStockBelowCost);
+      setDontSellBelowCost(s.dontSellBelowCost);
+      setSlipMessage1(s.slipMessage1 || "");
+      setSlipMessage2(s.slipMessage2 || "");
+      setSlipMessage3(s.slipMessage3 || "");
+      setWahaBaseUrl(s.wahaBaseUrl || "");
+      setWahaApiKey(s.wahaApiKey || "");
+      setWahaSessionName(s.wahaSessionName || "");
+      setWahaPhoneNumber(s.wahaPhoneNumber || "");
+      setLoadingAppSettings(false);
+    };
+
+    loadSettings();
   }, []);
 
   // Handlers for Company Profile
@@ -127,35 +136,49 @@ const SettingsPage = () => {
   };
 
   // Handlers for App Settings (including new WhatsApp API settings)
-  const handleSaveAppSettings = () => {
-    saveAppSettings({
-      allowStockBelowCost,
-      dontSellBelowCost,
-      slipMessage1: slipMessage1.trim(),
-      slipMessage2: slipMessage2.trim(),
-      slipMessage3: slipMessage3.trim(),
-      // NEW: Save WhatsApp API settings
-      wahaBaseUrl: wahaBaseUrl.trim(),
-      wahaApiKey: wahaApiKey.trim(),
-      wahaSessionName: wahaSessionName.trim(),
-      wahaPhoneNumber: wahaPhoneNumber.trim(),
-    });
-    showSuccess("App settings saved successfully");
+  const handleSaveAppSettings = async () => {
+    setSavingAppSettings(true);
+    try {
+      await saveAppSettings({
+        allowStockBelowCost,
+        dontSellBelowCost,
+        slipMessage1: slipMessage1.trim(),
+        slipMessage2: slipMessage2.trim(),
+        slipMessage3: slipMessage3.trim(),
+        wahaBaseUrl: wahaBaseUrl.trim(),
+        wahaApiKey: wahaApiKey.trim(),
+        wahaSessionName: wahaSessionName.trim(),
+        wahaPhoneNumber: wahaPhoneNumber.trim(),
+      });
+      showSuccess("App settings saved successfully");
+    } catch (error) {
+      showError("Failed to save app settings.");
+      console.error("Error saving app settings:", error);
+    } finally {
+      setSavingAppSettings(false);
+    }
   };
 
-  const handleClearAppSettings = () => {
-    clearAppSettings();
-    setAllowStockBelowCost(true);
-    setDontSellBelowCost(false);
-    setSlipMessage1("");
-    setSlipMessage2("");
-    setSlipMessage3("");
-    // NEW: Clear WhatsApp API settings
-    setWahaBaseUrl("");
-    setWahaApiKey("");
-    setWahaSessionName("");
-    setWahaPhoneNumber("");
-    showSuccess("App settings cleared");
+  const handleClearAppSettings = async () => {
+    setClearingAppSettings(true);
+    try {
+      await clearAppSettings();
+      setAllowStockBelowCost(true);
+      setDontSellBelowCost(false);
+      setSlipMessage1("");
+      setSlipMessage2("");
+      setSlipMessage3("");
+      setWahaBaseUrl("");
+      setWahaApiKey("");
+      setWahaSessionName("");
+      setWahaPhoneNumber("");
+      showSuccess("App settings cleared");
+    } catch (error) {
+      showError("Failed to clear app settings.");
+      console.error("Error clearing app settings:", error);
+    } finally {
+      setClearingAppSettings(false);
+    }
   };
 
   const clearGroups = () => {
@@ -169,7 +192,15 @@ const SettingsPage = () => {
   };
 
   const hasCompanyData = !!getCompanyProfile();
-  // const canSaveCompanyExtras = !!name.trim() && !!email.trim(); // Original condition
+
+  if (loadingAppSettings) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <span className="ml-2 text-gray-600">Loading settings...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -304,7 +335,6 @@ const SettingsPage = () => {
                 </Button>
                 <Button
                   onClick={handleSaveCompany}
-                  // disabled={!name.trim() || !email.trim()} // Removed disabled prop
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   <Save className="size-4" />
@@ -388,18 +418,12 @@ const SettingsPage = () => {
                         </p>
                       )}
                     </div>
-                    {/* {!canSaveCompanyExtras && ( // Original condition */}
-                    {/*   <p className="text-xs text-gray-500"> */}
-                    {/*     Company name and email must be set to save these details. */}
-                    {/*   </p> */}
-                    {/* )} */}
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex gap-3 justify-end pt-6 px-0">
                 <Button
                   onClick={handleSaveCompany}
-                  // disabled={!canSaveCompanyExtras} // Removed disabled prop
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   <Save className="size-4" />
@@ -408,7 +432,7 @@ const SettingsPage = () => {
               </CardFooter>
             </Card>
 
-            {/* NEW: WAHA API Settings Card */}
+            {/* WAHA API Settings Card */}
             <Card className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm">
               <CardHeader className="p-0 pb-6">
                 <div className="flex items-center gap-3">
@@ -481,17 +505,19 @@ const SettingsPage = () => {
               <CardFooter className="flex gap-3 justify-end pt-6 px-0">
                 <Button
                   variant="outline"
-                  onClick={handleClearAppSettings} // Reusing clear app settings for now
+                  onClick={handleClearAppSettings}
+                  disabled={clearingAppSettings || savingAppSettings}
                   className="border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
-                  <Trash2 className="size-4 mr-2" />
+                  {clearingAppSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="size-4 mr-2" />}
                   Clear
                 </Button>
                 <Button
-                  onClick={handleSaveAppSettings} // Reusing save app settings for now
+                  onClick={handleSaveAppSettings}
+                  disabled={savingAppSettings || clearingAppSettings}
                   className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
                 >
-                  <Save className="size-4" />
+                  {savingAppSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="size-4" />}
                   Save WAHA Settings
                 </Button>
               </CardFooter>
