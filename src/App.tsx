@@ -52,6 +52,7 @@ import CustomerPage from "./pages/store-pos/Customer";
 import BackofficePage from "./pages/store-pos/Backoffice";
 import ReportsPage from "./pages/store-pos/Reports";
 import PosSettingsPage from "./pages/store-pos/PosSettings";
+import LogoutButton from "@/components/LogoutButton"; // Import the new LogoutButton
 
 /* =========================================================================
     SIDEBAR NAVIGATION
@@ -231,7 +232,8 @@ const SidebarContentWithToggle = () => {
           </div>
         ) : (
           // When expanded, show the full footer
-          <div className="flex justify-start">
+          <div className="flex flex-col gap-2"> {/* Added flex-col and gap for spacing */}
+            <LogoutButton /> {/* The new Logout button */}
             <img src="/images/logo.png" className="size-15 object-contain" />
           </div>
         )}
