@@ -53,6 +53,7 @@ import BackofficePage from "./pages/store-pos/Backoffice";
 import ReportsPage from "./pages/store-pos/Reports";
 import PosSettingsPage from "./pages/store-pos/PosSettings";
 import LogoutButton from "@/components/LogoutButton"; // Import the new LogoutButton
+import ProtectedRoute from "@/components/ProtectedRoute"; // Import ProtectedRoute
 
 /* =========================================================================
     SIDEBAR NAVIGATION
@@ -295,27 +296,28 @@ const RoutedApp = () => {
       <SidebarInset>
         <main className="flex-1 overflow-auto p-6 lg:p-6 pt-16 lg:pt-6">
           <Routes>
-            <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/groups" element={<GroupsPage />} />
-            <Route path="/groups/:id" element={<GroupDetailPage />} />
-            <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/uploads" element={<UploadsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/scheduler" element={<SchedulerPage />} />
-            <Route path="/reminders" element={<RemindersPage />} />
-            <Route path="/store-pos" element={<StorePosPage />} />
-            <Route path="/store-pos/sales" element={<SalesPage />} />
+            {/* Protected Routes */}
+            <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
+            <Route path="/groups/:id" element={<ProtectedRoute><GroupDetailPage /></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+            <Route path="/uploads" element={<ProtectedRoute><UploadsPage /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="/scheduler" element={<ProtectedRoute><SchedulerPage /></ProtectedRoute>} />
+            <Route path="/reminders" element={<ProtectedRoute><RemindersPage /></ProtectedRoute>} />
+            <Route path="/store-pos" element={<ProtectedRoute><StorePosPage /></ProtectedRoute>} />
+            <Route path="/store-pos/sales" element={<ProtectedRoute><SalesPage /></ProtectedRoute>} />
             <Route
               path="/store-pos/stock-control"
-              element={<StockControlPage />}
+              element={<ProtectedRoute><StockControlPage /></ProtectedRoute>}
             />
-            <Route path="/store-pos/supplier" element={<SupplierPage />} />
-            <Route path="/store-pos/customer" element={<CustomerPage />} />
-            <Route path="/store-pos/backoffice" element={<BackofficePage />} />
-            <Route path="/store-pos/reports" element={<ReportsPage />} />
-            <Route path="/store-pos/settings" element={<PosSettingsPage />} />
+            <Route path="/store-pos/supplier" element={<ProtectedRoute><SupplierPage /></ProtectedRoute>} />
+            <Route path="/store-pos/customer" element={<ProtectedRoute><CustomerPage /></ProtectedRoute>} />
+            <Route path="/store-pos/backoffice" element={<ProtectedRoute><BackofficePage /></ProtectedRoute>} />
+            <Route path="/store-pos/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+            <Route path="/store-pos/settings" element={<ProtectedRoute><PosSettingsPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
