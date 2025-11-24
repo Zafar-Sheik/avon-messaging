@@ -144,25 +144,25 @@ const DashboardStats: React.FC = () => {
       <h3 className="text-xl font-semibold text-gray-900 mt-6">WhatsApp Campaign Stats</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"> {/* Smaller gap */}
         <StatTile
-          icon={<Send className="size-6" />} {/* Smaller icon */}
+          icon={<Send className="size-6" />}
           label="Messages Sent"
           value={whatsAppStats.sentCount}
           color="green"
         />
         <StatTile
-          icon={<Clock className="size-6" />} {/* Smaller icon */}
+          icon={<Clock className="size-6" />}
           label="Pending Messages"
           value={whatsAppStats.pendingCount}
           color="orange"
         />
         <StatTile
-          icon={<Users className="size-6" />} {/* Smaller icon */}
+          icon={<Users className="size-6" />}
           label="Total Contacts"
           value={whatsAppStats.contactCount}
           color="blue"
         />
         <StatTile
-          icon={<LayoutDashboard className="size-6" />} {/* Smaller icon */}
+          icon={<LayoutDashboard className="size-6" />}
           label="Active Groups"
           value={whatsAppStats.groupCount}
           color="purple"
