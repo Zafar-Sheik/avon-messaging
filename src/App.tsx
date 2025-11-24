@@ -27,6 +27,7 @@ import {
   Settings,
   Calendar,
   Store,
+  Cog, // Added Cog icon for Setup
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ import CustomerPage from "./pages/store-pos/Customer";
 import BackofficePage from "./pages/store-pos/Backoffice";
 import ReportsPage from "./pages/store-pos/Reports";
 import PosSettingsPage from "./pages/store-pos/PosSettings";
+import SetupPage from "./pages/Setup"; // Import the new SetupPage
 import LogoutButton from "@/components/LogoutButton"; // Import the new LogoutButton
 import ProtectedRoute from "@/components/ProtectedRoute"; // Import ProtectedRoute
 
@@ -71,6 +73,7 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
     { icon: Store, label: "Store Pos", path: "/store-pos" },
     { icon: Calendar, label: "Scheduler", path: "/scheduler" },
     { icon: Clock, label: "Reminders", path: "/reminders" },
+    { icon: Cog, label: "Setup", path: "/setup" }, // Added new Setup item
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
 
@@ -318,6 +321,7 @@ const RoutedApp = () => {
             <Route path="/store-pos/backoffice" element={<ProtectedRoute><BackofficePage /></ProtectedRoute>} />
             <Route path="/store-pos/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
             <Route path="/store-pos/settings" element={<ProtectedRoute><PosSettingsPage /></ProtectedRoute>} />
+            <Route path="/setup" element={<ProtectedRoute><SetupPage /></ProtectedRoute>} /> {/* New Setup route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
