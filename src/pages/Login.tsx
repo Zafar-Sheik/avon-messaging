@@ -10,27 +10,20 @@ import { Loader2 } from "lucide-react"; // Import Loader2 for loading state
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = React.useState(true); // New loading state
+  const [loading, setLoading] = React.useState(true);
 
+  // Removed the useEffect for session checking here.
+  // Relying on ProtectedRoute for initial session check and redirection.
   React.useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        navigate("/", { replace: true });
-      }
-      setLoading(false); // Set loading to false after initial session check
-    };
-    checkSession();
+    // Still need to set loading to false so the Auth component renders.
+    // This useEffect will only run once on mount.
+    setLoading(false);
+  }, []);
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        navigate("/", { replace: true });
-      }
-    });
-    return () => {
-      sub.subscription.unsubscribe();
-    };
-  }, [navigate]);
+  const handleAuthError = (error: Error) => {
+    console.error("Supabase Auth UI Error:", error.message);
+    // You might want to display a toast or alert here
+  };
 
   if (loading) {
     return (
@@ -50,10 +43,12 @@ const Login: React.FC = () => {
         <CardContent>
           <Auth
             supabaseClient={supabase}
-            providers={["email"]} // Explicitly enable email provider
-            magicLink={true} // Enable magic link for alternative login flow
+            providers={["email"]}
+            magicLink={true}
             appearance={{ theme: ThemeSupa }}
             theme="light"
+            redirectTo={window.location.origin + '/'} // Explicitly set redirect URL
+            onError={handleAuthError} // Log errors from the Auth component
           />
         </CardContent>
       </Card>
