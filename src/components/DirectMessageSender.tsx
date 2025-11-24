@@ -67,7 +67,10 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
     }
 
     setIsSending(true);
-    try { // ADDED TRY BLOCK
+    let sendStatus: 'sent' | 'failed' | 'pending' = 'pending';
+    let sendErrorMessage: string | undefined;
+
+    try {
       const finalMessage = message.trim();
       const contactsToSend = [targetContact];
 
@@ -78,20 +81,41 @@ const DirectMessageSender: React.FC<DirectMessageSenderProps> = ({
       );
       
       if (result.success) {
-        const directMessagesGroup = getOrCreateDirectMessagesGroup();
-        const { updated } = await recordGroupMessageSent(
-          directMessagesGroup.id,
-          finalMessage,
-          contactsToSend
-        );
-        if (updated) {
-          setMessage("");
-          setAttachments([]);
-          setManualPhoneNumber(""); // Clear manual input after sending
-          onMessageSent(finalMessage, contactsToSend);
-        }
+        sendStatus = 'sent';
+      } else {
+        sendStatus = 'failed';
+        sendErrorMessage = result.error;
       }
-    } finally { // ADDED FINALLY BLOCK
+
+      const directMessagesGroup = getOrCreateDirectMessagesGroup();
+      const { updated } = await recordGroupMessageSent(
+        directMessagesGroup.id,
+        finalMessage,
+        contactsToSend,
+        sendStatus, // Pass the determined status
+        sendErrorMessage // Pass the error message
+      );
+      if (updated) {
+        setMessage("");
+        setAttachments([]);
+        setManualPhoneNumber(""); // Clear manual input after sending
+        onMessageSent(finalMessage, contactsToSend);
+      }
+    } catch (error: any) {
+      console.error("Error in handleSendDirectMessage:", error);
+      sendStatus = 'failed';
+      sendErrorMessage = error.message;
+      // Ensure history is still recorded even if an unexpected error occurs here
+      const directMessagesGroup = getOrCreateDirectMessagesGroup();
+      await recordGroupMessageSent(
+        directMessagesGroup.id,
+        message.trim(),
+        targetContact ? [targetContact] : [],
+        sendStatus,
+        sendErrorMessage
+      );
+      showError(sendErrorMessage || "An unexpected error occurred.");
+    } finally {
       setIsSending(false);
     }
   };

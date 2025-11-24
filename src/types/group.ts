@@ -10,6 +10,8 @@ export type SentHistoryItem = {
   phone: string;
   sentAt: string; // ISO string
   message: string;
+  status: 'sent' | 'failed' | 'pending'; // NEW: Status of the message send
+  error_message?: string; // NEW: Error message if sending failed
 };
 
 export type Group = {

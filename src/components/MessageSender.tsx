@@ -59,7 +59,10 @@ const MessageSender: React.FC<MessageSenderProps> = ({
     }
 
     setIsSendingBroadcast(true);
-    try { // ADDED TRY BLOCK
+    let sendStatus: 'sent' | 'failed' | 'pending' = 'pending';
+    let sendErrorMessage: string | undefined;
+
+    try {
       const finalMessage = message.trim(); // Use message directly
       const result = await sendWhatsAppBroadcast(finalMessage, group.contacts, attachments); // Pass attachments
 
@@ -67,20 +70,40 @@ const MessageSender: React.FC<MessageSenderProps> = ({
       console.log("WhatsApp Broadcast Result:", result);
 
       if (result.success) {
-        // Record the message in local history after successful (simulated) broadcast
-        const { updated } = await recordGroupMessageSent( // Await the async function
-          group.id,
-          finalMessage,
-          group.contacts
-        );
-        if (updated) {
-          setGroup(updated); // Update local group state
-          setMessage("");
-          setAttachments([]); // Clear attachments as well
-          onMessageSent(finalMessage, group.contacts); // Notify parent
-        }
+        sendStatus = 'sent';
+      } else {
+        sendStatus = 'failed';
+        sendErrorMessage = result.error;
       }
-    } finally { // ADDED FINALLY BLOCK
+
+      // Record the message in local history after the broadcast attempt
+      const { updated } = await recordGroupMessageSent( // Await the async function
+        group.id,
+        finalMessage,
+        group.contacts,
+        sendStatus, // Pass the determined status
+        sendErrorMessage // Pass the error message
+      );
+      if (updated) {
+        setGroup(updated); // Update local group state
+        setMessage("");
+        setAttachments([]); // Clear attachments as well
+        onMessageSent(finalMessage, group.contacts); // Notify parent
+      }
+    } catch (error: any) {
+      console.error("Error in handleSendBroadcast:", error);
+      sendStatus = 'failed';
+      sendErrorMessage = error.message;
+      // Ensure history is still recorded even if an unexpected error occurs here
+      await recordGroupMessageSent(
+        group.id,
+        message.trim(),
+        group.contacts,
+        sendStatus,
+        sendErrorMessage
+      );
+      showError(sendErrorMessage || "An unexpected error occurred.");
+    } finally {
       setIsSendingBroadcast(false);
     }
   };

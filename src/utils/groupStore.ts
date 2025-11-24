@@ -198,13 +198,15 @@ export const deleteContactFromGroup = (
 export const recordGroupMessageSent = async ( // Made async
   groupId: string,
   message: string,
-  contactsSent: Array<{ name: string; phone: string }>
+  contactsSent: Array<{ name: string; phone: string }>,
+  status: 'sent' | 'failed' | 'pending' = 'pending', // NEW: Add status parameter
+  errorMessage?: string // NEW: Add errorMessage parameter
 ): Promise<{ updated?: Group }> => { // Return a Promise
   const { data: userRes } = await supabase.auth.getUser();
   const user = userRes.user;
+  // Do not return early if user is not authenticated; still save to local storage.
   if (!user) {
-    console.error("User not authenticated. Cannot save sent history to Supabase.");
-    // Continue to save to local storage even if Supabase fails due to auth
+    console.warn("User not authenticated. Supabase history will not be saved.");
   }
 
   const groups = loadGroups();
@@ -218,6 +220,8 @@ export const recordGroupMessageSent = async ( // Made async
     phone: normalizePhone(c.phone),
     sentAt: now,
     message: message || "",
+    status: status, // NEW: Use the passed status
+    error_message: errorMessage, // NEW: Use the passed error message
   }));
 
   group.sentHistory = [...historyItems, ...group.sentHistory];
@@ -259,6 +263,8 @@ export const recordGroupMessageSent = async ( // Made async
           phone_number: item.phone,
           sent_at: item.sentAt,
           message: item.message,
+          status: item.status, // NEW: Include status
+          error_message: item.error_message, // NEW: Include error_message
         }));
 
         const { error: insertHistoryErr } = await supabase
