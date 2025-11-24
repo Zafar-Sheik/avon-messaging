@@ -64,37 +64,37 @@ const SettingsPage = () => {
   const [clearingAppSettings, setClearingAppSettings] = React.useState(false);
 
   // Initialize company profile and app settings
-  React.useEffect(() => {
-    const loadSettings = async () => {
-      setLoadingAppSettings(true);
-      const c = getCompanyProfile();
-      if (c) {
-        setName(c.name || "");
-        setEmail(c.email || "");
-        setPhone(c.phone || "");
-        setWebsite(c.website || "");
-        setAddress(c.address || "");
-        setLicenseNumber(c.licenseNumber || "");
-        setVatNumber(c.vatNumber || "");
-        setRegNumber(c.regNumber || "");
-        setLogoDataUrl(c.logoDataUrl || null);
-      }
+  const loadSettings = React.useCallback(async () => {
+    setLoadingAppSettings(true);
+    const c = getCompanyProfile();
+    if (c) {
+      setName(c.name || "");
+      setEmail(c.email || "");
+      setPhone(c.phone || "");
+      setWebsite(c.website || "");
+      setAddress(c.address || "");
+      setLicenseNumber(c.licenseNumber || "");
+      setVatNumber(c.vatNumber || "");
+      setRegNumber(c.regNumber || "");
+      setLogoDataUrl(c.logoDataUrl || null);
+    }
 
-      const s = await getAppSettings(); // Await the async function
-      setAllowStockBelowCost(s.allowStockBelowCost);
-      setDontSellBelowCost(s.dontSellBelowCost);
-      setSlipMessage1(s.slipMessage1 || "");
-      setSlipMessage2(s.slipMessage2 || "");
-      setSlipMessage3(s.slipMessage3 || "");
-      setWahaBaseUrl(s.wahaBaseUrl || "");
-      setWahaApiKey(s.wahaApiKey || "");
-      setWahaSessionName(s.wahaSessionName || "");
-      setWahaPhoneNumber(s.wahaPhoneNumber || "");
-      setLoadingAppSettings(false);
-    };
-
-    loadSettings();
+    const s = await getAppSettings(); // Await the async function
+    setAllowStockBelowCost(s.allowStockBelowCost);
+    setDontSellBelowCost(s.dontSellBelowCost);
+    setSlipMessage1(s.slipMessage1 || "");
+    setSlipMessage2(s.slipMessage2 || "");
+    setSlipMessage3(s.slipMessage3 || "");
+    setWahaBaseUrl(s.wahaBaseUrl || "");
+    setWahaApiKey(s.wahaApiKey || "");
+    setWahaSessionName(s.wahaSessionName || "");
+    setWahaPhoneNumber(s.wahaPhoneNumber || "");
+    setLoadingAppSettings(false);
   }, []);
+
+  React.useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   // Handlers for Company Profile
   const handleSaveCompany = () => {
@@ -151,6 +151,7 @@ const SettingsPage = () => {
         wahaPhoneNumber: wahaPhoneNumber.trim(),
       });
       showSuccess("App settings saved successfully");
+      await loadSettings(); // Re-fetch settings after successful save
     } catch (error) {
       showError("Failed to save app settings.");
       console.error("Error saving app settings:", error);
@@ -163,16 +164,8 @@ const SettingsPage = () => {
     setClearingAppSettings(true);
     try {
       await clearAppSettings();
-      setAllowStockBelowCost(true);
-      setDontSellBelowCost(false);
-      setSlipMessage1("");
-      setSlipMessage2("");
-      setSlipMessage3("");
-      setWahaBaseUrl("");
-      setWahaApiKey("");
-      setWahaSessionName("");
-      setWahaPhoneNumber("");
       showSuccess("App settings cleared");
+      await loadSettings(); // Re-fetch settings after successful clear
     } catch (error) {
       showError("Failed to clear app settings.");
       console.error("Error clearing app settings:", error);
