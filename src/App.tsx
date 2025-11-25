@@ -15,7 +15,7 @@ import {
   useSidebar,
 } from "@/components/Sidebar";
 
-import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom"; // Import Link
+import { BrowserRouter, Routes, Route, useLocation, Link } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import {
@@ -27,15 +27,13 @@ import {
   Settings,
   Calendar,
   Store,
-  Cog, // Added Cog icon for Setup
+  Cog,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import React from "react";
 
 // Pages
-import Index from "./pages/Index";
-import Login from "./pages/Login";
 import DashboardPage from "./pages/Dashboard";
 import GroupsPage from "./pages/Groups";
 import GroupDetailPage from "./pages/GroupDetail";
@@ -53,9 +51,7 @@ import CustomerPage from "./pages/store-pos/Customer";
 import BackofficePage from "./pages/store-pos/Backoffice";
 import ReportsPage from "./pages/store-pos/Reports";
 import PosSettingsPage from "./pages/store-pos/PosSettings";
-import SetupPage from "./pages/Setup"; // Import the new SetupPage
-import LogoutButton from "@/components/LogoutButton"; // Import the new LogoutButton
-import ProtectedRoute from "@/components/ProtectedRoute"; // Import ProtectedRoute
+import SetupPage from "./pages/Setup";
 
 /* =========================================================================
     SIDEBAR NAVIGATION
@@ -73,7 +69,7 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
     { icon: Store, label: "Store Pos", path: "/store-pos" },
     { icon: Calendar, label: "Scheduler", path: "/scheduler" },
     { icon: Clock, label: "Reminders", path: "/reminders" },
-    { icon: Cog, label: "Setup", path: "/setup" }, // Added new Setup item
+    { icon: Cog, label: "Setup", path: "/setup" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
 
@@ -91,9 +87,9 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
         const active = isActive(item.path, item.exact);
 
         return (
-          <Link // Changed from <a> to <Link>
+          <Link
             key={item.path}
-            to={item.path} // Use 'to' prop for Link
+            to={item.path}
             onClick={handleClick}
             className={cn(
               "flex items-center rounded-xl text-sm font-medium transition-all border border-transparent",
@@ -130,9 +126,7 @@ const SidebarContentWithToggle = () => {
 
   const handleLogoClick = () => {
     if (isCollapsed) {
-      // Expand the sidebar when logo is clicked and it's collapsed
       setIsCollapsed(false);
-      // On mobile, keep the sidebar open when expanding
       if (window.innerWidth < 1024) {
         setIsMobileOpen(true);
       }
@@ -143,13 +137,10 @@ const SidebarContentWithToggle = () => {
     const newCollapsedState = !isCollapsed;
     setIsCollapsed(newCollapsedState);
 
-    // On mobile, close the sidebar when we collapse it
     if (window.innerWidth < 1024) {
       if (!newCollapsedState) {
-        // If expanding on mobile, keep it open
         setIsMobileOpen(true);
       } else {
-        // If collapsing on mobile, close it
         setIsMobileOpen(false);
       }
     }
@@ -157,14 +148,12 @@ const SidebarContentWithToggle = () => {
 
   return (
     <Sidebar collapsible="icon" className="bg-blue-50 border-r">
-      {/* HEADER */}
       <SidebarHeader>
         <div
           className={cn(
             "flex items-center gap-3 relative",
             isCollapsed && "justify-center"
           )}>
-          {/* Logo - Clickable when collapsed */}
           <div
             onClick={isCollapsed ? handleLogoClick : undefined}
             className={cn(
@@ -182,7 +171,6 @@ const SidebarContentWithToggle = () => {
             />
           </div>
 
-          {/* Title and toggle button (hidden when collapsed) */}
           {!isCollapsed && (
             <>
               <div className="flex-1 min-w-0">
@@ -191,7 +179,6 @@ const SidebarContentWithToggle = () => {
                 </p>
               </div>
 
-              {/* Collapse button (only shown when expanded) */}
               <button
                 onClick={handleToggle}
                 className="p-2 rounded-full hover:bg-gray-200 transition shrink-0"
@@ -215,17 +202,14 @@ const SidebarContentWithToggle = () => {
         </div>
       </SidebarHeader>
 
-      {/* CONTENT - Only show navigation when expanded */}
       {!isCollapsed && (
         <SidebarContent>
           <SidebarNavigation isCollapsed={isCollapsed} />
         </SidebarContent>
       )}
 
-      {/* FOOTER - Show different content based on collapsed state */}
       <SidebarFooter>
         {isCollapsed ? (
-          // When collapsed, show only the bottom logo
           <div className="flex justify-center">
             <img
               src="/images/logo.png"
@@ -235,9 +219,7 @@ const SidebarContentWithToggle = () => {
             />
           </div>
         ) : (
-          // When expanded, show the full footer
-          <div className="flex flex-col gap-2"> {/* Added flex-col and gap for spacing */}
-            <LogoutButton /> {/* The new Logout button */}
+          <div className="flex flex-col gap-2">
             <img src="/images/logo.png" className="size-15 object-contain" />
           </div>
         )}
@@ -253,7 +235,6 @@ const SidebarContentWithToggle = () => {
 const MobileSidebarToggle = () => {
   const { isMobileOpen, setIsMobileOpen } = useSidebar();
 
-  // Don't show the toggle button when sidebar is open on mobile
   if (isMobileOpen) return null;
 
   return (
@@ -289,39 +270,34 @@ const RoutedApp = () => {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* SIDEBAR */}
       {!hideSidebar && <SidebarContentWithToggle />}
 
-      {/* MOBILE TOGGLE BUTTON - Only shows when sidebar is closed on mobile */}
       {!hideSidebar && <MobileSidebarToggle />}
 
-      {/* MAIN CONTENT */}
       <SidebarInset>
         <main className="flex-1 overflow-auto p-6 lg:p-6 pt-16 lg:pt-6">
           <Routes>
-            <Route path="/login" element={<Login />} />
-            {/* Protected Routes */}
-            <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/groups" element={<ProtectedRoute><GroupsPage /></ProtectedRoute>} />
-            <Route path="/groups/:id" element={<ProtectedRoute><GroupDetailPage /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-            <Route path="/uploads" element={<ProtectedRoute><UploadsPage /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-            <Route path="/scheduler" element={<ProtectedRoute><SchedulerPage /></ProtectedRoute>} />
-            <Route path="/reminders" element={<ProtectedRoute><RemindersPage /></ProtectedRoute>} />
-            <Route path="/store-pos" element={<ProtectedRoute><StorePosPage /></ProtectedRoute>} />
-            <Route path="/store-pos/sales" element={<ProtectedRoute><SalesPage /></ProtectedRoute>} />
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/groups" element={<GroupsPage />} />
+            <Route path="/groups/:id" element={<GroupDetailPage />} />
+            <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/uploads" element={<UploadsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/scheduler" element={<SchedulerPage />} />
+            <Route path="/reminders" element={<RemindersPage />} />
+            <Route path="/store-pos" element={<StorePosPage />} />
+            <Route path="/store-pos/sales" element={<SalesPage />} />
             <Route
               path="/store-pos/stock-control"
-              element={<ProtectedRoute><StockControlPage /></ProtectedRoute>}
+              element={<StockControlPage />}
             />
-            <Route path="/store-pos/supplier" element={<ProtectedRoute><SupplierPage /></ProtectedRoute>} />
-            <Route path="/store-pos/customer" element={<ProtectedRoute><CustomerPage /></ProtectedRoute>} />
-            <Route path="/store-pos/backoffice" element={<ProtectedRoute><BackofficePage /></ProtectedRoute>} />
-            <Route path="/store-pos/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-            <Route path="/store-pos/settings" element={<ProtectedRoute><PosSettingsPage /></ProtectedRoute>} />
-            <Route path="/setup" element={<ProtectedRoute><SetupPage /></ProtectedRoute>} /> {/* New Setup route */}
+            <Route path="/store-pos/supplier" element={<SupplierPage />} />
+            <Route path="/store-pos/customer" element={<CustomerPage />} />
+            <Route path="/store-pos/backoffice" element={<BackofficePage />} />
+            <Route path="/store-pos/reports" element={<ReportsPage />} />
+            <Route path="/store-pos/settings" element={<PosSettingsPage />} />
+            <Route path="/setup" element={<SetupPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

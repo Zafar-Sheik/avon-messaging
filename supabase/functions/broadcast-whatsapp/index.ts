@@ -16,13 +16,12 @@ serve(async (req) => {
 
   try {
     // Create a Supabase client for the Edge Function
+    // Removed Authorization header as there's no authenticated user
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
+        // Removed global headers as there's no authenticated user
       }
     );
 

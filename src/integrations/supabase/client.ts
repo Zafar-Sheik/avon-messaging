@@ -7,7 +7,4 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-console.log("Supabase URL from VITE_SUPABASE_URL:", SUPABASE_URL);
-console.log("Supabase Publishable Key from VITE_SUPABASE_ANON_KEY:", SUPABASE_PUBLISHABLE_KEY);
-
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);

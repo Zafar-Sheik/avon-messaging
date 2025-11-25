@@ -45,12 +45,12 @@ export const sendWhatsAppBroadcast = async (
   const toastId = loadingToastId ? String(loadingToastId) : undefined; // Ensure toastId is a string
 
   try {
-    const appSettings = await getAppSettings(); // ADDED AWAIT HERE
+    const appSettings = await getAppSettings();
     const { wahaBaseUrl, wahaApiKey, wahaSessionName, wahaPhoneNumber } = appSettings;
 
     if (!wahaBaseUrl || !wahaApiKey || !wahaSessionName || !wahaPhoneNumber) {
       if (toastId) dismissToast(toastId);
-      const errorMessage = "WAHA API settings are incomplete. Please configure them in Settings.";
+      const errorMessage = "WAHA API settings are incomplete. Please configure them in Setup.";
       showError(errorMessage);
       logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', details: 'Missing WAHA settings' });
       return { success: false, error: errorMessage };
@@ -74,6 +74,7 @@ export const sendWhatsAppBroadcast = async (
           phoneNumber: wahaPhoneNumber,
         },
       },
+      // Removed headers as there's no authenticated user session
     });
 
     const timeoutPromise = new Promise((_, reject) =>
@@ -86,9 +87,8 @@ export const sendWhatsAppBroadcast = async (
       console.error("Supabase function invocation error:", error);
       if (toastId) dismissToast(toastId);
       let errorMessage = `Failed to invoke broadcast function: ${error.message || "Unknown error"}`;
-      if (error.status === 401) {
-        errorMessage = "Authentication failed for the broadcast function. Please ensure you are signed in.";
-      } else if (error.status === 400) {
+      // Removed 401 specific error message as authentication is bypassed
+      if (error.status === 400) {
         errorMessage = `Invalid request to broadcast function: ${error.message || "Check message content or contacts."}`;
       }
       showError(errorMessage);
@@ -122,7 +122,7 @@ export const sendWhatsAppBroadcast = async (
     
     return { success: true, data };
   } catch (err: any) {
-    if (toastId) dismissToast(toastId); // Ensure toast is dismissed on any caught error
+    if (toastId) dismissToast(toastId);
     console.error("Caught unexpected error in sendWhatsAppBroadcast:", err);
     const errorMessage = err.message || "An unexpected error occurred while sending the broadcast.";
     showError(errorMessage);

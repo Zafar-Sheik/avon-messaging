@@ -1,6 +1,7 @@
 "use client";
 
-import { supabase } from "@/integrations/supabase/client";
+// Removed supabase import as user is no longer authenticated
+// import { supabase } from "@/integrations/supabase/client";
 
 interface ErrorContext {
   component?: string;
@@ -14,22 +15,8 @@ export const logClientError = async (
   level: 'error' | 'warn' | 'info' = 'error',
   context?: ErrorContext
 ) => {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const { error } = await supabase
-      .from('client_error_logs')
-      .insert({
-        user_id: user?.id || null, // Log user ID if available
-        level,
-        message,
-        context: context || {},
-      });
-
-    if (error) {
-      console.error("Failed to log client error to Supabase:", error.message);
-    }
-  } catch (err) {
-    console.error("An unexpected error occurred while trying to log a client error:", err);
-  }
+  // Since there's no authenticated user, we'll log to console only.
+  // If Supabase logging is still desired, it would require a service role key
+  // or public inserts, which is generally not recommended for user-specific data.
+  console.error(`CLIENT ERROR [${level.toUpperCase()}]: ${message}`, context);
 };

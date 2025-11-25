@@ -187,28 +187,14 @@ export const deleteContactFromGroup = (
   return group;
 };
 
-// Removed formatWhatsAppLink as it's no longer used for direct API sending.
-// export const formatWhatsAppLink = (phone: string, message: string): string => {
-//   const normalized = normalizePhone(phone);
-//   const text = encodeURIComponent(message || "");
-//   return `https://wa.me/${normalized}?text=${text}`;
-// };
-
-// Renamed and modified to only record history, not clear contacts
-export const recordGroupMessageSent = async ( // Made async
+export const recordGroupMessageSent = async (
   groupId: string,
   message: string,
   contactsSent: Array<{ name: string; phone: string }>,
-  status: 'sent' | 'failed' | 'pending' = 'pending', // NEW: Add status parameter
-  errorMessage?: string // NEW: Add errorMessage parameter
-): Promise<{ updated?: Group }> => { // Return a Promise
-  const { data: userRes } = await supabase.auth.getUser();
-  const user = userRes.user;
-  // Do not return early if user is not authenticated; still save to local storage.
-  if (!user) {
-    console.warn("User not authenticated. Supabase history will not be saved.");
-  }
-
+  status: 'sent' | 'failed' | 'pending' = 'pending',
+  errorMessage?: string
+): Promise<{ updated?: Group }> => {
+  // Removed user check for local storage operations
   const groups = loadGroups();
   const group = groups.find((g) => g.id === groupId);
   if (!group) return {};
@@ -220,66 +206,16 @@ export const recordGroupMessageSent = async ( // Made async
     phone: normalizePhone(c.phone),
     sentAt: now,
     message: message || "",
-    status: status, // NEW: Use the passed status
-    error_message: errorMessage, // NEW: Use the passed error message
+    status: status,
+    error_message: errorMessage,
   }));
 
   group.sentHistory = [...historyItems, ...group.sentHistory];
   saveGroups(groups);
 
-  // --- NEW: Save to Supabase ---
-  if (user) {
-    try {
-      // Find or create the group in Supabase
-      let supabaseGroupId: string | undefined;
-      const { data: existingGroup, error: existingGroupErr } = await supabase
-        .from("avon_work_groups")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("name", group.name)
-        .limit(1)
-        .maybeSingle();
-
-      if (existingGroupErr) throw existingGroupErr;
-
-      if (existingGroup) {
-        supabaseGroupId = existingGroup.id;
-      } else {
-        // If group doesn't exist in Supabase, create it
-        const { data: newSupabaseGroup, error: newGroupErr } = await supabase
-          .from("avon_work_groups")
-          .insert({ user_id: user.id, name: group.name })
-          .select("id")
-          .single();
-        if (newGroupErr) throw newGroupErr;
-        supabaseGroupId = newSupabaseGroup.id;
-      }
-
-      if (supabaseGroupId) {
-        const supabaseHistoryInserts = historyItems.map((item) => ({
-          user_id: user.id,
-          avon_work_group_id: supabaseGroupId,
-          contact_name: item.name,
-          phone_number: item.phone,
-          sent_at: item.sentAt,
-          message: item.message,
-          status: item.status, // NEW: Include status
-          error_message: item.error_message, // NEW: Include error_message
-        }));
-
-        const { error: insertHistoryErr } = await supabase
-          .from("avon_work_sent_history")
-          .insert(supabaseHistoryInserts);
-
-        if (insertHistoryErr) throw insertHistoryErr;
-        console.log(`Saved ${supabaseHistoryInserts.length} history items to Supabase.`);
-      }
-    } catch (dbError: any) {
-      console.error("Failed to save sent history to Supabase:", dbError.message);
-      // Optionally, show an error toast here if you want to notify the user about the DB save failure
-    }
-  }
-  // --- END NEW ---
+  // Removed Supabase saving logic as there's no authenticated user
+  // If Supabase saving is desired without authentication, it would require a service role key
+  // or public inserts, which is generally not recommended for user-specific data.
 
   return { updated: group };
 };
@@ -295,9 +231,8 @@ export const updateGroupName = (groupId: string, name: string): Group | undefine
   if (!nextName) return undefined;
 
   const groups = loadGroups();
-  // Check for duplicate names, excluding the current group
   if (groups.some(g => g.id !== groupId && g.name.toLowerCase() === nextName.toLowerCase())) {
-    return undefined; // Duplicate name found
+    return undefined;
   }
 
   const group = groups.find((g) => g.id === groupId);
