@@ -14,6 +14,9 @@ const Login: React.FC = () => {
 
   React.useEffect(() => {
     setLoading(false);
+    // Debugging: Log Supabase client details
+    console.log("Supabase Client URL:", supabase.supabaseUrl);
+    console.log("Supabase Client Anon Key:", supabase.anonKey);
   }, []);
 
   const handleAuthError = (error: Error) => {
