@@ -118,10 +118,11 @@ serve(async (req) => {
             });
 
             const responseData = await response.json();
-            console.log(`Edge Function: WAHA API response for attachment to ${contact.phone}:`, responseData);
+            console.log(`Edge Function: WAHA API response for attachment to ${contact.phone}:`, JSON.stringify(responseData)); // Log full response
 
             if (!response.ok || responseData.result !== 'success') {
               const errorMessage = responseData.message || responseData.error || `WAHA API error sending ${attachment.name}`;
+              console.error(`Edge Function: WAHA API reported error for attachment to ${contact.phone}:`, errorMessage, JSON.stringify(responseData)); // Log error details
               throw new Error(errorMessage); // Propagate error to catch block
             }
             
@@ -152,10 +153,11 @@ serve(async (req) => {
           });
 
           const responseData = await response.json();
-          console.log(`Edge Function: WAHA API response for text to ${contact.phone}:`, responseData);
+          console.log(`Edge Function: WAHA API response for text to ${contact.phone}:`, JSON.stringify(responseData)); // Log full response
 
           if (!response.ok || responseData.result !== 'success') {
             const errorMessage = responseData.message || responseData.error || 'WAHA API error sending text message';
+            console.error(`Edge Function: WAHA API reported error for text to ${contact.phone}:`, errorMessage, JSON.stringify(responseData)); // Log error details
             throw new Error(errorMessage);
           }
         }

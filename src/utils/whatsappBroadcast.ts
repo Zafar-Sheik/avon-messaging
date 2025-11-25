@@ -87,7 +87,6 @@ export const sendWhatsAppBroadcast = async (
       console.error("Supabase function invocation error:", error);
       if (toastId) dismissToast(toastId);
       let errorMessage = `Failed to invoke broadcast function: ${error.message || "Unknown error"}`;
-      // Removed 401 specific error message as authentication is bypassed
       if (error.status === 400) {
         errorMessage = `Invalid request to broadcast function: ${error.message || "Check message content or contacts."}`;
       }
@@ -108,6 +107,7 @@ export const sendWhatsAppBroadcast = async (
 
     if (toastId) dismissToast(toastId);
 
+    // Refined logic for displaying toasts and returning success status
     if (data.successfulSends === 0 && data.failedSends > 0) {
       const errorMessage = `Broadcast failed for all contacts. Failed: ${data.failedSends}. Please check your WAHA API settings and contact numbers.`;
       showError(errorMessage);
@@ -116,11 +116,16 @@ export const sendWhatsAppBroadcast = async (
     } else if (data.successfulSends > 0 && data.failedSends > 0) {
       showSuccess(`Broadcast partially successful. Successful: ${data.successfulSends}, Failed: ${data.failedSends}. Some messages could not be sent.`);
       logClientError(`Broadcast partially successful. Failed: ${data.failedSends} messages.`, 'warn', { functionName: 'sendWhatsAppBroadcast', details: data.details });
-    } else {
+      return { success: true, data }; // Return success: true if at least one message went through
+    } else if (data.successfulSends > 0 && data.failedSends === 0) {
       showSuccess(`Broadcast sent! Successful: ${data.successfulSends}, Failed: ${data.failedSends}.`);
+      return { success: true, data };
+    } else { // This case should ideally not be reached if contacts were provided and validated
+      const errorMessage = "Broadcast completed with no successful or failed sends. Check contacts and WAHA API status.";
+      showError(errorMessage);
+      logClientError(errorMessage, 'error', { functionName: 'sendWhatsAppBroadcast', details: data.details });
+      return { success: false, error: errorMessage };
     }
-    
-    return { success: true, data };
   } catch (err: any) {
     if (toastId) dismissToast(toastId);
     console.error("Caught unexpected error in sendWhatsAppBroadcast:", err);
